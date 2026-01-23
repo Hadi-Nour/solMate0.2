@@ -146,20 +146,7 @@ export default function OnlineGameScreen({
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
     };
-  }, []);
-
-  const playSound = (type) => {
-    if (!settings?.soundEnabled) return;
-    if (settings?.hapticEnabled && navigator.vibrate) {
-      switch(type) {
-        case 'move': navigator.vibrate(10); break;
-        case 'capture': navigator.vibrate([20, 10, 20]); break;
-        case 'check': navigator.vibrate([50, 30, 50]); break;
-        case 'win': navigator.vibrate([100, 50, 100, 50, 100]); break;
-        default: break;
-      }
-    }
-  };
+  }, [playSound, onGameEnd]);
 
   const handleSquareClick = (square) => {
     if (!isMyTurn || showResultModal) return;
