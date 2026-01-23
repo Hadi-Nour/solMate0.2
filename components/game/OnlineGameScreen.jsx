@@ -334,9 +334,15 @@ export default function OnlineGameScreen({
           <span className="text-sm font-medium">
             {isMyTurn ? '✨ Your turn' : 'Waiting...'}
           </span>
-          <span className={`font-mono font-bold text-lg ${getTimeClass(timeLeft[yourColor])}`}>
-            {formatTime(timeLeft[yourColor])}
-          </span>
+          {isUnlimited ? (
+            <span className="font-mono text-muted-foreground">
+              <Infinity className="h-4 w-4 inline" />
+            </span>
+          ) : (
+            <span className={`font-mono font-bold text-lg ${getTimeClass(timeLeft[yourColor])}`}>
+              {formatTime(timeLeft[yourColor])}
+            </span>
+          )}
         </div>
       </div>
 
