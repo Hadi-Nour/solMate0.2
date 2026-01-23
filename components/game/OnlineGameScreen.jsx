@@ -275,9 +275,15 @@ export default function OnlineGameScreen({
           <span className="text-sm font-mono">
             Opponent
           </span>
-          <span className={`font-mono font-bold ${getTimeClass(timeLeft[yourColor === 'white' ? 'black' : 'white'])}`}>
-            {formatTime(timeLeft[yourColor === 'white' ? 'black' : 'white'])}
-          </span>
+          {isUnlimited ? (
+            <span className="font-mono text-muted-foreground">
+              <Infinity className="h-4 w-4 inline" />
+            </span>
+          ) : (
+            <span className={`font-mono font-bold ${getTimeClass(timeLeft[yourColor === 'white' ? 'black' : 'white'])}`}>
+              {formatTime(timeLeft[yourColor === 'white' ? 'black' : 'white'])}
+            </span>
+          )}
         </div>
       </div>
 
