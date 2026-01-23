@@ -40,7 +40,7 @@ const getConfig = () => {
   return { cluster, rpcUrl, developerWallet, usdcMint };
 };
 
-export function useVipPayment({ wallet, signTransaction, authToken, onSuccess, onError }) {
+export function useVipPayment({ wallet, signTransaction, signAndSendTransaction, authToken, onSuccess, onError }) {
   const [paymentState, setPaymentState] = useState(PAYMENT_STATES.IDLE);
   const [errorMessage, setErrorMessage] = useState(null);
   const [txSignature, setTxSignature] = useState(null);
@@ -52,7 +52,7 @@ export function useVipPayment({ wallet, signTransaction, authToken, onSuccess, o
   }, []);
 
   const purchaseVip = useCallback(async () => {
-    if (!wallet || !signTransaction || !authToken) {
+    if (!wallet || (!signTransaction && !signAndSendTransaction) || !authToken) {
       setErrorMessage('Wallet not connected or not authenticated');
       setPaymentState(PAYMENT_STATES.ERROR);
       return;
