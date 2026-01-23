@@ -47,6 +47,7 @@ export default function SolMate() {
     disconnect, 
     signMessage,
     signTransaction,
+    signAndSendTransaction,
     walletName 
   } = useSolanaWallet();
 
@@ -83,6 +84,7 @@ export default function SolMate() {
   } = useVipPayment({
     wallet: publicKey,
     signTransaction,
+    signAndSendTransaction,
     authToken,
     onSuccess: handleVipSuccess,
     onError: handleVipError
