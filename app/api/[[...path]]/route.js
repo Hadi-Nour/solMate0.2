@@ -401,7 +401,212 @@ async function handleRoute(request, { params }) {
       }));
     }
 
-    // POST /api/payments/confirm - Confirm payment and verify on-chain
+    // POST /api/payments/confirm-vip - Confirm VIP USDC payment with strict on-chain verification
+    if (route === '/payments/confirm-vip' && method === 'POST') {
+      const session = await requireAuth(request);
+      
+      if (!session) {
+        return handleCORS(NextResponse.json(
+          { error: 'Not authenticated' },
+          { status: 401 }
+        ));
+      }
+
+      const { signature } = await request.json();
+      
+      if (!signature) {
+        return handleCORS(NextResponse.json(
+          { error: 'Missing transaction signature' },
+          { status: 400 }
+        ));
+      }
+
+      // Check if user already has VIP
+      const existingUser = await db.collection('users').findOne({ wallet: session.wallet });
+      if (existingUser?.isVip) {
+        return handleCORS(NextResponse.json(
+          { error: 'You already have VIP access' },
+          { status: 400 }
+        ));
+      }
+
+      // Replay protection - check if signature already used
+      const existingTx = await db.collection('transactions').findOne({ signature });
+      if (existingTx) {
+        return handleCORS(NextResponse.json(
+          { error: 'Transaction signature already used' },
+          { status: 400 }
+        ));
+      }
+
+      // Get the transaction from Solana
+      const connection = getSolanaConnection();
+      
+      try {
+        // Wait for transaction to be confirmed
+        let tx = null;
+        let retries = 0;
+        const maxRetries = 10;
+        
+        while (!tx && retries < maxRetries) {
+          tx = await connection.getTransaction(signature, {
+            commitment: 'confirmed',
+            maxSupportedTransactionVersion: 0
+          });
+          
+          if (!tx) {
+            retries++;
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+          }
+        }
+        
+        if (!tx) {
+          return handleCORS(NextResponse.json(
+            { error: 'Transaction not found on-chain. Please wait and try again.' },
+            { status: 400 }
+          ));
+        }
+
+        if (tx.meta?.err) {
+          return handleCORS(NextResponse.json(
+            { error: 'Transaction failed on-chain' },
+            { status: 400 }
+          ));
+        }
+
+        // Verify USDC SPL token transfer
+        const preTokenBalances = tx.meta?.preTokenBalances || [];
+        const postTokenBalances = tx.meta?.postTokenBalances || [];
+        
+        // Find the developer wallet's USDC ATA balance change
+        let verifiedAmount = BigInt(0);
+        let senderWallet = null;
+        let recipientVerified = false;
+        let mintVerified = false;
+        
+        // Get all account keys from the transaction
+        const accountKeys = tx.transaction.message.staticAccountKeys || 
+                           tx.transaction.message.accountKeys ||
+                           [];
+        
+        // Find the token balance changes for our USDC mint
+        for (const postBalance of postTokenBalances) {
+          // Check if this is the correct mint
+          if (postBalance.mint !== USDC_MINT) continue;
+          mintVerified = true;
+          
+          // Check if the owner is the developer wallet
+          if (postBalance.owner !== DEVELOPER_WALLET) continue;
+          recipientVerified = true;
+          
+          // Find the corresponding pre-balance
+          const preBalance = preTokenBalances.find(
+            pb => pb.accountIndex === postBalance.accountIndex && pb.mint === USDC_MINT
+          );
+          
+          const preBal = BigInt(preBalance?.uiTokenAmount?.amount || '0');
+          const postBal = BigInt(postBalance.uiTokenAmount?.amount || '0');
+          
+          if (postBal > preBal) {
+            verifiedAmount = postBal - preBal;
+          }
+        }
+        
+        // Also identify sender from the balance decreases
+        for (const preBalance of preTokenBalances) {
+          if (preBalance.mint !== USDC_MINT) continue;
+          if (preBalance.owner === DEVELOPER_WALLET) continue; // Skip developer wallet
+          
+          const postBalance = postTokenBalances.find(
+            pb => pb.accountIndex === preBalance.accountIndex && pb.mint === USDC_MINT
+          );
+          
+          const preBal = BigInt(preBalance.uiTokenAmount?.amount || '0');
+          const postBal = BigInt(postBalance?.uiTokenAmount?.amount || '0');
+          
+          if (preBal > postBal) {
+            senderWallet = preBalance.owner;
+          }
+        }
+
+        // Verification checks
+        const verificationErrors = [];
+        
+        if (!mintVerified) {
+          verificationErrors.push(`Invalid mint address. Expected USDC: ${USDC_MINT}`);
+        }
+        
+        if (!recipientVerified) {
+          verificationErrors.push(`Payment must be sent to developer wallet: ${DEVELOPER_WALLET}`);
+        }
+        
+        if (verifiedAmount < VIP_PRICE_USDC_RAW) {
+          const receivedUsdc = Number(verifiedAmount) / Math.pow(10, USDC_DECIMALS);
+          verificationErrors.push(`Insufficient amount. Expected ${VIP_PRICE_USDC} USDC, received ${receivedUsdc.toFixed(2)} USDC`);
+        }
+        
+        // Verify sender is the authenticated user (optional but recommended)
+        if (senderWallet && senderWallet !== session.wallet) {
+          verificationErrors.push('Transaction sender does not match authenticated wallet');
+        }
+
+        if (verificationErrors.length > 0) {
+          console.error('VIP payment verification failed:', verificationErrors);
+          return handleCORS(NextResponse.json(
+            { error: `Payment verification failed: ${verificationErrors.join('. ')}` },
+            { status: 400 }
+          ));
+        }
+
+        // All checks passed - record transaction and activate VIP
+        const verifiedUsdcAmount = Number(verifiedAmount) / Math.pow(10, USDC_DECIMALS);
+        
+        await db.collection('transactions').insertOne({
+          id: uuidv4(),
+          signature,
+          wallet: session.wallet,
+          type: 'vip_purchase',
+          paymentType: 'USDC',
+          mint: USDC_MINT,
+          amount: verifiedUsdcAmount,
+          amountRaw: verifiedAmount.toString(),
+          recipient: DEVELOPER_WALLET,
+          verified: true,
+          cluster: CLUSTER,
+          createdAt: new Date()
+        });
+
+        // Activate VIP
+        await db.collection('users').updateOne(
+          { wallet: session.wallet },
+          {
+            $set: {
+              isVip: true,
+              vipPurchasedAt: new Date()
+            }
+          }
+        );
+
+        console.log(`VIP activated for ${session.wallet} - Tx: ${signature}, Amount: ${verifiedUsdcAmount} USDC`);
+
+        return handleCORS(NextResponse.json({
+          success: true,
+          message: 'VIP Lifetime activated!',
+          verified: true,
+          amount: verifiedUsdcAmount,
+          signature
+        }));
+
+      } catch (e) {
+        console.error('Payment verification error:', e);
+        return handleCORS(NextResponse.json(
+          { error: 'Failed to verify transaction: ' + e.message },
+          { status: 500 }
+        ));
+      }
+    }
+
+    // POST /api/payments/confirm - Confirm payment and verify on-chain (legacy)
     if (route === '/payments/confirm' && method === 'POST') {
       const session = await requireAuth(request);
       
