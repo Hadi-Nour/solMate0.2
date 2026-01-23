@@ -961,6 +961,42 @@ async function handleRoute(request, { params }) {
     }
 
     // ============================================
+    // USER PREFERENCES ENDPOINTS
+    // ============================================
+
+    // POST /api/user/language - Update user language preference
+    if (route === '/user/language' && method === 'POST') {
+      const session = await requireAuth(request);
+      
+      if (!session) {
+        return handleCORS(NextResponse.json(
+          { error: 'Not authenticated' },
+          { status: 401 }
+        ));
+      }
+
+      const { language } = await request.json();
+      const supportedLanguages = ['en', 'de', 'ar', 'zh'];
+      
+      if (!language || !supportedLanguages.includes(language)) {
+        return handleCORS(NextResponse.json(
+          { error: 'Invalid language. Supported: en, de, ar, zh' },
+          { status: 400 }
+        ));
+      }
+
+      await db.collection('users').updateOne(
+        { wallet: session.wallet },
+        { $set: { language: language } }
+      );
+
+      return handleCORS(NextResponse.json({
+        success: true,
+        language
+      }));
+    }
+
+    // ============================================
     // FRIENDS ENDPOINTS
     // ============================================
 
