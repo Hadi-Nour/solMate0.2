@@ -203,5 +203,54 @@
     "close": "Schließen",
     "save": "Speichern",
     "min": "min"
+  },
+  "timeControl": {
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Schnell",
+    "unlimited": "Unbegrenzt"
+  },
+  "quickchat": {
+    "title": "Schnellchat",
+    "messages": "Nachrichten",
+    "emotes": "Emotes",
+    "goodLuck": "Viel Glück!",
+    "niceMove": "Guter Zug!",
+    "wow": "Wow!",
+    "oops": "Hoppla!",
+    "gg": "Gutes Spiel!",
+    "thanks": "Danke!",
+    "rematch": "Revanche?",
+    "wellPlayed": "Gut gespielt!",
+    "cooldown": "Warte kurz..."
+  },
+  "emotes": {
+    "smile": "😊",
+    "think": "🤔",
+    "fire": "🔥",
+    "clap": "👏",
+    "trophy": "🏆",
+    "chess": "♟️"
+  },
+  "game": {
+    "yourTurn": "Du bist dran",
+    "botsTurn": "Bot ist dran",
+    "botThinking": "Bot denkt...",
+    "playingAs": "Du spielst als {color}",
+    "white": "Weiß",
+    "black": "Schwarz",
+    "bot": "Bot",
+    "opponent": "Gegner",
+    "ranked": "Gewertet",
+    "noTimer": "Ohne Timer"
+  },
+  "result": {
+    "victory": "Sieg!",
+    "defeat": "Niederlage",
+    "draw": "Unentschieden!",
+    "congratulations": "Glückwunsch! Du hast gewonnen.",
+    "betterLuck": "Viel Glück beim nächsten Mal!",
+    "drawMessage": "Das Spiel endete unentschieden.",
+    "timeout": "Zeit abgelaufen!"
   }
 }
