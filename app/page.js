@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { Chess } from 'chess.js';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +27,7 @@ import SettingsModal from '@/components/game/SettingsModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import UserAvatar, { getAvatarEmoji } from '@/components/profile/UserAvatar';
 import WalletConnectModal from '@/components/wallet/WalletConnectModal';
-import { useWalletActions } from '@/components/wallet/useWalletActions';
+import { useSolanaWallet } from '@/components/wallet/SolanaWalletProvider';
 import { useI18n } from '@/lib/i18n/provider';
 
 // Dynamic imports for online components
@@ -38,9 +37,15 @@ const OnlineGameScreen = dynamic(() => import('@/components/game/OnlineGameScree
 export default function SolMate() {
   const { t, locale, direction, isRtl, syncLocaleToServer, isLoaded } = useI18n();
   
-  // Wallet adapter hooks
-  const { publicKey, connected, disconnect, wallet } = useWallet();
-  const { signAuthMessage, sendSol, sendUsdc, getSolBalance, getUsdcBalance, getSolPrice } = useWalletActions();
+  // Wallet hooks - using our lightweight provider
+  const { 
+    publicKey, 
+    connected, 
+    connecting, 
+    disconnect, 
+    signMessage,
+    walletName 
+  } = useSolanaWallet();
 
   // Auth state
   const [user, setUser] = useState(null);
