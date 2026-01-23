@@ -221,7 +221,7 @@ export default function MatchmakingScreen({
           <CardDescription>Play against real players - no rewards</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {TIME_CONTROLS.map((tc) => (
               <motion.div key={tc.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
@@ -256,7 +256,7 @@ export default function MatchmakingScreen({
         </CardHeader>
         <CardContent>
           {isVip ? (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {TIME_CONTROLS.map((tc) => (
                 <motion.div key={tc.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
