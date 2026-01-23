@@ -1228,6 +1228,13 @@ export default function SolMate() {
         authToken={authToken}
         onProfileUpdated={handleProfileUpdated}
       />
+      
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        open={showWalletModal}
+        onOpenChange={setShowWalletModal}
+        onConnected={handleWalletConnected}
+      />
     </div>
   );
 }
