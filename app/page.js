@@ -177,8 +177,9 @@ export default function SolMate() {
       });
       const { nonce, messageToSign } = await nonceRes.json();
       
-      // Use wallet adapter's signMessage
-      const signature = await signAuthMessage(messageToSign);
+      // Use our wallet provider's signMessage
+      const signatureBytes = await signMessage(messageToSign);
+      const signature = btoa(String.fromCharCode(...signatureBytes));
       
       const verifyRes = await fetch('/api/auth/verify', {
         method: 'POST',
