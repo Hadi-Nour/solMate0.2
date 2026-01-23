@@ -1,0 +1,182 @@
+{
+  "app": {
+    "title": "SolMate - Solana Chess",
+    "description": "Play chess on Solana. Earn cosmetics, compete in VIP Arena, and collect rewards."
+  },
+  "header": {
+    "connect": "Connect",
+    "signIn": "Sign In"
+  },
+  "nav": {
+    "play": "Play",
+    "vip": "VIP",
+    "items": "Items",
+    "friends": "Friends",
+    "profile": "Profile"
+  },
+  "wallet": {
+    "connected": "Wallet connected!",
+    "installPhantom": "Please install Phantom wallet",
+    "connectFirst": "Connect wallet first",
+    "signedIn": "Signed in!",
+    "signedOut": "Signed out",
+    "failed": "Failed to connect wallet"
+  },
+  "play": {
+    "vsBot": "Play vs Bot",
+    "vsBotDesc": "Practice without rewards",
+    "playOnline": "Play Online",
+    "playOnlineDesc": "Play against real players - no rewards",
+    "findMatch": "Find Casual Match",
+    "signInRequired": "Please sign in to play online"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "easyDesc": "Perfect for beginners",
+    "normal": "Normal",
+    "normalDesc": "Balanced challenge",
+    "hard": "Hard",
+    "hardDesc": "For experienced players",
+    "pro": "Pro",
+    "proDesc": "Maximum difficulty"
+  },
+  "timeControl": {
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rapid"
+  },
+  "game": {
+    "yourTurn": "Your turn",
+    "botsTurn": "Bot's turn",
+    "botThinking": "Bot thinking...",
+    "playingAs": "You're playing as {color}",
+    "white": "White",
+    "black": "Black",
+    "bot": "Bot",
+    "opponent": "Opponent",
+    "ranked": "Ranked"
+  },
+  "gameActions": {
+    "home": "Home",
+    "resign": "Resign",
+    "offerDraw": "Offer Draw",
+    "restart": "Restart",
+    "undo": "Undo",
+    "chat": "Chat",
+    "playAgain": "Play Again"
+  },
+  "result": {
+    "victory": "Victory!",
+    "defeat": "Defeat",
+    "draw": "Draw!",
+    "congratulations": "Congratulations! You won the game.",
+    "betterLuck": "Better luck next time!",
+    "drawMessage": "The game ended in a draw."
+  },
+  "rewards": {
+    "title": "Rewards Earned",
+    "streak": "Streak",
+    "wins": "Wins",
+    "gold": "Gold",
+    "currentStreak": "Current streak: {count}",
+    "streakReset": "Streak reset"
+  },
+  "exitConfirm": {
+    "title": "Leave Match?",
+    "onlineMessage": "Leaving will count as a resignation. You will lose this game.",
+    "botMessage": "Your current game progress will be lost.",
+    "cancel": "Cancel",
+    "leave": "Leave"
+  },
+  "vip": {
+    "title": "VIP Arena",
+    "unlockTitle": "Unlock VIP",
+    "desc": "Unlock rewards and exclusive features!",
+    "rewardDesc": "Win = Bronze Chest! 5-streak = Silver + Gold!",
+    "lifetime": "Lifetime Access",
+    "benefits": {
+      "ranked": "VIP Arena ranked matches",
+      "bronze": "Bronze Chest on every win",
+      "streak": "5-streak = Silver Chest + Gold Point",
+      "gold": "5 Gold Points = Gold Chest",
+      "leaderboard": "Compete on leaderboards"
+    },
+    "winChests": "Win chests",
+    "streakBonus": "5-streak bonus",
+    "goldPoints": "Gold points",
+    "leaderboards": "Leaderboards",
+    "connectFirst": "Connect wallet and sign in first",
+    "payWith": "Pay with USDC/SOL",
+    "price": "$6.99"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "chests": "Chests",
+    "goldPoints": "Gold Points",
+    "shards": "Shards",
+    "open": "Open",
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "redeem": "Redeem 5 Points → 1 Gold Chest",
+    "earnMore": "Earn {count} more to redeem a Gold Chest",
+    "craftingSoon": "Crafting coming soon!",
+    "signInRequired": "Sign in to view inventory",
+    "gotItems": "Got {count} item(s)!",
+    "gotChest": "Got 1 Gold Chest!"
+  },
+  "friends": {
+    "title": "Friends",
+    "yourCode": "Your Friend Code",
+    "enterCode": "Enter friend code",
+    "add": "Add",
+    "noFriends": "No friends yet. Share your code!",
+    "friendAdded": "Friend added!",
+    "signInRequired": "Sign in to manage friends"
+  },
+  "profile": {
+    "title": "Profile",
+    "wallet": "Wallet",
+    "wins": "Wins",
+    "losses": "Losses",
+    "currentStreak": "Current",
+    "bestStreak": "Best",
+    "signInRequired": "Sign in to view profile"
+  },
+  "leaderboard": {
+    "title": "VIP Leaderboard",
+    "noRankings": "No rankings yet"
+  },
+  "settings": {
+    "title": "Game Settings",
+    "sound": "Sound Effects",
+    "haptic": "Haptic Feedback",
+    "legalMoves": "Show Legal Moves",
+    "boardTheme": "Board Theme",
+    "language": "Language",
+    "themes": {
+      "classic": "Classic Wood",
+      "darkMarble": "Dark Marble",
+      "neon": "Neon Cyber",
+      "solana": "Solana Purple"
+    },
+    "languages": {
+      "en": "English",
+      "de": "Deutsch",
+      "ar": "العربية",
+      "zh": "中文"
+    }
+  },
+  "common": {
+    "free": "Free",
+    "vip": "VIP",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "min": "min"
+  }
+}

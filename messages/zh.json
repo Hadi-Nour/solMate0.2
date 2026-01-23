@@ -1,0 +1,182 @@
+{
+  "app": {
+    "title": "SolMate - Solana 象棋",
+    "description": "在Solana上下棋。赚取装饰品，在VIP竞技场竞争，收集奖励。"
+  },
+  "header": {
+    "connect": "连接",
+    "signIn": "登录"
+  },
+  "nav": {
+    "play": "游戏",
+    "vip": "VIP",
+    "items": "物品",
+    "friends": "好友",
+    "profile": "个人"
+  },
+  "wallet": {
+    "connected": "钱包已连接！",
+    "installPhantom": "请安装Phantom钱包",
+    "connectFirst": "请先连接钱包",
+    "signedIn": "已登录！",
+    "signedOut": "已登出",
+    "failed": "钱包连接失败"
+  },
+  "play": {
+    "vsBot": "与机器人对战",
+    "vsBotDesc": "练习不获奖励",
+    "playOnline": "在线对战",
+    "playOnlineDesc": "与真人玩家对战 - 无奖励",
+    "findMatch": "寻找休闲对局",
+    "signInRequired": "请登录以进行在线对战"
+  },
+  "difficulty": {
+    "easy": "简单",
+    "easyDesc": "适合新手",
+    "normal": "普通",
+    "normalDesc": "平衡挑战",
+    "hard": "困难",
+    "hardDesc": "适合有经验的玩家",
+    "pro": "专业",
+    "proDesc": "最高难度"
+  },
+  "timeControl": {
+    "bullet": "超快棋",
+    "blitz": "快棋",
+    "rapid": "快速棋"
+  },
+  "game": {
+    "yourTurn": "轮到你了",
+    "botsTurn": "机器人回合",
+    "botThinking": "机器人思考中...",
+    "playingAs": "你执{color}",
+    "white": "白棋",
+    "black": "黑棋",
+    "bot": "机器人",
+    "opponent": "对手",
+    "ranked": "排位"
+  },
+  "gameActions": {
+    "home": "主页",
+    "resign": "认输",
+    "offerDraw": "提议和棋",
+    "restart": "重新开始",
+    "undo": "悔棋",
+    "chat": "聊天",
+    "playAgain": "再来一局"
+  },
+  "result": {
+    "victory": "胜利！",
+    "defeat": "失败",
+    "draw": "和棋！",
+    "congratulations": "恭喜！你赢得了比赛。",
+    "betterLuck": "下次好运！",
+    "drawMessage": "比赛以和棋结束。"
+  },
+  "rewards": {
+    "title": "获得的奖励",
+    "streak": "连胜",
+    "wins": "胜场",
+    "gold": "金币",
+    "currentStreak": "当前连胜: {count}",
+    "streakReset": "连胜重置"
+  },
+  "exitConfirm": {
+    "title": "离开比赛？",
+    "onlineMessage": "离开将被视为认输。你将输掉这场比赛。",
+    "botMessage": "你当前的游戏进度将丢失。",
+    "cancel": "取消",
+    "leave": "离开"
+  },
+  "vip": {
+    "title": "VIP竞技场",
+    "unlockTitle": "解锁VIP",
+    "desc": "解锁奖励和专属功能！",
+    "rewardDesc": "胜利 = 青铜宝箱！5连胜 = 白银 + 金币！",
+    "lifetime": "终身使用权",
+    "benefits": {
+      "ranked": "VIP竞技场排位赛",
+      "bronze": "每次胜利获得青铜宝箱",
+      "streak": "5连胜 = 白银宝箱 + 金币点数",
+      "gold": "5金币点数 = 黄金宝箱",
+      "leaderboard": "参与排行榜竞争"
+    },
+    "winChests": "赢取宝箱",
+    "streakBonus": "连胜奖励",
+    "goldPoints": "金币点数",
+    "leaderboards": "排行榜",
+    "connectFirst": "请先连接钱包并登录",
+    "payWith": "用USDC/SOL支付",
+    "price": "$6.99"
+  },
+  "inventory": {
+    "title": "背包",
+    "chests": "宝箱",
+    "goldPoints": "金币点数",
+    "shards": "碎片",
+    "open": "打开",
+    "bronze": "青铜",
+    "silver": "白银",
+    "gold": "黄金",
+    "redeem": "兑换5点 → 1黄金宝箱",
+    "earnMore": "再赚取{count}点即可兑换黄金宝箱",
+    "craftingSoon": "合成功能即将推出！",
+    "signInRequired": "请登录查看背包",
+    "gotItems": "获得{count}件物品！",
+    "gotChest": "获得1个黄金宝箱！"
+  },
+  "friends": {
+    "title": "好友",
+    "yourCode": "你的好友码",
+    "enterCode": "输入好友码",
+    "add": "添加",
+    "noFriends": "还没有好友。分享你的好友码吧！",
+    "friendAdded": "好友添加成功！",
+    "signInRequired": "请登录管理好友"
+  },
+  "profile": {
+    "title": "个人资料",
+    "wallet": "钱包",
+    "wins": "胜场",
+    "losses": "负场",
+    "currentStreak": "当前",
+    "bestStreak": "最佳",
+    "signInRequired": "请登录查看个人资料"
+  },
+  "leaderboard": {
+    "title": "VIP排行榜",
+    "noRankings": "暂无排名"
+  },
+  "settings": {
+    "title": "游戏设置",
+    "sound": "音效",
+    "haptic": "触感反馈",
+    "legalMoves": "显示合法移动",
+    "boardTheme": "棋盘主题",
+    "language": "语言",
+    "themes": {
+      "classic": "经典木质",
+      "darkMarble": "深色大理石",
+      "neon": "霓虹赛博",
+      "solana": "Solana紫"
+    },
+    "languages": {
+      "en": "English",
+      "de": "Deutsch",
+      "ar": "العربية",
+      "zh": "中文"
+    }
+  },
+  "common": {
+    "free": "免费",
+    "vip": "VIP",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "confirm": "确认",
+    "cancel": "取消",
+    "close": "关闭",
+    "save": "保存",
+    "min": "分钟"
+  }
+}

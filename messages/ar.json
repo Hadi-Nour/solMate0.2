@@ -1,0 +1,182 @@
+{
+  "app": {
+    "title": "سولميت - شطرنج سولانا",
+    "description": "العب الشطرنج على سولانا. اربح مستحضرات التجميل، نافس في ساحة VIP، واجمع المكافآت."
+  },
+  "header": {
+    "connect": "اتصال",
+    "signIn": "تسجيل الدخول"
+  },
+  "nav": {
+    "play": "العب",
+    "vip": "VIP",
+    "items": "العناصر",
+    "friends": "الأصدقاء",
+    "profile": "الملف الشخصي"
+  },
+  "wallet": {
+    "connected": "تم توصيل المحفظة!",
+    "installPhantom": "يرجى تثبيت محفظة فانتوم",
+    "connectFirst": "قم بتوصيل المحفظة أولاً",
+    "signedIn": "تم تسجيل الدخول!",
+    "signedOut": "تم تسجيل الخروج",
+    "failed": "فشل الاتصال بالمحفظة"
+  },
+  "play": {
+    "vsBot": "العب ضد البوت",
+    "vsBotDesc": "تدرب بدون مكافآت",
+    "playOnline": "العب أونلاين",
+    "playOnlineDesc": "العب ضد لاعبين حقيقيين - بدون مكافآت",
+    "findMatch": "البحث عن مباراة",
+    "signInRequired": "يرجى تسجيل الدخول للعب أونلاين"
+  },
+  "difficulty": {
+    "easy": "سهل",
+    "easyDesc": "مثالي للمبتدئين",
+    "normal": "عادي",
+    "normalDesc": "تحدي متوازن",
+    "hard": "صعب",
+    "hardDesc": "للاعبين ذوي الخبرة",
+    "pro": "محترف",
+    "proDesc": "أقصى صعوبة"
+  },
+  "timeControl": {
+    "bullet": "رصاصة",
+    "blitz": "خاطف",
+    "rapid": "سريع"
+  },
+  "game": {
+    "yourTurn": "دورك",
+    "botsTurn": "دور البوت",
+    "botThinking": "البوت يفكر...",
+    "playingAs": "أنت تلعب بـ{color}",
+    "white": "الأبيض",
+    "black": "الأسود",
+    "bot": "بوت",
+    "opponent": "الخصم",
+    "ranked": "مصنف"
+  },
+  "gameActions": {
+    "home": "الرئيسية",
+    "resign": "استسلام",
+    "offerDraw": "عرض التعادل",
+    "restart": "إعادة",
+    "undo": "تراجع",
+    "chat": "دردشة",
+    "playAgain": "العب مجدداً"
+  },
+  "result": {
+    "victory": "نصر!",
+    "defeat": "هزيمة",
+    "draw": "تعادل!",
+    "congratulations": "تهانينا! لقد فزت باللعبة.",
+    "betterLuck": "حظاً أوفر في المرة القادمة!",
+    "drawMessage": "انتهت اللعبة بالتعادل."
+  },
+  "rewards": {
+    "title": "المكافآت المكتسبة",
+    "streak": "سلسلة",
+    "wins": "انتصارات",
+    "gold": "ذهب",
+    "currentStreak": "السلسلة الحالية: {count}",
+    "streakReset": "تم إعادة تعيين السلسلة"
+  },
+  "exitConfirm": {
+    "title": "مغادرة المباراة؟",
+    "onlineMessage": "ستُحتسب المغادرة كاستسلام. ستخسر هذه اللعبة.",
+    "botMessage": "سيتم فقدان تقدمك الحالي في اللعبة.",
+    "cancel": "إلغاء",
+    "leave": "مغادرة"
+  },
+  "vip": {
+    "title": "ساحة VIP",
+    "unlockTitle": "فتح VIP",
+    "desc": "افتح المكافآت والميزات الحصرية!",
+    "rewardDesc": "فوز = صندوق برونزي! 5 انتصارات متتالية = فضي + ذهب!",
+    "lifetime": "وصول مدى الحياة",
+    "benefits": {
+      "ranked": "مباريات VIP Arena المصنفة",
+      "bronze": "صندوق برونزي مع كل فوز",
+      "streak": "5 انتصارات = صندوق فضي + نقطة ذهبية",
+      "gold": "5 نقاط ذهبية = صندوق ذهبي",
+      "leaderboard": "المنافسة في لوحات الصدارة"
+    },
+    "winChests": "اربح صناديق",
+    "streakBonus": "مكافأة السلسلة",
+    "goldPoints": "نقاط ذهبية",
+    "leaderboards": "لوحات الصدارة",
+    "connectFirst": "قم بتوصيل المحفظة وتسجيل الدخول أولاً",
+    "payWith": "ادفع بـ USDC/SOL",
+    "price": "$6.99"
+  },
+  "inventory": {
+    "title": "المخزون",
+    "chests": "الصناديق",
+    "goldPoints": "النقاط الذهبية",
+    "shards": "الشظايا",
+    "open": "افتح",
+    "bronze": "برونزي",
+    "silver": "فضي",
+    "gold": "ذهبي",
+    "redeem": "استبدل 5 نقاط ← صندوق ذهبي",
+    "earnMore": "اربح {count} نقاط إضافية لاستبدال صندوق ذهبي",
+    "craftingSoon": "الصناعة قريباً!",
+    "signInRequired": "سجل الدخول لعرض المخزون",
+    "gotItems": "حصلت على {count} عنصر!",
+    "gotChest": "حصلت على صندوق ذهبي!"
+  },
+  "friends": {
+    "title": "الأصدقاء",
+    "yourCode": "رمز صديقك",
+    "enterCode": "أدخل رمز الصديق",
+    "add": "إضافة",
+    "noFriends": "لا أصدقاء حتى الآن. شارك رمزك!",
+    "friendAdded": "تمت إضافة الصديق!",
+    "signInRequired": "سجل الدخول لإدارة الأصدقاء"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "wallet": "المحفظة",
+    "wins": "انتصارات",
+    "losses": "خسائر",
+    "currentStreak": "الحالية",
+    "bestStreak": "الأفضل",
+    "signInRequired": "سجل الدخول لعرض الملف الشخصي"
+  },
+  "leaderboard": {
+    "title": "لوحة صدارة VIP",
+    "noRankings": "لا توجد تصنيفات بعد"
+  },
+  "settings": {
+    "title": "إعدادات اللعبة",
+    "sound": "المؤثرات الصوتية",
+    "haptic": "ردود الفعل اللمسية",
+    "legalMoves": "إظهار الحركات المسموحة",
+    "boardTheme": "سمة الرقعة",
+    "language": "اللغة",
+    "themes": {
+      "classic": "خشب كلاسيكي",
+      "darkMarble": "رخام داكن",
+      "neon": "نيون سايبر",
+      "solana": "سولانا بنفسجي"
+    },
+    "languages": {
+      "en": "English",
+      "de": "Deutsch",
+      "ar": "العربية",
+      "zh": "中文"
+    }
+  },
+  "common": {
+    "free": "مجاني",
+    "vip": "VIP",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "save": "حفظ",
+    "min": "دقيقة"
+  }
+}

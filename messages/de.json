@@ -1,0 +1,182 @@
+{
+  "app": {
+    "title": "SolMate - Solana Schach",
+    "description": "Spiele Schach auf Solana. Verdiene Kosmetika, kämpfe in der VIP-Arena und sammle Belohnungen."
+  },
+  "header": {
+    "connect": "Verbinden",
+    "signIn": "Anmelden"
+  },
+  "nav": {
+    "play": "Spielen",
+    "vip": "VIP",
+    "items": "Items",
+    "friends": "Freunde",
+    "profile": "Profil"
+  },
+  "wallet": {
+    "connected": "Wallet verbunden!",
+    "installPhantom": "Bitte Phantom Wallet installieren",
+    "connectFirst": "Erst Wallet verbinden",
+    "signedIn": "Angemeldet!",
+    "signedOut": "Abgemeldet",
+    "failed": "Wallet-Verbindung fehlgeschlagen"
+  },
+  "play": {
+    "vsBot": "Gegen Bot spielen",
+    "vsBotDesc": "Übung ohne Belohnungen",
+    "playOnline": "Online spielen",
+    "playOnlineDesc": "Gegen echte Spieler - keine Belohnungen",
+    "findMatch": "Lockeres Spiel finden",
+    "signInRequired": "Bitte melden Sie sich an, um online zu spielen"
+  },
+  "difficulty": {
+    "easy": "Leicht",
+    "easyDesc": "Perfekt für Anfänger",
+    "normal": "Normal",
+    "normalDesc": "Ausgewogene Herausforderung",
+    "hard": "Schwer",
+    "hardDesc": "Für erfahrene Spieler",
+    "pro": "Profi",
+    "proDesc": "Maximale Schwierigkeit"
+  },
+  "timeControl": {
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Schnellschach"
+  },
+  "game": {
+    "yourTurn": "Dein Zug",
+    "botsTurn": "Bot ist dran",
+    "botThinking": "Bot denkt...",
+    "playingAs": "Du spielst als {color}",
+    "white": "Weiß",
+    "black": "Schwarz",
+    "bot": "Bot",
+    "opponent": "Gegner",
+    "ranked": "Rangiert"
+  },
+  "gameActions": {
+    "home": "Startseite",
+    "resign": "Aufgeben",
+    "offerDraw": "Remis anbieten",
+    "restart": "Neustart",
+    "undo": "Rückgängig",
+    "chat": "Chat",
+    "playAgain": "Nochmal spielen"
+  },
+  "result": {
+    "victory": "Sieg!",
+    "defeat": "Niederlage",
+    "draw": "Remis!",
+    "congratulations": "Glückwunsch! Du hast das Spiel gewonnen.",
+    "betterLuck": "Viel Glück beim nächsten Mal!",
+    "drawMessage": "Das Spiel endete unentschieden."
+  },
+  "rewards": {
+    "title": "Verdiente Belohnungen",
+    "streak": "Serie",
+    "wins": "Siege",
+    "gold": "Gold",
+    "currentStreak": "Aktuelle Serie: {count}",
+    "streakReset": "Serie zurückgesetzt"
+  },
+  "exitConfirm": {
+    "title": "Spiel verlassen?",
+    "onlineMessage": "Verlassen wird als Aufgabe gewertet. Du verlierst dieses Spiel.",
+    "botMessage": "Dein aktueller Spielfortschritt geht verloren.",
+    "cancel": "Abbrechen",
+    "leave": "Verlassen"
+  },
+  "vip": {
+    "title": "VIP Arena",
+    "unlockTitle": "VIP freischalten",
+    "desc": "Schalte Belohnungen und exklusive Funktionen frei!",
+    "rewardDesc": "Sieg = Bronze-Truhe! 5er-Serie = Silber + Gold!",
+    "lifetime": "Lebenslanger Zugang",
+    "benefits": {
+      "ranked": "VIP Arena Ranglistenspiele",
+      "bronze": "Bronze-Truhe bei jedem Sieg",
+      "streak": "5er-Serie = Silber-Truhe + Goldpunkt",
+      "gold": "5 Goldpunkte = Gold-Truhe",
+      "leaderboard": "Auf Ranglisten kämpfen"
+    },
+    "winChests": "Truhen gewinnen",
+    "streakBonus": "5er-Serie-Bonus",
+    "goldPoints": "Goldpunkte",
+    "leaderboards": "Ranglisten",
+    "connectFirst": "Erst Wallet verbinden und anmelden",
+    "payWith": "Mit USDC/SOL bezahlen",
+    "price": "6,99 $"
+  },
+  "inventory": {
+    "title": "Inventar",
+    "chests": "Truhen",
+    "goldPoints": "Goldpunkte",
+    "shards": "Scherben",
+    "open": "Öffnen",
+    "bronze": "Bronze",
+    "silver": "Silber",
+    "gold": "Gold",
+    "redeem": "5 Punkte einlösen → 1 Gold-Truhe",
+    "earnMore": "Verdiene {count} mehr für eine Gold-Truhe",
+    "craftingSoon": "Handwerk kommt bald!",
+    "signInRequired": "Anmelden um Inventar zu sehen",
+    "gotItems": "{count} Gegenstand(e) erhalten!",
+    "gotChest": "1 Gold-Truhe erhalten!"
+  },
+  "friends": {
+    "title": "Freunde",
+    "yourCode": "Dein Freundescode",
+    "enterCode": "Freundescode eingeben",
+    "add": "Hinzufügen",
+    "noFriends": "Noch keine Freunde. Teile deinen Code!",
+    "friendAdded": "Freund hinzugefügt!",
+    "signInRequired": "Anmelden um Freunde zu verwalten"
+  },
+  "profile": {
+    "title": "Profil",
+    "wallet": "Wallet",
+    "wins": "Siege",
+    "losses": "Niederlagen",
+    "currentStreak": "Aktuell",
+    "bestStreak": "Beste",
+    "signInRequired": "Anmelden um Profil zu sehen"
+  },
+  "leaderboard": {
+    "title": "VIP Rangliste",
+    "noRankings": "Noch keine Ranglisten"
+  },
+  "settings": {
+    "title": "Spieleinstellungen",
+    "sound": "Soundeffekte",
+    "haptic": "Haptisches Feedback",
+    "legalMoves": "Legale Züge anzeigen",
+    "boardTheme": "Brett-Design",
+    "language": "Sprache",
+    "themes": {
+      "classic": "Klassisches Holz",
+      "darkMarble": "Dunkler Marmor",
+      "neon": "Neon Cyber",
+      "solana": "Solana Lila"
+    },
+    "languages": {
+      "en": "English",
+      "de": "Deutsch",
+      "ar": "العربية",
+      "zh": "中文"
+    }
+  },
+  "common": {
+    "free": "Kostenlos",
+    "vip": "VIP",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "save": "Speichern",
+    "min": "min"
+  }
+}
