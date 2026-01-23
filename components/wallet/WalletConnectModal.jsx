@@ -59,9 +59,13 @@ export default function WalletConnectModal({
   // Load available wallets when modal opens
   useEffect(() => {
     if (open) {
-      setAvailableWallets(getAvailableWallets());
-      setError(null);
-      setSelectedWallet(null);
+      // Defer state updates to avoid cascading renders
+      const timeoutId = setTimeout(() => {
+        setAvailableWallets(getAvailableWallets());
+        setError(null);
+        setSelectedWallet(null);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [open, getAvailableWallets]);
   
