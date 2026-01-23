@@ -290,16 +290,27 @@ frontend:
         agent: "main"
         comment: "Standalone display, theme colors, icons"
 
+  - task: "i18n - Internationalization"
+    implemented: true
+    working: true
+    file: "lib/i18n/provider.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Full i18n support for EN, DE, AR (RTL), ZH. Language selector in Settings modal. Auto-detect browser language, localStorage persistence, syncs to server when logged in."
+
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "1.1"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Payment confirm endpoint"
-    - "Wallet connect"
+    - "i18n - Internationalization"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -307,3 +318,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "SolMate MVP implemented with core chess gameplay, VIP rewards, and Solana wallet integration. Backend APIs all working. Frontend uses native Phantom wallet API to avoid memory issues with heavy wallet adapter packages. Ready for user testing with real wallet."
+  - agent: "main"
+    message: "Full i18n support added! 4 languages: English, German, Arabic (with RTL), Chinese. Language selector in Settings modal. Auto-detects browser language on first visit, saves preference to localStorage immediately and syncs to user profile in DB when logged in. All UI strings translated across Play, VIP, Inventory, Friends, Profile tabs, and all modals."
