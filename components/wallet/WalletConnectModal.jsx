@@ -6,49 +6,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Wallet, Smartphone, Monitor, Check, Loader2, ExternalLink, ChevronRight, Star, AlertCircle } from 'lucide-react';
+import { Wallet, Smartphone, Monitor, Check, Loader2, ExternalLink, Star, AlertCircle, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n/provider';
 import { useSolanaWallet } from './SolanaWalletProvider';
 
-// Wallet metadata with official icons
-const WALLET_CONFIG = {
-  seedvault: {
-    name: 'Seed Vault',
-    subtitle: 'Solana Seeker built-in wallet',
-    icon: '/wallets/seeker.svg',
-    downloadUrl: null, // Pre-installed on Seeker
-    color: 'from-emerald-500 to-teal-600',
-  },
-  seeker: {
-    name: 'Seed Vault',
-    subtitle: 'Solana Mobile Wallet',
-    icon: '/wallets/seeker.svg',
-    downloadUrl: null,
-    color: 'from-emerald-500 to-teal-600',
-  },
-  phantom: {
-    name: 'Phantom',
-    subtitle: 'Popular Solana wallet',
-    icon: '/wallets/phantom.svg',
-    downloadUrl: 'https://phantom.app/',
-    color: 'from-purple-500 to-violet-600',
-  },
-  solflare: {
-    name: 'Solflare',
-    subtitle: 'Non-custodial wallet',
-    icon: '/wallets/solflare.svg',
-    downloadUrl: 'https://solflare.com/',
-    color: 'from-orange-500 to-red-600',
-  },
-  backpack: {
-    name: 'Backpack',
-    subtitle: 'xNFT enabled wallet',
-    icon: '/wallets/backpack.svg',
-    downloadUrl: 'https://backpack.app/',
-    color: 'from-red-500 to-rose-600',
-  },
+// Wallet icons mapping
+const WALLET_ICONS = {
+  mwa: '/wallets/seeker.svg',
+  phantom: '/wallets/phantom.svg',
+  solflare: '/wallets/solflare.svg',
+  backpack: '/wallets/backpack.svg',
+  trust: '/wallets/trust.svg',
+};
+
+// Gradient colors for wallets
+const WALLET_COLORS = {
+  mwa: 'from-emerald-500 to-teal-600',
+  phantom: 'from-purple-500 to-violet-600',
+  solflare: 'from-orange-500 to-red-600',
+  backpack: 'from-red-500 to-rose-600',
+  trust: 'from-blue-500 to-cyan-600',
 };
 
 export default function WalletConnectModal({ 
@@ -57,7 +35,15 @@ export default function WalletConnectModal({
   onConnected
 }) {
   const { t, direction } = useI18n();
-  const { connect, connecting, connected, publicKey, getAvailableWallets, isSeeker, isMobile, hasSeedVault } = useSolanaWallet();
+  const { 
+    connect, 
+    connecting, 
+    getAvailableWallets, 
+    isSeeker, 
+    isMobile, 
+    isPWA, 
+    shouldUseMWA 
+  } = useSolanaWallet();
   
   const [availableWallets, setAvailableWallets] = useState([]);
   const [selectedWallet, setSelectedWallet] = useState(null);
@@ -66,7 +52,6 @@ export default function WalletConnectModal({
   // Load available wallets when modal opens
   useEffect(() => {
     if (open) {
-      // Defer state updates to avoid cascading renders
       const timeoutId = setTimeout(() => {
         setAvailableWallets(getAvailableWallets());
         setError(null);
@@ -78,12 +63,11 @@ export default function WalletConnectModal({
   
   // Handle wallet selection and connection
   const handleSelectWallet = async (walletId) => {
-    const config = WALLET_CONFIG[walletId];
     const wallet = availableWallets.find(w => w.id === walletId);
     
-    // If not installed, open download page
-    if (!wallet?.installed && config?.downloadUrl) {
-      window.open(config.downloadUrl, '_blank');
+    // If not installed and not using MWA, open download page
+    if (!wallet?.installed && wallet?.downloadUrl) {
+      window.open(wallet.downloadUrl, '_blank');
       return;
     }
     
@@ -91,7 +75,9 @@ export default function WalletConnectModal({
     setSelectedWallet(walletId);
     
     try {
-      const address = await connect(walletId);
+      // Use MWA for mobile wallet adapter or if wallet specifies it
+      const connectType = wallet?.isMWA || wallet?.usesMWA ? 'mwa' : walletId;
+      const address = await connect(connectType);
       onConnected?.(address);
       onOpenChange(false);
     } catch (err) {
@@ -112,6 +98,14 @@ export default function WalletConnectModal({
     });
   }, [availableWallets]);
 
+  // Device description
+  const deviceDescription = useMemo(() => {
+    if (isSeeker) return 'Solana Seeker Device';
+    if (isPWA) return 'Installed PWA';
+    if (isMobile) return 'Mobile Browser';
+    return 'Desktop Browser';
+  }, [isSeeker, isPWA, isMobile]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 overflow-hidden" dir={direction}>
@@ -125,33 +119,30 @@ export default function WalletConnectModal({
               Connect Wallet
             </DialogTitle>
             <DialogDescription className="text-sm mt-2">
-              {isSeeker 
-                ? 'Connect your Seed Vault to start playing'
-                : isMobile 
-                  ? 'Connect your Solana wallet'
-                  : 'Choose a Solana wallet to connect'
+              {shouldUseMWA 
+                ? 'Tap to connect your Solana wallet'
+                : 'Choose a Solana wallet to connect'
               }
             </DialogDescription>
           </DialogHeader>
           
           {/* Device indicator */}
           <div className="flex items-center gap-2 mt-4 px-3 py-2 rounded-lg bg-secondary/50">
-            {isMobile ? (
+            {isMobile || isPWA ? (
               <>
                 <Smartphone className="w-4 h-4 text-primary" />
-                <span className="text-xs font-medium">
-                  {isSeeker ? 'Solana Seeker Device' : 'Mobile Browser'}
-                </span>
-                {(isSeeker || hasSeedVault) && (
+                <span className="text-xs font-medium">{deviceDescription}</span>
+                {shouldUseMWA && (
                   <Badge className="ms-auto bg-primary/20 text-primary text-[10px]">
-                    Seed Vault Ready
+                    <Zap className="w-3 h-3 me-1" />
+                    MWA Ready
                   </Badge>
                 )}
               </>
             ) : (
               <>
                 <Monitor className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Desktop Browser</span>
+                <span className="text-xs text-muted-foreground">{deviceDescription}</span>
               </>
             )}
           </div>
@@ -171,13 +162,15 @@ export default function WalletConnectModal({
             </motion.div>
           )}
           
-          <ScrollArea className="h-[300px] pe-2">
+          <ScrollArea className="h-[320px] pe-2">
             <div className="space-y-2">
               {sortedWallets.map((wallet, index) => {
-                const config = WALLET_CONFIG[wallet.id] || {};
                 const isSelected = selectedWallet === wallet.id;
                 const isConnecting = connecting && isSelected;
                 const isRecommended = wallet.recommended;
+                const isMWA = wallet.isMWA;
+                const iconSrc = WALLET_ICONS[wallet.id] || '/wallets/phantom.svg';
+                const gradientColor = WALLET_COLORS[wallet.id] || 'from-gray-500 to-gray-600';
                 
                 return (
                   <motion.div
@@ -188,7 +181,7 @@ export default function WalletConnectModal({
                   >
                     <button
                       className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
-                        isRecommended 
+                        isRecommended || isMWA
                           ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 hover:border-primary/60' 
                           : wallet.installed
                             ? 'bg-card border-border hover:border-primary/40 hover:bg-secondary/50'
@@ -199,14 +192,17 @@ export default function WalletConnectModal({
                     >
                       {/* Wallet icon */}
                       <div className={`relative w-12 h-12 rounded-xl overflow-hidden shrink-0 ${
-                        isRecommended ? `bg-gradient-to-br ${config.color}` : 'bg-secondary'
-                      }`}>
+                        isRecommended || isMWA ? `bg-gradient-to-br ${gradientColor}` : 'bg-secondary'
+                      } flex items-center justify-center`}>
                         <Image
-                          src={config.icon || '/wallets/phantom.svg'}
-                          alt={config.name}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-cover"
+                          src={iconSrc}
+                          alt={wallet.name}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 object-contain"
+                          onError={(e) => {
+                            e.target.src = '/wallets/phantom.svg';
+                          }}
                         />
                         {isRecommended && (
                           <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg">
@@ -218,7 +214,7 @@ export default function WalletConnectModal({
                       {/* Wallet info */}
                       <div className="flex-1 text-start min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold truncate">{config.name}</span>
+                          <span className="font-semibold truncate">{wallet.name}</span>
                           {isRecommended && (
                             <Badge className="bg-primary/20 text-primary text-[10px] px-1.5 shrink-0">
                               Recommended
@@ -226,7 +222,7 @@ export default function WalletConnectModal({
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate mt-0.5">
-                          {config.subtitle}
+                          {wallet.subtitle}
                         </p>
                       </div>
                       
@@ -239,7 +235,7 @@ export default function WalletConnectModal({
                         ) : wallet.installed ? (
                           <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20">
                             <Check className="w-3 h-3 me-1" />
-                            Ready
+                            {isMWA || wallet.usesMWA ? 'Connect' : 'Ready'}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-muted-foreground">
@@ -253,12 +249,11 @@ export default function WalletConnectModal({
                 );
               })}
               
-              {/* Empty state if no wallets */}
+              {/* Empty state */}
               {sortedWallets.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No wallets detected</p>
-                  <p className="text-xs mt-1">Install a Solana wallet to continue</p>
+                  <p>Loading wallets...</p>
                 </div>
               )}
             </div>
