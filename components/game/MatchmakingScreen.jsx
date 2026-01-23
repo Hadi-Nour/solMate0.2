@@ -74,12 +74,17 @@ export default function MatchmakingScreen({
     socket.on('match:found', handleMatchFound);
     socket.on('error', handleError);
 
-    // Check if already connected
-    if (socket.connected) {
-      setIsConnected(true);
-    }
+    // Check if already connected - use initialization instead of setState in effect body
+    const checkInitialConnection = () => {
+      if (socket.connected) {
+        handleConnect();
+      }
+    };
+    // Defer to avoid setState during render
+    const timeoutId = setTimeout(checkInitialConnection, 0);
 
     return () => {
+      clearTimeout(timeoutId);
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('queue:joined', handleQueueJoined);
