@@ -142,7 +142,7 @@ export default function WalletConnectModal({
                 <span className="text-xs font-medium">
                   {isSeeker ? 'Solana Seeker Device' : 'Mobile Browser'}
                 </span>
-                {isSeeker && (
+                {(isSeeker || hasSeedVault) && (
                   <Badge className="ms-auto bg-primary/20 text-primary text-[10px]">
                     Seed Vault Ready
                   </Badge>
