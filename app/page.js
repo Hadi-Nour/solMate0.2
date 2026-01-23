@@ -1013,8 +1013,9 @@ export default function SolMate() {
                               }`}>
                                 {l.rank}
                               </span>
+                              <UserAvatar avatarId={l.avatarId || 'default'} size="sm" />
                               <div>
-                                <p className="font-mono font-medium">{l.friendCode}</p>
+                                <p className="font-medium">{l.displayName || l.friendCode}</p>
                                 <p className="text-xs text-muted-foreground">{l.wins}W / {l.losses}L</p>
                               </div>
                             </div>
