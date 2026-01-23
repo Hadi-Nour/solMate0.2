@@ -167,15 +167,34 @@ export function useVipPayment({ wallet, signTransaction, signAndSendTransaction,
       // Request signature from wallet
       setPaymentState(PAYMENT_STATES.AWAITING_SIGNATURE);
       
-      const signedTransaction = await signTransaction(transaction);
-
-      // Send transaction
-      setPaymentState(PAYMENT_STATES.SENDING);
+      let signature;
       
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed'
-      });
+      // Use signAndSendTransaction if available (better for MWA)
+      if (signAndSendTransaction) {
+        try {
+          // MWA or wallets with signAndSend support
+          setPaymentState(PAYMENT_STATES.SENDING);
+          signature = await signAndSendTransaction(transaction, {
+            skipPreflight: false,
+            preflightCommitment: 'confirmed'
+          });
+        } catch (e) {
+          // Fallback to sign then send
+          const signedTransaction = await signTransaction(transaction);
+          signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: 'confirmed'
+          });
+        }
+      } else {
+        // Traditional sign then send
+        const signedTransaction = await signTransaction(transaction);
+        setPaymentState(PAYMENT_STATES.SENDING);
+        signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed'
+        });
+      }
 
       setTxSignature(signature);
       console.log('Transaction sent:', signature);
