@@ -1453,6 +1453,7 @@ async function handleRoute(request, { params }) {
         .limit(100)
         .project({
           wallet: 1,
+          displayName: 1,
           friendCode: 1,
           'stats.vipWins': 1,
           'stats.vipLosses': 1,
@@ -1466,11 +1467,12 @@ async function handleRoute(request, { params }) {
         leaderboard: leaders.map((l, i) => ({
           rank: i + 1,
           wallet: l.wallet,
+          displayName: l.displayName || null,
           friendCode: l.friendCode,
           wins: l.stats?.vipWins || 0,
           losses: l.stats?.vipLosses || 0,
           bestStreak: l.stats?.vipBestStreak || 0,
-          avatar: l.equipped?.avatar || 'default'
+          avatarId: l.equipped?.avatar || 'default'
         }))
       }));
     }
