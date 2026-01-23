@@ -747,6 +747,21 @@ export default function SolMate() {
                       </div>
                     </div>
                     
+                    {/* VIP Arena Online Match Button */}
+                    <Button 
+                      className="w-full h-14 bg-gradient-to-r from-yellow-500 to-amber-500 text-black font-bold hover:from-yellow-400 hover:to-amber-400"
+                      onClick={() => setShowVipMatchmaking(true)}
+                    >
+                      <Wifi className="w-5 h-5 me-2" />
+                      Play VIP Arena Online
+                    </Button>
+                    
+                    <div className="relative flex items-center justify-center">
+                      <div className="flex-1 border-t border-border"></div>
+                      <span className="px-3 text-xs text-muted-foreground">or play vs bot</span>
+                      <div className="flex-1 border-t border-border"></div>
+                    </div>
+                    
                     {/* Difficulties */}
                     {getDifficulties().map((diff) => (
                       <motion.div key={diff.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
