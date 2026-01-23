@@ -1,0 +1,1 @@
+import { Server } from 'socket.io';\nimport { NextResponse } from 'next/server';\n\n// This is a placeholder API route for socket path\n// The actual Socket.io server runs via custom server.js\n\nexport async function GET(request) {\n  return NextResponse.json({ \n    message: 'Socket.io endpoint - connect via websocket',\n    path: '/api/socket'\n  });\n}\n
