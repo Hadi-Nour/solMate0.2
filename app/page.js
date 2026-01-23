@@ -627,12 +627,19 @@ export default function SolMate() {
                 <Crown className="w-3 h-3 me-1" />{t('common.vip')}
               </Badge>
             )}
-            {!walletAddress ? (
+            {!connected ? (
               <Button onClick={connectWallet} className="solana-gradient text-black shadow-lg">
                 <Wallet className="w-4 h-4 me-2" />{t('header.connect')}
               </Button>
             ) : !user ? (
-              <Button onClick={signIn} className="solana-gradient text-black shadow-lg">{t('header.signIn')}</Button>
+              <div className="flex items-center gap-2">
+                <Button onClick={signIn} className="solana-gradient text-black shadow-lg">
+                  {t('header.signIn')}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={signOut} title="Disconnect">
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
             ) : (
               <Button variant="outline" size="sm" onClick={signOut} className="font-mono">
                 {walletAddress.slice(0,4)}...{walletAddress.slice(-4)}
