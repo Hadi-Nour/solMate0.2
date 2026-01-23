@@ -397,7 +397,7 @@ export default function SolMate() {
   useEffect(() => { 
     if (activeTab === 'friends') loadFriends(); 
     if (activeTab === 'profile') loadLeaderboard(); 
-  }, [activeTab, authToken]);
+  }, [activeTab, loadFriends, loadLeaderboard]);
 
   // Navigation tabs with translations
   const tabs = [
