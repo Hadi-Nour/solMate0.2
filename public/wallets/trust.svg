@@ -1,0 +1,11 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="trustGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0500FF"/>
+      <stop offset="100%" stop-color="#00DCFA"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#trustGradient)"/>
+  <path d="M16 6C16 6 8 9 8 14.5C8 20 10.5 24 16 26C21.5 24 24 20 24 14.5C24 9 16 6 16 6Z" fill="none" stroke="white" stroke-width="1.5"/>
+  <path d="M12 15L15 18L20 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
