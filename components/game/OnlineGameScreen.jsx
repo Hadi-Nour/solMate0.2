@@ -220,6 +220,7 @@ export default function OnlineGameScreen({
   };
 
   const formatTime = (ms) => {
+    if (ms === null || ms === undefined || ms === Infinity) return '∞';
     if (ms <= 0) return '0:00';
     const totalSeconds = Math.floor(ms / 1000);
     const mins = Math.floor(totalSeconds / 60);
@@ -228,10 +229,19 @@ export default function OnlineGameScreen({
   };
 
   const getTimeClass = (ms) => {
+    if (ms === null || ms === undefined || ms === Infinity) return 'text-muted-foreground';
     if (ms <= 10000) return 'text-red-500 animate-pulse';
     if (ms <= 30000) return 'text-orange-500';
     return 'text-foreground';
   };
+
+  // Quick chat callback
+  const handleChatReceived = useCallback((data) => {
+    // Could add sound effects here
+    if (settings?.soundEnabled) {
+      // playSound('chat');
+    }
+  }, [settings?.soundEnabled]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
