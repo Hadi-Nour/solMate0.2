@@ -1211,7 +1211,12 @@ export default function SolMate() {
       </nav>
 
       {/* VIP Dialog */}
-      <Dialog open={showVipDialog} onOpenChange={setShowVipDialog}>
+      <Dialog open={showVipDialog} onOpenChange={(open) => {
+        if (!isPaymentProcessing) {
+          setShowVipDialog(open);
+          if (!open) resetPayment();
+        }
+      }}>
         <DialogContent className="max-w-sm" dir={direction}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1221,31 +1226,134 @@ export default function SolMate() {
             <DialogDescription>{t('vip.lifetime')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-amber-500/5">
-              <h3 className="font-bold mb-3">{t('vip.title')}</h3>
-              <ul className="text-sm space-y-2">
-                {[
-                  `✓ ${t('vip.benefits.ranked')}`,
-                  `✓ ${t('vip.benefits.bronze')}`,
-                  `✓ ${t('vip.benefits.streak')}`,
-                  `✓ ${t('vip.benefits.gold')}`,
-                  `✓ ${t('vip.benefits.leaderboard')}`
-                ].map((b) => (
-                  <li key={b} className="text-muted-foreground">{b}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="text-center">
-              <p className="text-4xl font-bold solana-text-gradient">{t('vip.price')}</p>
-              <p className="text-sm text-muted-foreground">{t('vip.lifetime')}</p>
-            </div>
-            {!user ? (
-              <p className="text-center text-sm text-muted-foreground">{t('vip.connectFirst')}</p>
-            ) : (
-              <Button className="w-full h-12 solana-gradient text-black font-bold" onClick={() => toast.info('Payment integration ready - provide developer wallet')}>
-                <Wallet className="w-5 h-5 me-2" />
-                {t('vip.payWith')}
-              </Button>
+            {/* Payment States UI */}
+            {paymentState !== PAYMENT_STATES.IDLE && paymentState !== PAYMENT_STATES.ERROR && (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  {paymentState === PAYMENT_STATES.PREPARING && (
+                    <>
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      <p className="font-medium">Preparing transaction...</p>
+                      <p className="text-xs text-muted-foreground">Building USDC transfer</p>
+                    </>
+                  )}
+                  {paymentState === PAYMENT_STATES.AWAITING_SIGNATURE && (
+                    <>
+                      <Wallet className="w-8 h-8 text-yellow-500 animate-pulse" />
+                      <p className="font-medium">Confirm in wallet</p>
+                      <p className="text-xs text-muted-foreground">Please approve the transaction in your wallet</p>
+                    </>
+                  )}
+                  {paymentState === PAYMENT_STATES.SENDING && (
+                    <>
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      <p className="font-medium">Sending transaction...</p>
+                      <p className="text-xs text-muted-foreground">Broadcasting to Solana network</p>
+                    </>
+                  )}
+                  {paymentState === PAYMENT_STATES.VERIFYING && (
+                    <>
+                      <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
+                      <p className="font-medium">Verifying payment...</p>
+                      <p className="text-xs text-muted-foreground">Confirming on-chain and activating VIP</p>
+                      {txSignature && (
+                        <a 
+                          href={`https://explorer.solana.com/tx/${txSignature}?cluster=${paymentConfig.cluster}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary flex items-center gap-1 hover:underline"
+                        >
+                          View transaction <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </>
+                  )}
+                  {paymentState === PAYMENT_STATES.SUCCESS && (
+                    <>
+                      <CheckCircle2 className="w-12 h-12 text-green-500" />
+                      <p className="font-medium text-green-500">VIP Activated!</p>
+                      <p className="text-xs text-muted-foreground">Welcome to the VIP Arena</p>
+                      {txSignature && (
+                        <a 
+                          href={`https://explorer.solana.com/tx/${txSignature}?cluster=${paymentConfig.cluster}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary flex items-center gap-1 hover:underline"
+                        >
+                          View transaction <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {paymentState === PAYMENT_STATES.ERROR && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <XCircle className="w-12 h-12 text-red-500" />
+                  <p className="font-medium text-red-500">Payment Failed</p>
+                  <p className="text-xs text-muted-foreground">{paymentError}</p>
+                  <Button variant="outline" size="sm" onClick={resetPayment}>
+                    Try Again
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Normal Dialog Content (shown when idle) */}
+            {paymentState === PAYMENT_STATES.IDLE && (
+              <>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-amber-500/5">
+                  <h3 className="font-bold mb-3">{t('vip.title')}</h3>
+                  <ul className="text-sm space-y-2">
+                    {[
+                      `✓ ${t('vip.benefits.ranked')}`,
+                      `✓ ${t('vip.benefits.bronze')}`,
+                      `✓ ${t('vip.benefits.streak')}`,
+                      `✓ ${t('vip.benefits.gold')}`,
+                      `✓ ${t('vip.benefits.leaderboard')}`
+                    ].map((b) => (
+                      <li key={b} className="text-muted-foreground">{b}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="text-center">
+                  <p className="text-4xl font-bold solana-text-gradient">{t('vip.price')}</p>
+                  <p className="text-sm text-muted-foreground">{t('vip.lifetime')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Payment on {paymentConfig.cluster === 'mainnet-beta' ? 'Mainnet' : 'Devnet'}
+                  </p>
+                </div>
+                {!user ? (
+                  <p className="text-center text-sm text-muted-foreground">{t('vip.connectFirst')}</p>
+                ) : user.isVip ? (
+                  <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <p className="font-medium text-green-500">You already have VIP!</p>
+                  </div>
+                ) : (
+                  <Button 
+                    className="w-full h-12 solana-gradient text-black font-bold" 
+                    onClick={purchaseVip}
+                    disabled={isPaymentProcessing}
+                  >
+                    {isPaymentProcessing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 me-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="w-5 h-5 me-2" />
+                        {t('vip.payWith')}
+                      </>
+                    )}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </DialogContent>
