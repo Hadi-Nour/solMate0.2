@@ -40,6 +40,7 @@ export default function OnlineGameScreen({
   const matchId = matchData.id;
   const opponent = yourColor === 'white' ? matchData.players.black : matchData.players.white;
   const isMyTurn = currentTurn === yourColor;
+  const isUnlimited = matchData.isUnlimited || matchData.timeControl === 0;
   
   const socketRef = useRef(null);
 
