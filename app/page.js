@@ -890,10 +890,44 @@ export default function SolMate() {
                 <CardContent>
                   {user ? (
                     <div className="space-y-4">
+                      {/* Profile Card with Avatar and Name */}
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                        <div className="flex items-center gap-4">
+                          <UserAvatar 
+                            avatarId={user.equipped?.avatar || 'default'} 
+                            size="xl" 
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xl font-bold truncate">
+                              {getDisplayName(user)}
+                            </p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              {user.friendCode}
+                            </p>
+                            {user.isVip && (
+                              <Badge className="mt-1 bg-gradient-to-r from-yellow-500 to-amber-500 text-black text-xs">
+                                <Crown className="w-3 h-3 me-1" />{t('common.vip')}
+                              </Badge>
+                            )}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => setShowEditProfile(true)}
+                            className="shrink-0"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Wallet info */}
                       <div className="p-3 rounded-xl bg-secondary/50">
                         <p className="text-xs text-muted-foreground">{t('profile.wallet')}</p>
                         <p className="font-mono text-sm truncate">{user.wallet}</p>
                       </div>
+                      
+                      {/* Stats */}
                       <div className="grid grid-cols-2 gap-3">
                         <Card className="p-3 text-center bg-green-500/10">
                           <p className="text-2xl font-bold text-green-500">{user.stats?.wins || 0}</p>
@@ -913,15 +947,23 @@ export default function SolMate() {
                         </Card>
                       </div>
                       
-                      {/* Settings Button */}
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => setShowSettings(true)}
-                      >
-                        <Settings className="w-4 h-4 me-2" />
-                        {t('settings.title')}
-                      </Button>
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowEditProfile(true)}
+                        >
+                          <Edit className="w-4 h-4 me-2" />
+                          {t('profile.editProfile')}
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowSettings(true)}
+                        >
+                          <Settings className="w-4 h-4 me-2" />
+                          {t('settings.title')}
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
