@@ -443,7 +443,45 @@ export default function SolMate() {
     );
   }
 
-  // Render game screen
+  // Render matchmaking screen (Free Online)
+  if (showMatchmaking) {
+    return (
+      <MatchmakingScreen
+        authToken={authToken}
+        isVip={user?.isVip}
+        onMatchFound={handleMatchFound}
+        onCancel={() => setShowMatchmaking(false)}
+      />
+    );
+  }
+
+  // Render VIP Arena matchmaking screen
+  if (showVipMatchmaking) {
+    return (
+      <MatchmakingScreen
+        authToken={authToken}
+        isVip={user?.isVip}
+        onMatchFound={handleMatchFound}
+        onCancel={() => setShowVipMatchmaking(false)}
+      />
+    );
+  }
+
+  // Render online game screen
+  if (onlineMatch && onlineMatchColor) {
+    return (
+      <OnlineGameScreen
+        matchData={onlineMatch}
+        yourColor={onlineMatchColor}
+        onExit={handleExitOnlineGame}
+        settings={settings}
+        authToken={authToken}
+        onGameEnd={handleOnlineGameEnd}
+      />
+    );
+  }
+
+  // Render bot game screen
   if (gameState && chess) {
     return (
       <div className="min-h-screen bg-background flex flex-col" dir={direction}>
