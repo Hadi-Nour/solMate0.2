@@ -243,6 +243,7 @@ async function handleRoute(request, { params }) {
         const newUser = {
           id: uuidv4(),
           wallet,
+          displayName: null,  // User can set this later
           friendCode: generateFriendCode(),
           isVip: false,
           vipPurchasedAt: null,
