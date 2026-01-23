@@ -57,7 +57,7 @@ export default function WalletConnectModal({
   onConnected
 }) {
   const { t, direction } = useI18n();
-  const { connect, connecting, connected, publicKey, getAvailableWallets, isSeeker, isMobile } = useSolanaWallet();
+  const { connect, connecting, connected, publicKey, getAvailableWallets, isSeeker, isMobile, hasSeedVault } = useSolanaWallet();
   
   const [availableWallets, setAvailableWallets] = useState([]);
   const [selectedWallet, setSelectedWallet] = useState(null);
