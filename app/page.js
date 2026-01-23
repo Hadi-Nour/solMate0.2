@@ -52,7 +52,9 @@ export default function SolMate() {
   
   // Online game state
   const [showMatchmaking, setShowMatchmaking] = useState(false);
+  const [showVipMatchmaking, setShowVipMatchmaking] = useState(false);
   const [onlineMatch, setOnlineMatch] = useState(null);
+  const [onlineMatchColor, setOnlineMatchColor] = useState(null);
   
   // UI state
   const [showVipDialog, setShowVipDialog] = useState(false);
