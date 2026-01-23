@@ -562,21 +562,20 @@ export default function SolMate() {
                   <CardDescription>Play against real players - no rewards</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-2">
-                    {TIME_CONTROLS.map((tc) => (
-                      <motion.div key={tc.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button 
-                          variant="outline" 
-                          className="w-full h-16 flex-col gap-0 hover:border-blue-500/50 hover:bg-blue-500/10"
-                          onClick={() => toast.info('Online matchmaking coming soon!')}
-                        >
-                          <Clock className="w-4 h-4 mb-1" />
-                          <span className="font-bold">{tc.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{tc.desc}</span>
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </div>
+                  <Button 
+                    className="w-full h-14 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30"
+                    variant="outline"
+                    onClick={() => {
+                      if (!authToken) {
+                        toast.error('Please sign in to play online');
+                        return;
+                      }
+                      setShowMatchmaking(true);
+                    }}
+                  >
+                    <Globe className="w-5 h-5 mr-2" />
+                    Find Casual Match
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
