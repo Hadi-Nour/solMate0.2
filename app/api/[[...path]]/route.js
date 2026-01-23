@@ -1160,7 +1160,7 @@ async function handleRoute(request, { params }) {
       const friendWallets = friendships.map(f => f.friendWallet);
       const friends = await db.collection('users')
         .find({ wallet: { $in: friendWallets } })
-        .project({ wallet: 1, friendCode: 1, isVip: 1, equipped: 1, lastLoginAt: 1 })
+        .project({ wallet: 1, displayName: 1, friendCode: 1, isVip: 1, equipped: 1, lastLoginAt: 1 })
         .toArray();
 
       // Add friendship metadata
@@ -1168,6 +1168,7 @@ async function handleRoute(request, { params }) {
         const friendship = friendships.find(fs => fs.friendWallet === f.wallet);
         return {
           ...f,
+          avatarId: f.equipped?.avatar || 'default',
           friendsSince: friendship?.acceptedAt,
           canGift: friendship?.acceptedAt && 
             (new Date() - new Date(friendship.acceptedAt)) > 24 * 60 * 60 * 1000
