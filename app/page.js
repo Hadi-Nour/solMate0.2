@@ -410,6 +410,30 @@ export default function SolMate() {
     { id: 'profile', icon: User, label: t('nav.profile') }
   ];
 
+  // Online match handlers
+  const handleMatchFound = useCallback(({ matchId, yourColor, opponent, match }) => {
+    setOnlineMatch(match);
+    setOnlineMatchColor(yourColor);
+    setShowMatchmaking(false);
+    setShowVipMatchmaking(false);
+  }, []);
+
+  const handleOnlineGameEnd = useCallback((result, rewards) => {
+    // Refresh user data to get updated stats
+    if (authToken) {
+      fetchUser(authToken);
+    }
+  }, [authToken]);
+
+  const handleExitOnlineGame = useCallback(() => {
+    setOnlineMatch(null);
+    setOnlineMatchColor(null);
+    // Refresh user data
+    if (authToken) {
+      fetchUser(authToken);
+    }
+  }, [authToken]);
+
   // Don't render until locale is loaded to prevent flicker
   if (!isLoaded) {
     return (
