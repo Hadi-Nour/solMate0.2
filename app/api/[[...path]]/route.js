@@ -961,6 +961,144 @@ async function handleRoute(request, { params }) {
     }
 
     // ============================================
+    // USER PROFILE ENDPOINTS
+    // ============================================
+
+    // GET /api/user/profile - Get current user profile
+    if (route === '/user/profile' && method === 'GET') {
+      const session = await requireAuth(request);
+      
+      if (!session) {
+        return handleCORS(NextResponse.json(
+          { error: 'Not authenticated' },
+          { status: 401 }
+        ));
+      }
+
+      const user = await db.collection('users').findOne({ wallet: session.wallet });
+      
+      if (!user) {
+        return handleCORS(NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        ));
+      }
+
+      return handleCORS(NextResponse.json({
+        profile: {
+          wallet: user.wallet,
+          displayName: user.displayName || null,
+          avatarId: user.equipped?.avatar || 'default',
+          friendCode: user.friendCode,
+          isVip: user.isVip,
+          stats: user.stats,
+          inventory: user.inventory,
+          equipped: user.equipped,
+          createdAt: user.createdAt
+        }
+      }));
+    }
+
+    // POST /api/user/profile - Update user profile (displayName + avatarId)
+    if (route === '/user/profile' && method === 'POST') {
+      const session = await requireAuth(request);
+      
+      if (!session) {
+        return handleCORS(NextResponse.json(
+          { error: 'Not authenticated' },
+          { status: 401 }
+        ));
+      }
+
+      const { displayName, avatarId } = await request.json();
+      const updates = {};
+      const errors = [];
+
+      // Validate displayName if provided
+      if (displayName !== undefined) {
+        if (displayName === null || displayName === '') {
+          // Allow clearing display name
+          updates.displayName = null;
+        } else {
+          const trimmedName = String(displayName).trim();
+          
+          // Length validation (3-16 characters)
+          if (trimmedName.length < 3 || trimmedName.length > 16) {
+            errors.push('Display name must be 3-16 characters');
+          }
+          
+          // Character validation (letters, numbers, underscore only)
+          if (!/^[a-zA-Z0-9_]+$/.test(trimmedName)) {
+            errors.push('Display name can only contain letters, numbers, and underscores');
+          }
+          
+          if (errors.length === 0) {
+            // Check uniqueness (case-insensitive)
+            const existingUser = await db.collection('users').findOne({
+              displayName: { $regex: new RegExp(`^${trimmedName}$`, 'i') },
+              wallet: { $ne: session.wallet }
+            });
+            
+            if (existingUser) {
+              errors.push('This display name is already taken');
+            } else {
+              updates.displayName = trimmedName;
+            }
+          }
+        }
+      }
+
+      // Validate avatarId if provided
+      if (avatarId !== undefined) {
+        const validAvatars = ['default', 'pawn', 'knight', 'bishop', 'rook', 'queen', 'king', 'grandmaster'];
+        
+        if (!validAvatars.includes(avatarId)) {
+          errors.push('Invalid avatar selection');
+        } else {
+          // Check if user owns this avatar (default is always owned)
+          const user = await db.collection('users').findOne({ wallet: session.wallet });
+          const avatarKey = `avatar_${avatarId}`;
+          
+          if (avatarId !== 'default' && !user.inventory?.includes(avatarKey)) {
+            errors.push('You do not own this avatar');
+          } else {
+            updates['equipped.avatar'] = avatarId;
+          }
+        }
+      }
+
+      if (errors.length > 0) {
+        return handleCORS(NextResponse.json(
+          { error: errors.join('. ') },
+          { status: 400 }
+        ));
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return handleCORS(NextResponse.json(
+          { error: 'No valid fields to update' },
+          { status: 400 }
+        ));
+      }
+
+      await db.collection('users').updateOne(
+        { wallet: session.wallet },
+        { $set: updates }
+      );
+
+      // Get updated user
+      const updatedUser = await db.collection('users').findOne({ wallet: session.wallet });
+
+      return handleCORS(NextResponse.json({
+        success: true,
+        profile: {
+          displayName: updatedUser.displayName || null,
+          avatarId: updatedUser.equipped?.avatar || 'default'
+        }
+      }));
+    }
+
+    // ============================================
     // USER PREFERENCES ENDPOINTS
     // ============================================
 
