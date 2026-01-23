@@ -341,6 +341,7 @@ async function handleRoute(request, { params }) {
         user: {
           id: user.id,
           wallet: user.wallet,
+          displayName: user.displayName || null,
           friendCode: user.friendCode,
           isVip: user.isVip,
           stats: user.stats,
