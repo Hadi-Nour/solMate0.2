@@ -14,11 +14,18 @@ import { useSolanaWallet } from './SolanaWalletProvider';
 
 // Wallet metadata with official icons
 const WALLET_CONFIG = {
-  seeker: {
-    name: 'Seeker Wallet',
-    subtitle: 'Solana Mobile Seed Vault',
+  seedvault: {
+    name: 'Seed Vault',
+    subtitle: 'Solana Seeker built-in wallet',
     icon: '/wallets/seeker.svg',
     downloadUrl: null, // Pre-installed on Seeker
+    color: 'from-emerald-500 to-teal-600',
+  },
+  seeker: {
+    name: 'Seed Vault',
+    subtitle: 'Solana Mobile Wallet',
+    icon: '/wallets/seeker.svg',
+    downloadUrl: null,
     color: 'from-emerald-500 to-teal-600',
   },
   phantom: {
