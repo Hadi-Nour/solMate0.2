@@ -1,57 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Wallet, Smartphone, Monitor, Check, Loader2, ExternalLink, ChevronRight, Star } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n/provider';
-import { isSolanaSeeker, isMobileDevice } from './SolanaWalletProvider';
-
-// Wallet metadata with icons and descriptions
-const WALLET_META = {
-  'Mobile Wallet Adapter': {
-    name: 'Seeker Wallet',
-    altName: 'Seed Vault',
-    description: 'Official Solana Seeker wallet',
-    icon: '🌱',
-    color: 'from-green-500 to-emerald-500',
-    isSeeker: true,
-    recommended: true,
-  },
-  'Phantom': {
-    name: 'Phantom',
-    description: 'Popular Solana wallet',
-    icon: '👻',
-    color: 'from-purple-500 to-violet-500',
-    downloadUrl: 'https://phantom.app/',
-  },
-  'Solflare': {
-    name: 'Solflare',
-    description: 'Secure Solana wallet',
-    icon: '🔥',
-    color: 'from-orange-500 to-red-500',
-    downloadUrl: 'https://solflare.com/',
-  },
-  'Backpack': {
-    name: 'Backpack',
-    description: 'xNFT-ready wallet',
-    icon: '🎒',
-    color: 'from-blue-500 to-cyan-500',
-    downloadUrl: 'https://backpack.app/',
-  },
-  'Coinbase Wallet': {
-    name: 'Coinbase Wallet',
-    description: 'Self-custody wallet',
-    icon: '💰',
-    color: 'from-blue-600 to-blue-700',
-    downloadUrl: 'https://www.coinbase.com/wallet',
-  },
-};
+import { useSolanaWallet } from './SolanaWalletProvider';
 
 export default function WalletConnectModal({ 
   open, 
@@ -59,61 +17,30 @@ export default function WalletConnectModal({
   onConnected
 }) {
   const { t, direction } = useI18n();
-  const { wallets, select, connect, connecting, connected, publicKey, wallet } = useWallet();
+  const { connect, connecting, connected, publicKey, getAvailableWallets, isSeeker, isMobile } = useSolanaWallet();
   
-  const [isSeeker, setIsSeeker] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [availableWallets, setAvailableWallets] = useState([]);
   const [selectedWallet, setSelectedWallet] = useState(null);
   const [error, setError] = useState(null);
   
+  // Load available wallets when modal opens
   useEffect(() => {
-    setIsSeeker(isSolanaSeeker());
-    setIsMobile(isMobileDevice());
-  }, []);
-  
-  // Sort wallets: Seeker first on mobile, installed wallets prioritized
-  const sortedWallets = useMemo(() => {
-    if (!wallets) return [];
-    
-    return [...wallets].sort((a, b) => {
-      const metaA = WALLET_META[a.adapter.name] || {};
-      const metaB = WALLET_META[b.adapter.name] || {};
-      
-      // On Seeker mobile, prioritize Seed Vault
-      if (isSeeker || isMobile) {
-        if (metaA.isSeeker) return -1;
-        if (metaB.isSeeker) return 1;
-      }
-      
-      // Then sort by readyState (installed wallets first)
-      const readyOrder = {
-        'Installed': 0,
-        'Loadable': 1,
-        'NotDetected': 2,
-        'Unsupported': 3,
-      };
-      
-      const orderA = readyOrder[a.readyState] ?? 3;
-      const orderB = readyOrder[b.readyState] ?? 3;
-      
-      if (orderA !== orderB) return orderA - orderB;
-      
-      // Then by recommended status
-      if (metaA.recommended && !metaB.recommended) return -1;
-      if (metaB.recommended && !metaA.recommended) return 1;
-      
-      return 0;
-    });
-  }, [wallets, isSeeker, isMobile]);
+    if (open) {
+      setAvailableWallets(getAvailableWallets());
+      setError(null);
+      setSelectedWallet(null);
+    }
+  }, [open, getAvailableWallets]);
   
   // Handle wallet selection and connection
-  const handleSelectWallet = async (walletAdapter) => {
+  const handleSelectWallet = async (walletId) => {
     setError(null);
-    setSelectedWallet(walletAdapter.adapter.name);
+    setSelectedWallet(walletId);
     
     try {
-      select(walletAdapter.adapter.name);
-      await connect();
+      const address = await connect(walletId);
+      onConnected?.(address);
+      onOpenChange(false);
     } catch (err) {
       console.error('Connection error:', err);
       setError(err.message || 'Failed to connect');
@@ -121,26 +48,16 @@ export default function WalletConnectModal({
     }
   };
   
-  // Close modal when connected
-  useEffect(() => {
-    if (connected && publicKey) {
-      onConnected?.(publicKey.toString());
-      onOpenChange(false);
-    }
-  }, [connected, publicKey, onConnected, onOpenChange]);
-  
-  const getWalletMeta = (adapter) => {
-    return WALLET_META[adapter.name] || {
-      name: adapter.name,
-      description: 'Solana wallet',
-      icon: '💳',
-      color: 'from-gray-500 to-gray-600',
-    };
-  };
-  
-  const isInstalled = (wallet) => {
-    return wallet.readyState === 'Installed' || wallet.readyState === 'Loadable';
-  };
+  // Sort wallets: recommended first, then installed
+  const sortedWallets = useMemo(() => {
+    return [...availableWallets].sort((a, b) => {
+      if (a.recommended && !b.recommended) return -1;
+      if (b.recommended && !a.recommended) return 1;
+      if (a.installed && !b.installed) return -1;
+      if (b.installed && !a.installed) return 1;
+      return 0;
+    });
+  }, [availableWallets]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -188,59 +105,49 @@ export default function WalletConnectModal({
           )}
           
           {/* Wallet list */}
-          <ScrollArea className="h-[300px] pr-2">
+          <ScrollArea className="h-[280px] pr-2">
             <div className="space-y-2">
-              {sortedWallets.map((walletAdapter, index) => {
-                const meta = getWalletMeta(walletAdapter.adapter);
-                const installed = isInstalled(walletAdapter);
-                const isSelected = selectedWallet === walletAdapter.adapter.name;
+              {sortedWallets.map((wallet, index) => {
+                const isSelected = selectedWallet === wallet.id;
                 const isConnecting = connecting && isSelected;
-                const isFirstOnSeeker = index === 0 && (isSeeker || isMobile) && meta.isSeeker;
+                const isRecommended = wallet.recommended;
                 
                 return (
                   <motion.div
-                    key={walletAdapter.adapter.name}
+                    key={wallet.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
                     <Button
-                      variant={isFirstOnSeeker ? 'default' : 'outline'}
+                      variant={isRecommended ? 'default' : 'outline'}
                       className={`w-full h-auto py-3 px-4 justify-between ${
-                        isFirstOnSeeker 
+                        isRecommended 
                           ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 hover:from-green-400 hover:to-emerald-400' 
                           : ''
-                      } ${!installed && !meta.isSeeker ? 'opacity-70' : ''}`}
-                      onClick={() => handleSelectWallet(walletAdapter)}
+                      } ${!wallet.installed ? 'opacity-70' : ''}`}
+                      onClick={() => wallet.installed ? handleSelectWallet(wallet.id) : window.open(wallet.downloadUrl, '_blank')}
                       disabled={connecting}
                     >
                       <div className="flex items-center gap-3">
                         {/* Wallet icon */}
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${
-                          isFirstOnSeeker ? 'bg-white/20' : `bg-gradient-to-br ${meta.color}/20`
+                          isRecommended ? 'bg-white/20' : 'bg-secondary'
                         }`}>
-                          {walletAdapter.adapter.icon ? (
-                            <img 
-                              src={walletAdapter.adapter.icon} 
-                              alt={meta.name}
-                              className="w-6 h-6"
-                            />
-                          ) : (
-                            meta.icon
-                          )}
+                          {wallet.icon}
                         </div>
                         
                         <div className="text-start">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold">{meta.name}</span>
-                            {meta.recommended && isFirstOnSeeker && (
+                            <span className="font-semibold">{wallet.name}</span>
+                            {isRecommended && (
                               <Badge className="bg-yellow-500/20 text-yellow-300 text-[10px] px-1">
                                 <Star className="w-3 h-3 me-0.5" /> Recommended
                               </Badge>
                             )}
                           </div>
-                          <p className={`text-xs ${isFirstOnSeeker ? 'text-white/70' : 'text-muted-foreground'}`}>
-                            {meta.description}
+                          <p className={`text-xs ${isRecommended ? 'text-white/70' : 'text-muted-foreground'}`}>
+                            {wallet.installed ? 'Ready to connect' : 'Not installed'}
                           </p>
                         </div>
                       </div>
@@ -249,22 +156,14 @@ export default function WalletConnectModal({
                       <div className="flex items-center gap-2">
                         {isConnecting ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : installed ? (
+                        ) : wallet.installed ? (
                           <Badge variant="secondary" className="text-[10px]">
                             <Check className="w-3 h-3 me-1" /> Ready
                           </Badge>
-                        ) : meta.downloadUrl ? (
-                          <a 
-                            href={meta.downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-primary flex items-center gap-1 hover:underline"
-                          >
-                            Install <ExternalLink className="w-3 h-3" />
-                          </a>
                         ) : (
-                          <ChevronRight className={`w-4 h-4 ${isFirstOnSeeker ? 'text-white/70' : 'text-muted-foreground'}`} />
+                          <span className="text-xs text-primary flex items-center gap-1">
+                            Install <ExternalLink className="w-3 h-3" />
+                          </span>
                         )}
                       </div>
                     </Button>
