@@ -136,12 +136,37 @@
   },
   "profile": {
     "title": "Profil",
+    "editProfile": "Profil bearbeiten",
+    "displayName": "Anzeigename",
+    "displayNamePlaceholder": "Namen eingeben",
+    "avatar": "Avatar",
+    "selectAvatar": "Avatar wählen",
     "wallet": "Wallet",
     "wins": "Siege",
     "losses": "Niederlagen",
     "currentStreak": "Aktuell",
     "bestStreak": "Beste",
-    "signInRequired": "Anmelden um Profil zu sehen"
+    "signInRequired": "Anmelden um Profil zu sehen",
+    "saveChanges": "Änderungen speichern",
+    "saving": "Speichern...",
+    "profileUpdated": "Profil aktualisiert!",
+    "previewTitle": "Vorschau",
+    "validation": {
+      "lengthError": "Name muss 3-16 Zeichen haben",
+      "charactersError": "Nur Buchstaben, Zahlen und Unterstriche erlaubt",
+      "takenError": "Dieser Name ist bereits vergeben"
+    },
+    "avatars": {
+      "default": "Standard",
+      "pawn": "Bauernmeister",
+      "knight": "Springer-Reiter",
+      "bishop": "Läufer",
+      "rook": "Turm",
+      "queen": "Dame",
+      "king": "König",
+      "grandmaster": "Großmeister",
+      "locked": "Gesperrt"
+    }
   },
   "leaderboard": {
     "title": "VIP Rangliste",
