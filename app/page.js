@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Gamepad2, Trophy, Package, Users, User, Crown, Swords, ChevronRight, 
   Sparkles, Star, Copy, Check, Flag, Wallet, Wifi, Bot, Clock, Eye, 
-  Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe
+  Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe, Edit
 } from 'lucide-react';
 import ChessBoard3D from '@/components/chess/ChessBoard3D';
 import GameTopBar from '@/components/game/GameTopBar';
@@ -24,6 +24,8 @@ import GameBottomBar from '@/components/game/GameBottomBar';
 import GameResultModal from '@/components/game/GameResultModal';
 import ExitConfirmModal from '@/components/game/ExitConfirmModal';
 import SettingsModal from '@/components/game/SettingsModal';
+import EditProfileModal from '@/components/profile/EditProfileModal';
+import UserAvatar, { getAvatarEmoji } from '@/components/profile/UserAvatar';
 import { useI18n } from '@/lib/i18n/provider';
 
 // Dynamic imports for online components
