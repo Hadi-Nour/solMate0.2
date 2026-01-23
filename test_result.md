@@ -241,6 +241,30 @@ backend:
         agent: "main"
         comment: "VIP Arena rankings by wins and best streak"
 
+  - task: "User profile GET endpoint"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/user/profile endpoint working correctly - requires authentication, returns 401 without JWT token, proper CORS headers, JSON response format"
+
+  - task: "User profile POST endpoint"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/user/profile endpoint working correctly - requires authentication, validates displayName (3-16 chars, alphanumeric+underscore), validates avatarId (default/pawn/knight/bishop/rook/queen/king/grandmaster), proper error handling"
+
 frontend:
   - task: "Chess board UI"
     implemented: true
