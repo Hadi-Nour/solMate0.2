@@ -303,7 +303,7 @@ class ComprehensiveVipPaymentTester:
                 self.log_result(
                     "Transaction validation - Not found",
                     False,
-                    f"Expected 400 or 500, got {response.status_code}",
+                    f"Expected 400, 500, or 520, got {response.status_code}",
                     {'status_code': response.status_code, 'response_text': response.text}
                 )
                 
