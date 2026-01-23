@@ -16,10 +16,11 @@ const JWT_SECRET = new TextEncoder().encode(
 const NONCE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const VIP_PRICE_USDC = parseFloat(process.env.VIP_PRICE_USDC || '6.99');
 const USDC_DECIMALS = 6;
-const DEVELOPER_WALLET = process.env.NEXT_PUBLIC_DEVELOPER_WALLET || 'YOUR_WALLET_HERE';
+const VIP_PRICE_USDC_RAW = BigInt(Math.round(VIP_PRICE_USDC * Math.pow(10, USDC_DECIMALS))); // 6990000
+const DEVELOPER_WALLET = process.env.DEVELOPER_WALLET || process.env.NEXT_PUBLIC_DEVELOPER_WALLET || 'BNWbb1GJcTMJLn12yMh8deB2AmrAmT1VyMJJpaTNVefJ';
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
 const CLUSTER = process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet';
-const USDC_MINT = CLUSTER === 'mainnet' 
+const USDC_MINT = CLUSTER === 'mainnet-beta' 
   ? (process.env.NEXT_PUBLIC_USDC_MINT_MAINNET || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
   : (process.env.NEXT_PUBLIC_USDC_MINT_DEVNET || '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
 
