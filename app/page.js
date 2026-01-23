@@ -58,6 +58,10 @@ export default function SolMate() {
   const [lastMove, setLastMove] = useState(null);
   const [moveHistory, setMoveHistory] = useState([]);
   
+  // Online game state
+  const [showMatchmaking, setShowMatchmaking] = useState(false);
+  const [onlineMatch, setOnlineMatch] = useState(null);
+  
   // UI state
   const [showVipDialog, setShowVipDialog] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
