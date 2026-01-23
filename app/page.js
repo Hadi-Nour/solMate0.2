@@ -46,6 +46,7 @@ export default function SolMate() {
     connecting, 
     disconnect, 
     signMessage,
+    signTransaction,
     walletName 
   } = useSolanaWallet();
 
@@ -56,6 +57,36 @@ export default function SolMate() {
   
   // Derived wallet address
   const walletAddress = publicKey?.toString() || '';
+
+  // VIP Payment hook
+  const handleVipSuccess = useCallback(({ signature, amount, message }) => {
+    toast.success(message || 'VIP Lifetime activated!');
+    setShowVipDialog(false);
+    // Refresh user data to update VIP status
+    if (authToken) {
+      fetchUser(authToken);
+    }
+  }, [authToken]);
+
+  const handleVipError = useCallback((error) => {
+    toast.error(error.message || 'VIP purchase failed');
+  }, []);
+
+  const {
+    paymentState,
+    errorMessage: paymentError,
+    txSignature,
+    purchaseVip,
+    resetPayment,
+    isProcessing: isPaymentProcessing,
+    config: paymentConfig
+  } = useVipPayment({
+    wallet: publicKey,
+    signTransaction,
+    authToken,
+    onSuccess: handleVipSuccess,
+    onError: handleVipError
+  });
   
   // Game state
   const [activeTab, setActiveTab] = useState('play');
