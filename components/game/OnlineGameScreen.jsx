@@ -351,6 +351,11 @@ export default function OnlineGameScreen({
         <Button variant="outline" size="sm" onClick={handleExit}>
           <Home className="h-4 w-4 mr-1" /> Exit
         </Button>
+        <QuickChat
+          matchId={matchId}
+          yourColor={yourColor}
+          onChatReceived={handleChatReceived}
+        />
         <Button variant="outline" size="sm" onClick={handleOfferDraw}>
           <Handshake className="h-4 w-4 mr-1" /> Draw
         </Button>
