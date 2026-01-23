@@ -43,16 +43,10 @@ export function I18nProvider({ children }) {
       return;
     }
 
-    // 2. Auto-detect from browser
-    const browserLang = navigator.language?.split('-')[0];
-    if (browserLang && locales.includes(browserLang)) {
-      setLocaleState(browserLang);
-      localStorage.setItem('solmate_language', browserLang);
-    } else {
-      // 3. Fallback to English
-      setLocaleState(defaultLocale);
-      localStorage.setItem('solmate_language', defaultLocale);
-    }
+    // 2. Default to English (no browser detection)
+    // User can manually change language in Settings
+    setLocaleState(defaultLocale); // 'en'
+    localStorage.setItem('solmate_language', defaultLocale);
     setIsLoaded(true);
   }, []);
 
