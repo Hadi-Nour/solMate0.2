@@ -136,12 +136,37 @@
   },
   "profile": {
     "title": "الملف الشخصي",
+    "editProfile": "تعديل الملف",
+    "displayName": "الاسم المعروض",
+    "displayNamePlaceholder": "أدخل اسمك",
+    "avatar": "الصورة الرمزية",
+    "selectAvatar": "اختر صورة رمزية",
     "wallet": "المحفظة",
     "wins": "انتصارات",
     "losses": "خسائر",
     "currentStreak": "الحالية",
     "bestStreak": "الأفضل",
-    "signInRequired": "سجل الدخول لعرض الملف الشخصي"
+    "signInRequired": "سجل الدخول لعرض الملف الشخصي",
+    "saveChanges": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "profileUpdated": "تم تحديث الملف الشخصي!",
+    "previewTitle": "معاينة",
+    "validation": {
+      "lengthError": "يجب أن يكون الاسم 3-16 حرفاً",
+      "charactersError": "يُسمح فقط بالأحرف والأرقام والشرطات السفلية",
+      "takenError": "هذا الاسم مستخدم بالفعل"
+    },
+    "avatars": {
+      "default": "افتراضي",
+      "pawn": "سيد البيادق",
+      "knight": "فارس الحصان",
+      "bishop": "الفيل",
+      "rook": "القلعة",
+      "queen": "الملكة",
+      "king": "الملك",
+      "grandmaster": "الأستاذ الكبير",
+      "locked": "مقفل"
+    }
   },
   "leaderboard": {
     "title": "لوحة صدارة VIP",
