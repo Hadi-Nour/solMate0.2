@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useMemo, useCallback, useEffect, useState, createContext, useContext } from 'react';
-import { ConnectionProvider } from '@solana/wallet-adapter-react';
-import { clusterApiUrl } from '@solana/web3.js';
 
 // Detect if running on Solana Seeker (mobile with Seed Vault)
 export function isSolanaSeeker() {
@@ -17,7 +15,7 @@ export function isMobileDevice() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-// Lightweight wallet context that doesn't use heavy wallet-adapter
+// Lightweight wallet context
 const WalletContext = createContext(null);
 
 export function useSolanaWallet() {
@@ -28,7 +26,7 @@ export function useSolanaWallet() {
   return context;
 }
 
-// Re-export useWallet as alias for compatibility
+// Re-export useWallet as alias
 export function useWallet() {
   return useSolanaWallet();
 }
@@ -39,6 +37,7 @@ export function SolanaWalletProvider({ children }) {
   const [connecting, setConnecting] = useState(false);
   const [wallet, setWallet] = useState(null);
   const [walletName, setWalletName] = useState(null);
+  const [isReady, setIsReady] = useState(false);
   
   // Determine network from environment
   const network = useMemo(() => {
@@ -49,21 +48,26 @@ export function SolanaWalletProvider({ children }) {
   const endpoint = useMemo(() => {
     const customRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
     if (customRpc) return customRpc;
-    const networkMap = {
-      'mainnet-beta': 'mainnet-beta',
-      'testnet': 'testnet',
-      'devnet': 'devnet',
+    
+    const endpoints = {
+      'mainnet-beta': 'https://api.mainnet-beta.solana.com',
+      'testnet': 'https://api.testnet.solana.com',
+      'devnet': 'https://api.devnet.solana.com',
     };
-    return clusterApiUrl(networkMap[network] || 'devnet');
+    return endpoints[network] || endpoints['devnet'];
   }, [network]);
 
   // Check for existing wallet connection on mount
   useEffect(() => {
     const checkConnection = async () => {
+      if (typeof window === 'undefined') {
+        setIsReady(true);
+        return;
+      }
+      
       // Check window.solana (Phantom)
-      if (typeof window !== 'undefined' && window.solana?.isPhantom) {
+      if (window.solana?.isPhantom) {
         try {
-          // Try to connect silently if already authorized
           const resp = await window.solana.connect({ onlyIfTrusted: true });
           if (resp.publicKey) {
             setPublicKey(resp.publicKey);
@@ -72,30 +76,23 @@ export function SolanaWalletProvider({ children }) {
             setWalletName('Phantom');
           }
         } catch (e) {
-          // Not already connected, that's fine
-        }
-      }
-      
-      // Check window.solflare
-      if (!connected && typeof window !== 'undefined' && window.solflare?.isSolflare) {
-        try {
-          if (window.solflare.isConnected && window.solflare.publicKey) {
-            setPublicKey(window.solflare.publicKey);
-            setConnected(true);
-            setWallet(window.solflare);
-            setWalletName('Solflare');
-          }
-        } catch (e) {
           // Not already connected
         }
       }
+      
+      setIsReady(true);
     };
     
-    checkConnection();
-  }, [connected]);
+    // Small delay to let wallet inject
+    setTimeout(checkConnection, 100);
+  }, []);
   
   // Connect to a specific wallet
   const connect = useCallback(async (walletType = 'phantom') => {
+    if (typeof window === 'undefined') {
+      throw new Error('Cannot connect on server');
+    }
+    
     setConnecting(true);
     
     try {
@@ -135,7 +132,6 @@ export function SolanaWalletProvider({ children }) {
           
         case 'seeker':
         case 'seedvault':
-          // On Seeker, try Phantom first as it's the default
           if (window.solana) {
             provider = window.solana;
             name = 'Seeker Wallet';
@@ -205,28 +201,12 @@ export function SolanaWalletProvider({ children }) {
     return wallet.signTransaction(transaction);
   }, [wallet, connected]);
   
-  // Sign and send transaction
-  const signAndSendTransaction = useCallback(async (transaction, connection) => {
-    if (!wallet || !connected) {
-      throw new Error('Wallet not connected');
-    }
-    
-    // Sign the transaction
-    const signed = await wallet.signTransaction(transaction);
-    
-    // Send it
-    const signature = await connection.sendRawTransaction(signed.serialize());
-    
-    return signature;
-  }, [wallet, connected]);
-  
   // Get available wallets
   const getAvailableWallets = useCallback(() => {
     const available = [];
     
     if (typeof window === 'undefined') return available;
     
-    // Seeker detection
     const isSeeker = isSolanaSeeker();
     const isMobile = isMobileDevice();
     
@@ -313,22 +293,20 @@ export function SolanaWalletProvider({ children }) {
     disconnect,
     signMessage,
     signTransaction,
-    signAndSendTransaction,
     getAvailableWallets,
     isSeeker: isSolanaSeeker(),
     isMobile: isMobileDevice(),
+    isReady,
   }), [
     publicKey, connected, connecting, wallet, walletName,
     network, endpoint, connect, disconnect, signMessage,
-    signTransaction, signAndSendTransaction, getAvailableWallets
+    signTransaction, getAvailableWallets, isReady
   ]);
   
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletContext.Provider value={value}>
-        {children}
-      </WalletContext.Provider>
-    </ConnectionProvider>
+    <WalletContext.Provider value={value}>
+      {children}
+    </WalletContext.Provider>
   );
 }
 
