@@ -136,12 +136,37 @@
   },
   "profile": {
     "title": "Profile",
+    "editProfile": "Edit Profile",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Enter your name",
+    "avatar": "Avatar",
+    "selectAvatar": "Select Avatar",
     "wallet": "Wallet",
     "wins": "Wins",
     "losses": "Losses",
     "currentStreak": "Current",
     "bestStreak": "Best",
-    "signInRequired": "Sign in to view profile"
+    "signInRequired": "Sign in to view profile",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated!",
+    "previewTitle": "Preview",
+    "validation": {
+      "lengthError": "Name must be 3-16 characters",
+      "charactersError": "Only letters, numbers, and underscores allowed",
+      "takenError": "This name is already taken"
+    },
+    "avatars": {
+      "default": "Default",
+      "pawn": "Pawn Master",
+      "knight": "Knight Rider",
+      "bishop": "Bishop",
+      "rook": "Rook",
+      "queen": "Queen",
+      "king": "King",
+      "grandmaster": "Grandmaster",
+      "locked": "Locked"
+    }
   },
   "leaderboard": {
     "title": "VIP Leaderboard",
