@@ -16,7 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Gamepad2, Trophy, Package, Users, User, Crown, Swords, ChevronRight, 
   Sparkles, Star, Copy, Check, Flag, Wallet, Wifi, Bot, Clock, Eye, 
-  Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe, Edit, LogOut
+  Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe, Edit, LogOut,
+  Loader2, CheckCircle2, XCircle, ExternalLink
 } from 'lucide-react';
 import ChessBoard3D from '@/components/chess/ChessBoard3D';
 import GameTopBar from '@/components/game/GameTopBar';
