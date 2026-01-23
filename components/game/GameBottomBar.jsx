@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Flag, Handshake, RotateCcw, Undo2, Home, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function GameBottomBar({ 
   onResign, 
@@ -18,15 +19,17 @@ export default function GameBottomBar({
   gameStatus = 'active',
   showChat = false
 }) {
+  const { t, direction } = useI18n();
+  
   const isGameOver = gameStatus === 'finished';
   
   const actions = [
-    { id: 'home', icon: Home, label: 'Home', onClick: onHome, show: true },
-    { id: 'resign', icon: Flag, label: 'Resign', onClick: onResign, show: !isGameOver, variant: 'destructive' },
-    { id: 'draw', icon: Handshake, label: 'Offer Draw', onClick: onOfferDraw, show: isOnline && !isGameOver },
-    { id: 'restart', icon: RotateCcw, label: 'Restart', onClick: onRestart, show: isBotGame },
-    { id: 'undo', icon: Undo2, label: 'Undo', onClick: onUndo, show: isBotGame && canUndo && !isGameOver },
-    { id: 'chat', icon: MessageCircle, label: 'Chat', onClick: onChat, show: isOnline && showChat },
+    { id: 'home', icon: Home, label: t('gameActions.home'), onClick: onHome, show: true },
+    { id: 'resign', icon: Flag, label: t('gameActions.resign'), onClick: onResign, show: !isGameOver, variant: 'destructive' },
+    { id: 'draw', icon: Handshake, label: t('gameActions.offerDraw'), onClick: onOfferDraw, show: isOnline && !isGameOver },
+    { id: 'restart', icon: RotateCcw, label: t('gameActions.restart'), onClick: onRestart, show: isBotGame },
+    { id: 'undo', icon: Undo2, label: t('gameActions.undo'), onClick: onUndo, show: isBotGame && canUndo && !isGameOver },
+    { id: 'chat', icon: MessageCircle, label: t('gameActions.chat'), onClick: onChat, show: isOnline && showChat },
   ].filter(a => a.show);
 
   return (
@@ -36,6 +39,7 @@ export default function GameBottomBar({
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        dir={direction}
       >
         {actions.map((action) => (
           <Tooltip key={action.id}>

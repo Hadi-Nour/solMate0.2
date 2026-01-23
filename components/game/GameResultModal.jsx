@@ -7,6 +7,7 @@ import { Trophy, Frown, Handshake, Package, Star, Crown, Home, RotateCcw, ArrowR
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useEffect } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function GameResultModal({ 
   open, 
@@ -18,6 +19,8 @@ export default function GameResultModal({
   onGoHome,
   onViewRewards
 }) {
+  const { t, direction } = useI18n();
+  
   const isWin = result === 'player_wins';
   const isDraw = result === 'draw';
   const isLoss = result === 'bot_wins' || result === 'opponent_wins';
@@ -41,20 +44,20 @@ export default function GameResultModal({
   };
 
   const getResultText = () => {
-    if (isWin) return 'Victory!';
-    if (isDraw) return 'Draw!';
-    return 'Defeat';
+    if (isWin) return t('result.victory');
+    if (isDraw) return t('result.draw');
+    return t('result.defeat');
   };
 
   const getResultSubtext = () => {
-    if (isWin) return 'Congratulations! You won the game.';
-    if (isDraw) return 'The game ended in a draw.';
-    return 'Better luck next time!';
+    if (isWin) return t('result.congratulations');
+    if (isDraw) return t('result.drawMessage');
+    return t('result.betterLuck');
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm" dir={direction}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -93,7 +96,7 @@ export default function GameResultModal({
             >
               <h3 className="font-semibold text-sm flex items-center justify-center gap-2">
                 <Star className="h-4 w-4 text-yellow-500" />
-                Rewards Earned
+                {t('rewards.title')}
               </h3>
               <div className="flex justify-center gap-4">
                 {rewards.bronzeChest > 0 && (
@@ -120,9 +123,9 @@ export default function GameResultModal({
               {rewards.newStreak !== undefined && (
                 <div className="text-xs text-center text-muted-foreground">
                   {rewards.streakReset ? (
-                    <span className="text-red-400">Streak reset</span>
+                    <span className="text-red-400">{t('rewards.streakReset')}</span>
                   ) : (
-                    <span className="text-primary">Current streak: {rewards.newStreak} 🔥</span>
+                    <span className="text-primary">{t('rewards.currentStreak', { count: rewards.newStreak })} 🔥</span>
                   )}
                 </div>
               )}
@@ -132,12 +135,12 @@ export default function GameResultModal({
           {/* Actions */}
           <div className="flex gap-3 mt-6 w-full">
             <Button variant="outline" className="flex-1" onClick={onGoHome}>
-              <Home className="h-4 w-4 mr-2" />
-              Home
+              <Home className="h-4 w-4 me-2" />
+              {t('gameActions.home')}
             </Button>
             <Button className="flex-1 solana-gradient text-black" onClick={onNewGame}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Play Again
+              <RotateCcw className="h-4 w-4 me-2" />
+              {t('gameActions.playAgain')}
             </Button>
           </div>
         </motion.div>

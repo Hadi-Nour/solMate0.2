@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Settings, Clock, Wifi, WifiOff, Bot, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function GameTopBar({ 
   onBack, 
@@ -16,11 +17,19 @@ export default function GameTopBar({
   isMyTurn,
   onSettings 
 }) {
+  const { t, direction } = useI18n();
+
   const formatTime = (seconds) => {
     if (!seconds && seconds !== 0) return '--:--';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Get translated difficulty name
+  const getDifficultyName = (diff) => {
+    const key = `difficulty.${diff}`;
+    return t(key);
   };
 
   return (
@@ -29,6 +38,7 @@ export default function GameTopBar({
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      dir={direction}
     >
       {/* Left: Back button */}
       <Button 
@@ -45,18 +55,18 @@ export default function GameTopBar({
         {isOnline ? (
           <>
             <Wifi className="h-4 w-4 text-green-500" />
-            <span className="font-medium text-sm">{opponentName || 'Opponent'}</span>
+            <span className="font-medium text-sm">{opponentName || t('game.opponent')}</span>
           </>
         ) : (
           <>
             <Bot className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm capitalize">{difficulty} Bot</span>
+            <span className="font-medium text-sm">{getDifficultyName(difficulty)} {t('game.bot')}</span>
           </>
         )}
         
         {isVipArena && (
           <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-black text-[10px] px-1.5 py-0">
-            VIP
+            {t('common.vip')}
           </Badge>
         )}
       </div>
