@@ -7,9 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Wifi, WifiOff, Clock, Flag, Handshake, Home, X, User, AlertTriangle } from 'lucide-react';
+import { Wifi, WifiOff, Clock, Flag, Handshake, Home, X, User, AlertTriangle, Infinity } from 'lucide-react';
 import ChessBoard3D from '@/components/chess/ChessBoard3D';
 import GameResultModal from '@/components/game/GameResultModal';
+import QuickChat from '@/components/game/QuickChat';
 import { getSocket, makeMove as socketMakeMove, resign as socketResign, offerDraw, acceptDraw, declineDraw } from '@/lib/socket/client';
 
 export default function OnlineGameScreen({ 
