@@ -346,7 +346,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "i18n - Internationalization"
+    - "VIP USDC payment confirm endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -358,3 +358,5 @@ agent_communication:
     message: "Full i18n support added! 4 languages: English, German, Arabic (with RTL), Chinese. Language selector in Settings modal. Auto-detects browser language on first visit, saves preference to localStorage immediately and syncs to user profile in DB when logged in. All UI strings translated across Play, VIP, Inventory, Friends, Profile tabs, and all modals."
   - agent: "testing"
     message: "User profile API endpoints tested successfully. Both GET and POST /api/user/profile endpoints are working correctly with proper authentication requirements, validation rules, CORS headers, and error handling. All 9 test cases passed (100% success rate). Endpoints properly require JWT authentication and return appropriate 401 errors when unauthenticated. Validation logic for displayName (3-16 chars, alphanumeric+underscore) and avatarId (valid avatar types) is implemented correctly."
+  - agent: "main"
+    message: "VIP USDC Payment flow implemented! POST /api/payments/confirm-vip endpoint with strict on-chain verification: 1) Replay protection (signature uniqueness check), 2) Transaction confirmation wait with retries, 3) USDC mint validation, 4) Developer wallet ATA recipient validation, 5) Exact amount verification (6.99 USDC = 6990000 raw units), 6) Sender wallet validation. Frontend has useVipPayment hook with UI states: IDLE -> PREPARING -> AWAITING_SIGNATURE -> SENDING -> VERIFYING -> SUCCESS/ERROR. VIP dialog shows payment progress and links to Solana explorer."
