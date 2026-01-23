@@ -146,22 +146,24 @@ export default function SolMate() {
     } catch (e) { console.error('Failed to fetch user:', e); }
   };
 
-  // Wallet functions
-  const connectWallet = async () => {
-    try {
-      if (typeof window !== 'undefined' && window.solana?.isPhantom) {
-        const response = await window.solana.connect();
-        setWalletAddress(response.publicKey.toString());
-        toast.success(t('wallet.connected'));
-      } else {
-        window.open('https://phantom.app/', '_blank');
-        toast.info(t('wallet.installPhantom'));
-      }
-    } catch (e) { toast.error(t('wallet.failed')); }
+  // Wallet connection handler (opens modal)
+  const connectWallet = () => {
+    setShowWalletModal(true);
   };
+  
+  // Handle successful wallet connection from modal
+  const handleWalletConnected = useCallback((address) => {
+    toast.success(t('wallet.connected'));
+  }, [t]);
 
+  // Sign in with connected wallet using wallet adapter
   const signIn = async () => {
-    if (!walletAddress) { toast.error(t('wallet.connectFirst')); return; }
+    if (!connected || !publicKey) { 
+      toast.error(t('wallet.connectFirst')); 
+      setShowWalletModal(true);
+      return; 
+    }
+    
     try {
       const nonceRes = await fetch('/api/auth/nonce', {
         method: 'POST',
@@ -169,29 +171,47 @@ export default function SolMate() {
         body: JSON.stringify({ wallet: walletAddress })
       });
       const { nonce, messageToSign } = await nonceRes.json();
-      const encodedMessage = new TextEncoder().encode(messageToSign);
-      const signedMessage = await window.solana.signMessage(encodedMessage, 'utf8');
-      const signature = btoa(String.fromCharCode(...signedMessage.signature));
+      
+      // Use wallet adapter's signMessage
+      const signature = await signAuthMessage(messageToSign);
+      
       const verifyRes = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wallet: walletAddress, nonce, signature })
       });
+      
       if (verifyRes.ok) {
         const data = await verifyRes.json();
-        setAuthToken(data.token); setUser(data.user);
+        setAuthToken(data.token); 
+        setUser(data.user);
         localStorage.setItem('solmate_token', data.token);
         toast.success(t('wallet.signedIn'));
-      } else { toast.error((await verifyRes.json()).error || 'Sign in failed'); }
-    } catch (e) { toast.error('Sign in failed: ' + e.message); }
+      } else { 
+        toast.error((await verifyRes.json()).error || 'Sign in failed'); 
+      }
+    } catch (e) { 
+      toast.error('Sign in failed: ' + e.message); 
+    }
   };
 
-  const signOut = () => {
+  // Sign out and disconnect wallet
+  const signOut = useCallback(async () => {
     localStorage.removeItem('solmate_token');
-    setAuthToken(null); setUser(null); setGameState(null); setChess(null); setWalletAddress('');
-    if (window.solana) window.solana.disconnect();
+    setAuthToken(null); 
+    setUser(null); 
+    setGameState(null); 
+    setChess(null);
+    
+    // Disconnect wallet adapter
+    try {
+      await disconnect();
+    } catch (e) {
+      console.error('Disconnect error:', e);
+    }
+    
     toast.success(t('wallet.signedOut'));
-  };
+  }, [disconnect, t]);
 
   // Game functions
   const startBotGame = async (difficulty, isVipArena = false) => {
