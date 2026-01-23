@@ -1,0 +1,16 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" rx="26" fill="url(#phantom_gradient)"/>
+  <path d="M110.584 64.9142H99.142C99.142 41.7651 80.173 23 56.7724 23C33.6612 23 14.8717 41.3057 14.4118 64.0583C13.9361 87.577 35.468 107 59.0862 107H63.2858C84.0668 107 110.584 86.4749 110.584 64.9142Z" fill="url(#phantom_face)"/>
+  <circle cx="44" cy="57" r="7" fill="#1E1E2F"/>
+  <circle cx="72" cy="57" r="7" fill="#1E1E2F"/>
+  <defs>
+    <linearGradient id="phantom_gradient" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#534BB1"/>
+      <stop offset="1" stop-color="#551BF9"/>
+    </linearGradient>
+    <linearGradient id="phantom_face" x1="14" y1="23" x2="110" y2="107" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E8E8E8"/>
+    </linearGradient>
+  </defs>
+</svg>
