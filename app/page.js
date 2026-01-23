@@ -61,6 +61,7 @@ export default function SolMate() {
   const [showResultModal, setShowResultModal] = useState(false);
   const [gameResult, setGameResult] = useState(null);
   const [gameRewards, setGameRewards] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   
   // Settings
   const [settings, setSettings] = useState({
@@ -83,6 +84,27 @@ export default function SolMate() {
     { id: 'hard', name: t('difficulty.hard'), desc: t('difficulty.hardDesc'), color: 'bg-orange-500', icon: '🔥' },
     { id: 'pro', name: t('difficulty.pro'), desc: t('difficulty.proDesc'), color: 'bg-red-500', icon: '💀' },
   ], [t]);
+
+  // Helper to get display name with wallet fallback
+  const getDisplayName = useCallback((userData, shortened = true) => {
+    if (userData?.displayName) return userData.displayName;
+    if (userData?.wallet) {
+      return shortened 
+        ? `${userData.wallet.slice(0, 4)}...${userData.wallet.slice(-4)}`
+        : userData.wallet;
+    }
+    return 'Anonymous';
+  }, []);
+
+  // Handle profile update
+  const handleProfileUpdated = useCallback((profile) => {
+    setUser(prev => ({
+      ...prev,
+      displayName: profile.displayName,
+      equipped: { ...prev?.equipped, avatar: profile.avatarId }
+    }));
+    toast.success(t('profile.profileUpdated'));
+  }, [t]);
 
   // Load settings from localStorage
   useEffect(() => {
