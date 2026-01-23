@@ -203,5 +203,54 @@
     "close": "关闭",
     "save": "保存",
     "min": "分钟"
+  },
+  "timeControl": {
+    "bullet": "超快棋",
+    "blitz": "快棋",
+    "rapid": "慢棋",
+    "unlimited": "无限时"
+  },
+  "quickchat": {
+    "title": "快捷聊天",
+    "messages": "消息",
+    "emotes": "表情",
+    "goodLuck": "祝你好运！",
+    "niceMove": "好棋！",
+    "wow": "哇！",
+    "oops": "糟糕！",
+    "gg": "对局愉快！",
+    "thanks": "谢谢！",
+    "rematch": "再来一局？",
+    "wellPlayed": "下得不错！",
+    "cooldown": "请稍等..."
+  },
+  "emotes": {
+    "smile": "😊",
+    "think": "🤔",
+    "fire": "🔥",
+    "clap": "👏",
+    "trophy": "🏆",
+    "chess": "♟️"
+  },
+  "game": {
+    "yourTurn": "轮到你了",
+    "botsTurn": "机器人思考中",
+    "botThinking": "机器人思考中...",
+    "playingAs": "你执{color}子",
+    "white": "白方",
+    "black": "黑方",
+    "bot": "机器人",
+    "opponent": "对手",
+    "ranked": "排位赛",
+    "noTimer": "无计时"
+  },
+  "result": {
+    "victory": "胜利！",
+    "defeat": "失败",
+    "draw": "和棋！",
+    "congratulations": "恭喜！你赢了。",
+    "betterLuck": "下次好运！",
+    "drawMessage": "对局以和棋结束。",
+    "timeout": "时间到！"
   }
 }
