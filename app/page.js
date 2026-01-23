@@ -24,25 +24,15 @@ import GameBottomBar from '@/components/game/GameBottomBar';
 import GameResultModal from '@/components/game/GameResultModal';
 import ExitConfirmModal from '@/components/game/ExitConfirmModal';
 import SettingsModal from '@/components/game/SettingsModal';
+import { useI18n } from '@/lib/i18n/provider';
 
 // Dynamic imports for online components
 const MatchmakingScreen = dynamic(() => import('@/components/game/MatchmakingScreen'), { ssr: false });
 const OnlineGameScreen = dynamic(() => import('@/components/game/OnlineGameScreen'), { ssr: false });
 
-const DIFFICULTIES = [
-  { id: 'easy', name: 'Easy', desc: 'Perfect for beginners', color: 'bg-green-500', icon: '🌱' },
-  { id: 'normal', name: 'Normal', desc: 'Balanced challenge', color: 'bg-blue-500', icon: '⚔️' },
-  { id: 'hard', name: 'Hard', desc: 'For experienced players', color: 'bg-orange-500', icon: '🔥' },
-  { id: 'pro', name: 'Pro', desc: 'Maximum difficulty', color: 'bg-red-500', icon: '💀' },
-];
-
-const TIME_CONTROLS = [
-  { id: 3, name: '3 min', desc: 'Bullet' },
-  { id: 5, name: '5 min', desc: 'Blitz' },
-  { id: 10, name: '10 min', desc: 'Rapid' },
-];
-
 export default function SolMate() {
+  const { t, locale, direction, isRtl, syncLocaleToServer, isLoaded } = useI18n();
+
   // Auth state
   const [user, setUser] = useState(null);
   const [authToken, setAuthToken] = useState(null);
@@ -84,6 +74,14 @@ export default function SolMate() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [copiedCode, setCopiedCode] = useState(false);
 
+  // Difficulties with translations - memoized to avoid recreation on each render
+  const getDifficulties = useCallback(() => [
+    { id: 'easy', name: t('difficulty.easy'), desc: t('difficulty.easyDesc'), color: 'bg-green-500', icon: '🌱' },
+    { id: 'normal', name: t('difficulty.normal'), desc: t('difficulty.normalDesc'), color: 'bg-blue-500', icon: '⚔️' },
+    { id: 'hard', name: t('difficulty.hard'), desc: t('difficulty.hardDesc'), color: 'bg-orange-500', icon: '🔥' },
+    { id: 'pro', name: t('difficulty.pro'), desc: t('difficulty.proDesc'), color: 'bg-red-500', icon: '💀' },
+  ], [t]);
+
   // Load settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem('solmate_settings');
@@ -96,6 +94,13 @@ export default function SolMate() {
   useEffect(() => {
     localStorage.setItem('solmate_settings', JSON.stringify(settings));
   }, [settings]);
+
+  // Sync language to server when user is logged in
+  useEffect(() => {
+    if (authToken && isLoaded) {
+      syncLocaleToServer(authToken);
+    }
+  }, [authToken, locale, syncLocaleToServer, isLoaded]);
 
   const fetchUser = async (token) => {
     try {
@@ -111,16 +116,16 @@ export default function SolMate() {
       if (typeof window !== 'undefined' && window.solana?.isPhantom) {
         const response = await window.solana.connect();
         setWalletAddress(response.publicKey.toString());
-        toast.success('Wallet connected!');
+        toast.success(t('wallet.connected'));
       } else {
         window.open('https://phantom.app/', '_blank');
-        toast.info('Please install Phantom wallet');
+        toast.info(t('wallet.installPhantom'));
       }
-    } catch (e) { toast.error('Failed to connect wallet'); }
+    } catch (e) { toast.error(t('wallet.failed')); }
   };
 
   const signIn = async () => {
-    if (!walletAddress) { toast.error('Connect wallet first'); return; }
+    if (!walletAddress) { toast.error(t('wallet.connectFirst')); return; }
     try {
       const nonceRes = await fetch('/api/auth/nonce', {
         method: 'POST',
@@ -140,7 +145,7 @@ export default function SolMate() {
         const data = await verifyRes.json();
         setAuthToken(data.token); setUser(data.user);
         localStorage.setItem('solmate_token', data.token);
-        toast.success('Signed in!');
+        toast.success(t('wallet.signedIn'));
       } else { toast.error((await verifyRes.json()).error || 'Sign in failed'); }
     } catch (e) { toast.error('Sign in failed: ' + e.message); }
   };
@@ -149,7 +154,7 @@ export default function SolMate() {
     localStorage.removeItem('solmate_token');
     setAuthToken(null); setUser(null); setGameState(null); setChess(null); setWalletAddress('');
     if (window.solana) window.solana.disconnect();
-    toast.success('Signed out');
+    toast.success(t('wallet.signedOut'));
   };
 
   // Game functions
@@ -172,7 +177,8 @@ export default function SolMate() {
         setGameResult(null);
         setGameRewards(null);
         playSound('start');
-        toast.success(`You're playing as ${data.playerColor === 'w' ? 'White' : 'Black'}`);
+        const colorName = data.playerColor === 'w' ? t('game.white') : t('game.black');
+        toast.success(t('game.playingAs', { color: colorName }));
       } else { toast.error(data.error); }
     } catch (e) { toast.error('Failed to start game'); }
   };
@@ -321,7 +327,7 @@ export default function SolMate() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` }, 
       body: JSON.stringify({ friendCode }) 
     }); 
-    if (r.ok) { toast.success('Friend added!'); setFriendCode(''); loadFriends(); } 
+    if (r.ok) { toast.success(t('friends.friendAdded')); setFriendCode(''); loadFriends(); } 
     else toast.error((await r.json()).error); 
   };
   
@@ -339,7 +345,7 @@ export default function SolMate() {
     }); 
     if (r.ok) { 
       const data = await r.json();
-      toast.success(`Got ${data.rewards.length} item(s)!`); 
+      toast.success(t('inventory.gotItems', { count: data.rewards.length })); 
       fetchUser(authToken); 
     } 
     else toast.error((await r.json()).error); 
@@ -352,7 +358,7 @@ export default function SolMate() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` }, 
       body: JSON.stringify({ count: 1 }) 
     }); 
-    if (r.ok) { toast.success('Got 1 Gold Chest!'); fetchUser(authToken); } 
+    if (r.ok) { toast.success(t('inventory.gotChest')); fetchUser(authToken); } 
   };
   
   const copyCode = () => { 
@@ -368,19 +374,28 @@ export default function SolMate() {
     if (activeTab === 'profile') loadLeaderboard(); 
   }, [activeTab, authToken]);
 
-  // Navigation tabs
+  // Navigation tabs with translations
   const tabs = [
-    { id: 'play', icon: Gamepad2, label: 'Play' },
-    { id: 'vip', icon: Crown, label: 'VIP' },
-    { id: 'inventory', icon: Package, label: 'Items' },
-    { id: 'friends', icon: Users, label: 'Friends' },
-    { id: 'profile', icon: User, label: 'Profile' }
+    { id: 'play', icon: Gamepad2, label: t('nav.play') },
+    { id: 'vip', icon: Crown, label: t('nav.vip') },
+    { id: 'inventory', icon: Package, label: t('nav.items') },
+    { id: 'friends', icon: Users, label: t('nav.friends') },
+    { id: 'profile', icon: User, label: t('nav.profile') }
   ];
+
+  // Don't render until locale is loaded to prevent flicker
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Render game screen
   if (gameState && chess) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col" dir={direction}>
         <GameTopBar 
           onBack={handleExitGame}
           gameMode={gameState.isVipArena ? 'vip' : 'free'}
@@ -402,7 +417,7 @@ export default function SolMate() {
             animate={{ scale: chess.turn() === gameState.playerColor ? [1, 1.05, 1] : 1 }}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            {isThinking ? '🤔 Bot thinking...' : chess.turn() === gameState.playerColor ? '✨ Your turn' : "⏳ Bot's turn"}
+            {isThinking ? `🤔 ${t('game.botThinking')}` : chess.turn() === gameState.playerColor ? `✨ ${t('game.yourTurn')}` : `⏳ ${t('game.botsTurn')}`}
           </motion.div>
           
           {/* Chess Board */}
@@ -424,7 +439,7 @@ export default function SolMate() {
               <div className="flex flex-wrap gap-1 text-xs font-mono">
                 {moveHistory.map((move, i) => (
                   <span key={i} className={i % 2 === 0 ? 'text-foreground' : 'text-muted-foreground'}>
-                    {i % 2 === 0 && <span className="text-primary mr-1">{Math.floor(i/2) + 1}.</span>}
+                    {i % 2 === 0 && <span className="text-primary me-1">{Math.floor(i/2) + 1}.</span>}
                     {move}
                   </span>
                 ))}
@@ -473,7 +488,7 @@ export default function SolMate() {
 
   // Render main menu
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" dir={direction}>
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
@@ -490,15 +505,15 @@ export default function SolMate() {
           <div className="flex items-center gap-2">
             {user?.isVip && (
               <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg">
-                <Crown className="w-3 h-3 mr-1" />VIP
+                <Crown className="w-3 h-3 me-1" />{t('common.vip')}
               </Badge>
             )}
             {!walletAddress ? (
               <Button onClick={connectWallet} className="solana-gradient text-black shadow-lg">
-                <Wallet className="w-4 h-4 mr-2" />Connect
+                <Wallet className="w-4 h-4 me-2" />{t('header.connect')}
               </Button>
             ) : !user ? (
-              <Button onClick={signIn} className="solana-gradient text-black shadow-lg">Sign In</Button>
+              <Button onClick={signIn} className="solana-gradient text-black shadow-lg">{t('header.signIn')}</Button>
             ) : (
               <Button variant="outline" size="sm" onClick={signOut} className="font-mono">
                 {walletAddress.slice(0,4)}...{walletAddress.slice(-4)}
@@ -525,12 +540,12 @@ export default function SolMate() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary" />
-                    Play vs Bot
+                    {t('play.vsBot')}
                   </CardTitle>
-                  <CardDescription>Practice without rewards</CardDescription>
+                  <CardDescription>{t('play.vsBotDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {DIFFICULTIES.map((diff) => (
+                  {getDifficulties().map((diff) => (
                     <motion.div key={diff.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Button 
                         variant="outline" 
@@ -539,12 +554,12 @@ export default function SolMate() {
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-xl">{diff.icon}</span>
-                          <div className="text-left">
+                          <div className="text-start">
                             <p className="font-semibold">{diff.name}</p>
                             <p className="text-xs text-muted-foreground">{diff.desc}</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <ChevronRight className={`w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors ${isRtl ? 'rotate-180' : ''}`} />
                       </Button>
                     </motion.div>
                   ))}
@@ -556,10 +571,10 @@ export default function SolMate() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <Globe className="w-5 h-5 text-blue-500" />
-                    Play Online
-                    <Badge variant="secondary" className="text-[10px]">Free</Badge>
+                    {t('play.playOnline')}
+                    <Badge variant="secondary" className="text-[10px]">{t('common.free')}</Badge>
                   </CardTitle>
-                  <CardDescription>Play against real players - no rewards</CardDescription>
+                  <CardDescription>{t('play.playOnlineDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
@@ -567,14 +582,14 @@ export default function SolMate() {
                     variant="outline"
                     onClick={() => {
                       if (!authToken) {
-                        toast.error('Please sign in to play online');
+                        toast.error(t('play.signInRequired'));
                         return;
                       }
                       setShowMatchmaking(true);
                     }}
                   >
-                    <Globe className="w-5 h-5 mr-2" />
-                    Find Casual Match
+                    <Globe className="w-5 h-5 me-2" />
+                    {t('play.findMatch')}
                   </Button>
                 </CardContent>
               </Card>
@@ -595,13 +610,13 @@ export default function SolMate() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Crown className="w-6 h-6 text-yellow-500" />
-                      VIP Arena
+                      {t('vip.title')}
                     </CardTitle>
-                    <CardDescription>Unlock rewards and exclusive features!</CardDescription>
+                    <CardDescription>{t('vip.desc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      {['Win chests', '5-streak bonus', 'Gold points', 'Leaderboards'].map((feature) => (
+                      {[t('vip.winChests'), t('vip.streakBonus'), t('vip.goldPoints'), t('vip.leaderboards')].map((feature) => (
                         <div key={feature} className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-yellow-500" />
                           <span>{feature}</span>
@@ -612,8 +627,8 @@ export default function SolMate() {
                       className="w-full h-12 solana-gradient text-black font-bold text-lg shadow-lg"
                       onClick={() => setShowVipDialog(true)}
                     >
-                      <Crown className="w-5 h-5 mr-2" />
-                      Unlock VIP - $6.99
+                      <Crown className="w-5 h-5 me-2" />
+                      {t('vip.unlockTitle')} - {t('vip.price')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -622,29 +637,29 @@ export default function SolMate() {
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2">
                       <Trophy className="w-5 h-5 text-yellow-500" />
-                      VIP Arena
+                      {t('vip.title')}
                     </CardTitle>
-                    <CardDescription>Win = Bronze Chest! 5-streak = Silver + Gold!</CardDescription>
+                    <CardDescription>{t('vip.rewardDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-secondary/50">
                       <div className="text-center">
                         <p className="text-2xl font-bold text-primary">{user.stats?.vipCurrentStreak || 0}</p>
-                        <p className="text-xs text-muted-foreground">Streak 🔥</p>
+                        <p className="text-xs text-muted-foreground">{t('rewards.streak')} 🔥</p>
                       </div>
                       <div className="text-center border-x border-border">
                         <p className="text-2xl font-bold">{user.stats?.vipWins || 0}</p>
-                        <p className="text-xs text-muted-foreground">Wins</p>
+                        <p className="text-xs text-muted-foreground">{t('rewards.wins')}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-2xl font-bold text-yellow-500">{user.goldPoints || 0}</p>
-                        <p className="text-xs text-muted-foreground">Gold ⭐</p>
+                        <p className="text-xs text-muted-foreground">{t('rewards.gold')} ⭐</p>
                       </div>
                     </div>
                     
                     {/* Difficulties */}
-                    {DIFFICULTIES.map((diff) => (
+                    {getDifficulties().map((diff) => (
                       <motion.div key={diff.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Button 
                           variant="outline" 
@@ -655,7 +670,7 @@ export default function SolMate() {
                             <span className="text-xl">{diff.icon}</span>
                             <span className="font-semibold">{diff.name}</span>
                           </div>
-                          <Badge className="bg-yellow-500/20 text-yellow-500">Ranked</Badge>
+                          <Badge className="bg-yellow-500/20 text-yellow-500">{t('game.ranked')}</Badge>
                         </Button>
                       </motion.div>
                     ))}
@@ -678,7 +693,7 @@ export default function SolMate() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <Package className="w-5 h-5 text-primary" />
-                    Inventory
+                    {t('inventory.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -687,13 +702,13 @@ export default function SolMate() {
                       {/* Chests */}
                       <div>
                         <h3 className="font-semibold mb-3 flex items-center gap-2">
-                          <Gift className="w-4 h-4" /> Chests
+                          <Gift className="w-4 h-4" /> {t('inventory.chests')}
                         </h3>
                         <div className="grid grid-cols-3 gap-3">
                           {[
-                            { type: 'bronze', emoji: '🟤', count: user.chests?.bronze || 0, color: 'from-amber-700 to-amber-900' },
-                            { type: 'silver', emoji: '⚪', count: user.chests?.silver || 0, color: 'from-gray-400 to-gray-600' },
-                            { type: 'gold', emoji: '🟡', count: user.chests?.gold || 0, color: 'from-yellow-400 to-yellow-600' },
+                            { type: 'bronze', emoji: '🟤', count: user.chests?.bronze || 0, color: 'from-amber-700 to-amber-900', label: t('inventory.bronze') },
+                            { type: 'silver', emoji: '⚪', count: user.chests?.silver || 0, color: 'from-gray-400 to-gray-600', label: t('inventory.silver') },
+                            { type: 'gold', emoji: '🟡', count: user.chests?.gold || 0, color: 'from-yellow-400 to-yellow-600', label: t('inventory.gold') },
                           ].map((chest) => (
                             <motion.div 
                               key={chest.type}
@@ -703,14 +718,14 @@ export default function SolMate() {
                               <Card className={`p-3 text-center cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br ${chest.color}/10`}>
                                 <div className="text-3xl mb-1">{chest.emoji}</div>
                                 <p className="text-lg font-bold">{chest.count}</p>
-                                <p className="text-xs text-muted-foreground capitalize">{chest.type}</p>
+                                <p className="text-xs text-muted-foreground">{chest.label}</p>
                                 {chest.count > 0 && (
                                   <Button 
                                     size="sm" 
                                     className="mt-2 w-full text-xs h-7"
                                     onClick={() => openChest(chest.type)}
                                   >
-                                    Open
+                                    {t('inventory.open')}
                                   </Button>
                                 )}
                               </Card>
@@ -725,15 +740,15 @@ export default function SolMate() {
                       <div>
                         <h3 className="font-semibold mb-3 flex items-center gap-2">
                           <Star className="w-4 h-4 text-yellow-500" /> 
-                          Gold Points: {user.goldPoints || 0}
+                          {t('inventory.goldPoints')}: {user.goldPoints || 0}
                         </h3>
                         {user.goldPoints >= 5 ? (
                           <Button variant="outline" className="w-full" onClick={redeemGold}>
-                            Redeem 5 Points → 1 Gold Chest
+                            {t('inventory.redeem')}
                           </Button>
                         ) : (
                           <p className="text-sm text-muted-foreground">
-                            Earn {5 - (user.goldPoints || 0)} more to redeem a Gold Chest
+                            {t('inventory.earnMore', { count: 5 - (user.goldPoints || 0) })}
                           </p>
                         )}
                       </div>
@@ -744,13 +759,13 @@ export default function SolMate() {
                       <div>
                         <h3 className="font-semibold flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-purple-500" />
-                          Shards: {user.shards || 0}
+                          {t('inventory.shards')}: {user.shards || 0}
                         </h3>
-                        <p className="text-xs text-muted-foreground mt-1">Crafting coming soon!</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('inventory.craftingSoon')}</p>
                       </div>
                     </>
                   ) : (
-                    <p className="text-center text-muted-foreground py-8">Sign in to view inventory</p>
+                    <p className="text-center text-muted-foreground py-8">{t('inventory.signInRequired')}</p>
                   )}
                 </CardContent>
               </Card>
@@ -770,7 +785,7 @@ export default function SolMate() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
-                    Friends
+                    {t('friends.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -778,7 +793,7 @@ export default function SolMate() {
                     <>
                       {/* Your Code */}
                       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5">
-                        <p className="text-xs text-muted-foreground mb-1">Your Friend Code</p>
+                        <p className="text-xs text-muted-foreground mb-1">{t('friends.yourCode')}</p>
                         <div className="flex items-center gap-2">
                           <code className="text-2xl font-bold tracking-widest">{user.friendCode}</code>
                           <Button variant="ghost" size="icon" onClick={copyCode}>
@@ -790,20 +805,20 @@ export default function SolMate() {
                       {/* Add Friend */}
                       <div className="flex gap-2">
                         <Input 
-                          placeholder="Enter friend code" 
+                          placeholder={t('friends.enterCode')}
                           value={friendCode} 
                           onChange={(e) => setFriendCode(e.target.value.toUpperCase())} 
                           maxLength={8}
                           className="font-mono tracking-wider"
                         />
-                        <Button onClick={addFriend}>Add</Button>
+                        <Button onClick={addFriend}>{t('friends.add')}</Button>
                       </div>
                       
                       {/* Friends List */}
                       <ScrollArea className="h-48">
                         {friends.length === 0 ? (
                           <p className="text-center text-muted-foreground py-8">
-                            No friends yet. Share your code!
+                            {t('friends.noFriends')}
                           </p>
                         ) : (
                           <div className="space-y-2">
@@ -825,7 +840,7 @@ export default function SolMate() {
                       </ScrollArea>
                     </>
                   ) : (
-                    <p className="text-center text-muted-foreground py-8">Sign in to manage friends</p>
+                    <p className="text-center text-muted-foreground py-8">{t('friends.signInRequired')}</p>
                   )}
                 </CardContent>
               </Card>
@@ -845,37 +860,47 @@ export default function SolMate() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <User className="w-5 h-5 text-primary" />
-                    Profile
+                    {t('profile.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {user ? (
                     <div className="space-y-4">
                       <div className="p-3 rounded-xl bg-secondary/50">
-                        <p className="text-xs text-muted-foreground">Wallet</p>
+                        <p className="text-xs text-muted-foreground">{t('profile.wallet')}</p>
                         <p className="font-mono text-sm truncate">{user.wallet}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <Card className="p-3 text-center bg-green-500/10">
                           <p className="text-2xl font-bold text-green-500">{user.stats?.wins || 0}</p>
-                          <p className="text-xs text-muted-foreground">Wins</p>
+                          <p className="text-xs text-muted-foreground">{t('profile.wins')}</p>
                         </Card>
                         <Card className="p-3 text-center bg-red-500/10">
                           <p className="text-2xl font-bold text-red-500">{user.stats?.losses || 0}</p>
-                          <p className="text-xs text-muted-foreground">Losses</p>
+                          <p className="text-xs text-muted-foreground">{t('profile.losses')}</p>
                         </Card>
                         <Card className="p-3 text-center bg-primary/10">
                           <p className="text-2xl font-bold text-primary">{user.stats?.currentStreak || 0}</p>
-                          <p className="text-xs text-muted-foreground">Current 🔥</p>
+                          <p className="text-xs text-muted-foreground">{t('profile.currentStreak')} 🔥</p>
                         </Card>
                         <Card className="p-3 text-center bg-yellow-500/10">
                           <p className="text-2xl font-bold text-yellow-500">{user.stats?.bestStreak || 0}</p>
-                          <p className="text-xs text-muted-foreground">Best 🏆</p>
+                          <p className="text-xs text-muted-foreground">{t('profile.bestStreak')} 🏆</p>
                         </Card>
                       </div>
+                      
+                      {/* Settings Button */}
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setShowSettings(true)}
+                      >
+                        <Settings className="w-4 h-4 me-2" />
+                        {t('settings.title')}
+                      </Button>
                     </div>
                   ) : (
-                    <p className="text-center text-muted-foreground py-8">Sign in to view profile</p>
+                    <p className="text-center text-muted-foreground py-8">{t('profile.signInRequired')}</p>
                   )}
                 </CardContent>
               </Card>
@@ -885,20 +910,20 @@ export default function SolMate() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-yellow-500" />
-                    VIP Leaderboard
+                    {t('leaderboard.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-64">
                     {leaderboard.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">No rankings yet</p>
+                      <p className="text-center text-muted-foreground py-8">{t('leaderboard.noRankings')}</p>
                     ) : (
                       <div className="space-y-2">
                         {leaderboard.slice(0, 10).map((l, i) => (
                           <motion.div 
                             key={l.wallet} 
                             className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={{ opacity: 0, x: isRtl ? 20 : -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.05 }}
                           >
@@ -949,38 +974,52 @@ export default function SolMate() {
 
       {/* VIP Dialog */}
       <Dialog open={showVipDialog} onOpenChange={setShowVipDialog}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" dir={direction}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Crown className="w-6 h-6 text-yellow-500" />
-              Unlock VIP
+              {t('vip.unlockTitle')}
             </DialogTitle>
-            <DialogDescription>Lifetime access to VIP Arena!</DialogDescription>
+            <DialogDescription>{t('vip.lifetime')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-amber-500/5">
-              <h3 className="font-bold mb-3">VIP Benefits</h3>
+              <h3 className="font-bold mb-3">{t('vip.title')}</h3>
               <ul className="text-sm space-y-2">
-                {['✓ VIP Arena ranked matches', '✓ Bronze Chest on every win', '✓ 5-streak = Silver Chest + Gold Point', '✓ 5 Gold Points = Gold Chest', '✓ Compete on leaderboards'].map((b) => (
+                {[
+                  `✓ ${t('vip.benefits.ranked')}`,
+                  `✓ ${t('vip.benefits.bronze')}`,
+                  `✓ ${t('vip.benefits.streak')}`,
+                  `✓ ${t('vip.benefits.gold')}`,
+                  `✓ ${t('vip.benefits.leaderboard')}`
+                ].map((b) => (
                   <li key={b} className="text-muted-foreground">{b}</li>
                 ))}
               </ul>
             </div>
             <div className="text-center">
-              <p className="text-4xl font-bold solana-text-gradient">$6.99</p>
-              <p className="text-sm text-muted-foreground">Lifetime Access</p>
+              <p className="text-4xl font-bold solana-text-gradient">{t('vip.price')}</p>
+              <p className="text-sm text-muted-foreground">{t('vip.lifetime')}</p>
             </div>
             {!user ? (
-              <p className="text-center text-sm text-muted-foreground">Connect wallet and sign in first</p>
+              <p className="text-center text-sm text-muted-foreground">{t('vip.connectFirst')}</p>
             ) : (
               <Button className="w-full h-12 solana-gradient text-black font-bold" onClick={() => toast.info('Payment integration ready - provide developer wallet')}>
-                <Wallet className="w-5 h-5 mr-2" />
-                Pay with USDC/SOL
+                <Wallet className="w-5 h-5 me-2" />
+                {t('vip.payWith')}
               </Button>
             )}
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Settings Modal */}
+      <SettingsModal 
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        settings={settings}
+        onSettingsChange={setSettings}
+      />
     </div>
   );
 }
