@@ -42,6 +42,20 @@ export default function OnlineGameScreen({
   
   const socketRef = useRef(null);
 
+  // Define playSound with useCallback before the effect that uses it
+  const playSound = useCallback((type) => {
+    if (!settings?.soundEnabled) return;
+    if (settings?.hapticEnabled && navigator.vibrate) {
+      switch(type) {
+        case 'move': navigator.vibrate(10); break;
+        case 'capture': navigator.vibrate([20, 10, 20]); break;
+        case 'check': navigator.vibrate([50, 30, 50]); break;
+        case 'win': navigator.vibrate([100, 50, 100, 50, 100]); break;
+        default: break;
+      }
+    }
+  }, [settings?.soundEnabled, settings?.hapticEnabled]);
+
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
