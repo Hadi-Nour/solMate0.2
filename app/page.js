@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Chess } from 'chess.js';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Gamepad2, Trophy, Package, Users, User, Crown, Swords, ChevronRight, 
   Sparkles, Star, Copy, Check, Flag, Wallet, Wifi, Bot, Clock, Eye, 
-  Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe, Edit
+  Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe, Edit, LogOut
 } from 'lucide-react';
 import ChessBoard3D from '@/components/chess/ChessBoard3D';
 import GameTopBar from '@/components/game/GameTopBar';
@@ -26,6 +27,8 @@ import ExitConfirmModal from '@/components/game/ExitConfirmModal';
 import SettingsModal from '@/components/game/SettingsModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import UserAvatar, { getAvatarEmoji } from '@/components/profile/UserAvatar';
+import WalletConnectModal from '@/components/wallet/WalletConnectModal';
+import { useWalletActions } from '@/components/wallet/useWalletActions';
 import { useI18n } from '@/lib/i18n/provider';
 
 // Dynamic imports for online components
@@ -34,11 +37,18 @@ const OnlineGameScreen = dynamic(() => import('@/components/game/OnlineGameScree
 
 export default function SolMate() {
   const { t, locale, direction, isRtl, syncLocaleToServer, isLoaded } = useI18n();
+  
+  // Wallet adapter hooks
+  const { publicKey, connected, disconnect, wallet } = useWallet();
+  const { signAuthMessage, sendSol, sendUsdc, getSolBalance, getUsdcBalance, getSolPrice } = useWalletActions();
 
   // Auth state
   const [user, setUser] = useState(null);
   const [authToken, setAuthToken] = useState(null);
-  const [walletAddress, setWalletAddress] = useState('');
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  
+  // Derived wallet address
+  const walletAddress = publicKey?.toString() || '';
   
   // Game state
   const [activeTab, setActiveTab] = useState('play');
