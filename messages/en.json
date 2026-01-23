@@ -61,7 +61,8 @@
   "timeControl": {
     "bullet": "Bullet",
     "blitz": "Blitz",
-    "rapid": "Rapid"
+    "rapid": "Rapid",
+    "unlimited": "Unlimited"
   },
   "game": {
     "yourTurn": "Your turn",
@@ -72,7 +73,8 @@
     "black": "Black",
     "bot": "Bot",
     "opponent": "Opponent",
-    "ranked": "Ranked"
+    "ranked": "Ranked",
+    "noTimer": "No Timer"
   },
   "gameActions": {
     "home": "Home",
@@ -89,7 +91,8 @@
     "draw": "Draw!",
     "congratulations": "Congratulations! You won the game.",
     "betterLuck": "Better luck next time!",
-    "drawMessage": "The game ended in a draw."
+    "drawMessage": "The game ended in a draw.",
+    "timeout": "Time out!"
   },
   "rewards": {
     "title": "Rewards Earned",
@@ -209,6 +212,28 @@
       "ar": "العربية",
       "zh": "中文"
     }
+  },
+  "quickchat": {
+    "title": "Quick Chat",
+    "messages": "Messages",
+    "emotes": "Emotes",
+    "goodLuck": "Good luck!",
+    "niceMove": "Nice move!",
+    "wow": "Wow!",
+    "oops": "Oops!",
+    "gg": "Good game!",
+    "thanks": "Thanks!",
+    "rematch": "Rematch?",
+    "wellPlayed": "Well played!",
+    "cooldown": "Wait a moment..."
+  },
+  "emotes": {
+    "smile": "😊",
+    "think": "🤔",
+    "fire": "🔥",
+    "clap": "👏",
+    "trophy": "🏆",
+    "chess": "♟️"
   },
   "common": {
     "free": "Free",
