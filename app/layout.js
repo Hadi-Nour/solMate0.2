@@ -1,6 +1,6 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
-import { I18nProvider } from '@/lib/i18n/provider';
+import Providers from '@/components/Providers';
 
 export const metadata = {
   title: 'SolMate - Solana Chess',
@@ -31,9 +31,9 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className="bg-background text-foreground min-h-screen">
-        <I18nProvider>
+        <Providers>
           {children}
-        </I18nProvider>
+        </Providers>
         <Toaster position="bottom-center" richColors />
       </body>
     </html>
