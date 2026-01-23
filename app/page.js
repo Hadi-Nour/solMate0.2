@@ -1102,6 +1102,15 @@ export default function SolMate() {
         settings={settings}
         onSettingsChange={setSettings}
       />
+      
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        open={showEditProfile}
+        onOpenChange={setShowEditProfile}
+        user={user}
+        authToken={authToken}
+        onProfileUpdated={handleProfileUpdated}
+      />
     </div>
   );
 }
