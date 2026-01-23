@@ -30,6 +30,7 @@ import UserAvatar, { getAvatarEmoji } from '@/components/profile/UserAvatar';
 import WalletConnectModal from '@/components/wallet/WalletConnectModal';
 import { useSolanaWallet } from '@/components/wallet/SolanaWalletProvider';
 import { useI18n } from '@/lib/i18n/provider';
+import { useVipPayment, PAYMENT_STATES } from '@/hooks/useVipPayment';
 
 // Dynamic imports for online components
 const MatchmakingScreen = dynamic(() => import('@/components/game/MatchmakingScreen'), { ssr: false });
