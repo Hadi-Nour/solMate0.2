@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Chess } from 'chess.js';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,6 +24,10 @@ import GameBottomBar from '@/components/game/GameBottomBar';
 import GameResultModal from '@/components/game/GameResultModal';
 import ExitConfirmModal from '@/components/game/ExitConfirmModal';
 import SettingsModal from '@/components/game/SettingsModal';
+
+// Dynamic imports for online components
+const MatchmakingScreen = dynamic(() => import('@/components/game/MatchmakingScreen'), { ssr: false });
+const OnlineGameScreen = dynamic(() => import('@/components/game/OnlineGameScreen'), { ssr: false });
 
 const DIFFICULTIES = [
   { id: 'easy', name: 'Easy', desc: 'Perfect for beginners', color: 'bg-green-500', icon: '🌱' },
