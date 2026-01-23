@@ -900,7 +900,19 @@ export default function SolMate() {
                       </Button>
                     </div>
                   ) : (
-                    <p className="text-center text-muted-foreground py-8">{t('profile.signInRequired')}</p>
+                    <div className="space-y-4">
+                      <p className="text-center text-muted-foreground py-4">{t('profile.signInRequired')}</p>
+                      
+                      {/* Settings Button - always visible */}
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setShowSettings(true)}
+                      >
+                        <Settings className="w-4 h-4 me-2" />
+                        {t('settings.title')}
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>
