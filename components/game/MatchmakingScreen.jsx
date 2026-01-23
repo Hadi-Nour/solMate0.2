@@ -14,6 +14,7 @@ const TIME_CONTROLS = [
   { id: 3, name: '3 min', desc: 'Bullet', icon: '⚡' },
   { id: 5, name: '5 min', desc: 'Blitz', icon: '🔥' },
   { id: 10, name: '10 min', desc: 'Rapid', icon: '⏱️' },
+  { id: 0, name: 'No Timer', desc: 'Unlimited', icon: '♾️' },
 ];
 
 export default function MatchmakingScreen({ 
