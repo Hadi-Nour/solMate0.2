@@ -337,12 +337,18 @@ export default function SolMate() {
   };
 
   // Social functions
-  const loadFriends = async () => { 
+  // Social functions - wrapped in useCallback for stable references
+  const loadFriends = useCallback(async () => { 
     if (authToken) { 
       const r = await fetch('/api/friends', { headers: { Authorization: `Bearer ${authToken}` } }); 
       if (r.ok) setFriends((await r.json()).friends || []); 
     } 
-  };
+  }, [authToken]);
+  
+  const loadLeaderboard = useCallback(async () => { 
+    const r = await fetch('/api/leaderboard?period=all'); 
+    if (r.ok) setLeaderboard((await r.json()).leaderboard || []); 
+  }, []);
   
   const addFriend = async () => { 
     if (!friendCode || !authToken) return; 
@@ -353,11 +359,6 @@ export default function SolMate() {
     }); 
     if (r.ok) { toast.success(t('friends.friendAdded')); setFriendCode(''); loadFriends(); } 
     else toast.error((await r.json()).error); 
-  };
-  
-  const loadLeaderboard = async () => { 
-    const r = await fetch('/api/leaderboard?period=all'); 
-    if (r.ok) setLeaderboard((await r.json()).leaderboard || []); 
   };
   
   const openChest = async (type) => { 
