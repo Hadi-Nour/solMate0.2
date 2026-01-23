@@ -848,9 +848,12 @@ export default function SolMate() {
                           <div className="space-y-2">
                             {friends.map((f) => (
                               <div key={f.wallet} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                                <div>
-                                  <p className="font-mono font-medium">{f.friendCode}</p>
-                                  <p className="text-xs text-muted-foreground">{f.wallet.slice(0,8)}...</p>
+                                <div className="flex items-center gap-3">
+                                  <UserAvatar avatarId={f.avatarId || 'default'} size="md" />
+                                  <div>
+                                    <p className="font-medium">{f.displayName || f.friendCode}</p>
+                                    <p className="text-xs text-muted-foreground">{f.wallet.slice(0,8)}...</p>
+                                  </div>
                                 </div>
                                 {f.canGift && (
                                   <Button variant="ghost" size="sm">
