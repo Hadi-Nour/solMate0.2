@@ -274,8 +274,8 @@ class ComprehensiveVipPaymentTester:
                                        data={"signature": "invalid_signature_12345"}, 
                                        headers=headers)
             
-            # This could return 400 (transaction not found) or 500 (RPC error)
-            if response.status_code in [400, 500]:
+            # This could return 400 (transaction not found), 500 (RPC error), or 520 (Cloudflare error for invalid RPC call)
+            if response.status_code in [400, 500, 520]:
                 try:
                     data = response.json()
                     if 'error' in data:
