@@ -181,6 +181,18 @@ backend:
         agent: "main"
         comment: "Verifies on-chain transaction, activates VIP - needs real wallet testing"
 
+  - task: "VIP USDC payment confirm endpoint"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "POST /api/payments/confirm-vip - Strict on-chain USDC verification with replay protection, mint validation, amount validation (6.99 USDC), recipient validation (developer wallet ATA). Implemented, needs testing."
+
   - task: "Cosmetics catalog"
     implemented: true
     working: true
