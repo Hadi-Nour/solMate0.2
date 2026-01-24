@@ -73,7 +73,9 @@ export function useWallet() {
 // App identity for MWA - icon MUST be a relative URI
 const APP_IDENTITY = {
   name: 'SolMate',
-  uri: typeof window !== 'undefined' ? window.location.origin : 'https://solmate.app',
+  uri: typeof window !== 'undefined' 
+    ? (process.env.NEXT_PUBLIC_APP_URL || window.location.origin) 
+    : (process.env.NEXT_PUBLIC_APP_URL || 'https://playsolmates.app'),
   icon: '/icon-192.png', // Must be relative path, not absolute URL
 };
 
