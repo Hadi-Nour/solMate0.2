@@ -29,21 +29,41 @@ let client;
 let db;
 
 async function connectToMongo() {
-  if (!client) {
-    client = new MongoClient(process.env.MONGO_URL || 'mongodb://localhost:27017');
-    await client.connect();
+  if (db) return db;
+  
+  try {
+    if (!client) {
+      const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017';
+      console.log('[MongoDB] Connecting to:', mongoUrl.replace(/\/\/.*@/, '//***@'));
+      client = new MongoClient(mongoUrl);
+      await client.connect();
+      console.log('[MongoDB] Connected successfully');
+    }
+    
     db = client.db(process.env.DB_NAME || 'solmate');
     
-    // Initialize indexes
-    await db.collection('users').createIndex({ wallet: 1 }, { unique: true });
-    await db.collection('users').createIndex({ friendCode: 1 }, { unique: true, sparse: true });
-    await db.collection('nonces').createIndex({ nonce: 1 }, { unique: true });
-    await db.collection('nonces').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-    await db.collection('transactions').createIndex({ signature: 1 }, { unique: true });
-    await db.collection('matches').createIndex({ id: 1 }, { unique: true });
-    await db.collection('friends').createIndex({ wallet: 1, friendWallet: 1 }, { unique: true });
+    // Initialize indexes (only on first connect)
+    try {
+      await db.collection('users').createIndex({ wallet: 1 }, { unique: true });
+      await db.collection('users').createIndex({ friendCode: 1 }, { unique: true, sparse: true });
+      await db.collection('nonces').createIndex({ nonce: 1 }, { unique: true });
+      await db.collection('nonces').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+      await db.collection('transactions').createIndex({ signature: 1 }, { unique: true });
+      await db.collection('matches').createIndex({ id: 1 }, { unique: true });
+      await db.collection('friends').createIndex({ wallet: 1, friendWallet: 1 }, { unique: true });
+    } catch (indexError) {
+      // Indexes might already exist, that's okay
+      console.log('[MongoDB] Index creation (may already exist):', indexError.message);
+    }
+    
+    return db;
+  } catch (error) {
+    console.error('[MongoDB] Connection error:', error);
+    // Reset client on error to allow retry
+    client = null;
+    db = null;
+    throw error;
   }
-  return db;
 }
 
 // Solana Connection
