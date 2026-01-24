@@ -1,15 +1,27 @@
 'use client';
 
 import React, { useMemo, useCallback, useEffect, useState, createContext, useContext, useRef } from 'react';
-import { Connection, Transaction, VersionedTransaction, PublicKey } from '@solana/web3.js';
+import { Connection, Transaction, PublicKey } from '@solana/web3.js';
 
-// Detect if running on mobile
+// ============================================
+// DETECTION UTILITIES
+// ============================================
+
 export function isMobileDevice() {
   if (typeof window === 'undefined') return false;
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-// Detect if running as installed PWA
+export function isAndroid() {
+  if (typeof window === 'undefined') return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
+export function isIOS() {
+  if (typeof window === 'undefined') return false;
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 export function isInstalledPWA() {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(display-mode: standalone)').matches ||
@@ -17,19 +29,33 @@ export function isInstalledPWA() {
          document.referrer.includes('android-app://');
 }
 
-// Detect Solana Seeker device
 export function isSolanaSeeker() {
   if (typeof window === 'undefined') return false;
   const ua = navigator.userAgent.toLowerCase();
   return ua.includes('seeker') || ua.includes('solanamobile');
 }
 
-// Check if we should use Mobile Wallet Adapter
-export function shouldUseMWA() {
-  return isMobileDevice() || isInstalledPWA();
+// MWA is supported on Android only (iOS doesn't support the protocol)
+export function isMWASupported() {
+  return isAndroid();
 }
 
-// Lightweight wallet context
+export function shouldUseMWA() {
+  // MWA works on Android mobile devices
+  const mobile = isMobileDevice();
+  const android = isAndroid();
+  const hasInjectedWallet = typeof window !== 'undefined' && !!(window.solana || window.phantom);
+  
+  console.log('[MWA] Detection:', { mobile, android, hasInjectedWallet });
+  
+  // Use MWA on Android if no injected wallet (in-app browser has injected wallet)
+  return mobile && android && !hasInjectedWallet;
+}
+
+// ============================================
+// WALLET CONTEXT
+// ============================================
+
 const WalletContext = createContext(null);
 
 export function useSolanaWallet() {
@@ -48,7 +74,7 @@ export function useWallet() {
 const APP_IDENTITY = {
   name: 'SolMate',
   uri: typeof window !== 'undefined' ? window.location.origin : 'https://solmate.app',
-  icon: typeof window !== 'undefined' ? `${window.location.origin}/icon-192.svg` : '/icon-192.svg',
+  icon: typeof window !== 'undefined' ? `${window.location.origin}/icon-192.png` : '/icon-192.png',
 };
 
 export function SolanaWalletProvider({ children }) {
@@ -59,10 +85,8 @@ export function SolanaWalletProvider({ children }) {
   const [walletName, setWalletName] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [authToken, setAuthToken] = useState(null);
-  const [mwaAvailable, setMwaAvailable] = useState(false);
-  
-  // Store MWA module reference
-  const mwaModuleRef = useRef(null);
+  const [mwaSupported, setMwaSupported] = useState(false);
+  const [mwaModule, setMwaModule] = useState(null);
   
   // Network configuration
   const network = useMemo(() => {
@@ -87,23 +111,28 @@ export function SolanaWalletProvider({ children }) {
     return 'devnet';
   }, [network]);
 
-  // Load MWA module on mount
+  // Load MWA module on mount (Android only)
   useEffect(() => {
-    const loadMWA = async () => {
+    const initMWA = async () => {
       if (typeof window === 'undefined') return;
       
-      try {
-        const mwaModule = await import('@solana-mobile/wallet-adapter-mobile');
-        mwaModuleRef.current = mwaModule;
-        setMwaAvailable(true);
-        console.log('MWA module loaded successfully');
-      } catch (e) {
-        console.warn('MWA module not available:', e);
-        setMwaAvailable(false);
+      const supported = isMWASupported();
+      console.log('[MWA] Supported:', supported);
+      setMwaSupported(supported);
+      
+      if (supported) {
+        try {
+          // Import the web3js protocol which provides transact()
+          const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol-web3js');
+          console.log('[MWA] Module loaded:', Object.keys(mwa));
+          setMwaModule(mwa);
+        } catch (e) {
+          console.error('[MWA] Failed to load module:', e);
+        }
       }
     };
     
-    loadMWA();
+    initMWA();
   }, []);
 
   // Check for existing connection on mount
@@ -120,14 +149,15 @@ export function SolanaWalletProvider({ children }) {
         try {
           const session = JSON.parse(savedSession);
           if (session.publicKey && session.walletName) {
-            setPublicKey({ 
-              toString: () => session.publicKey, 
-              toBase58: () => session.publicKey,
-              toBytes: () => new PublicKey(session.publicKey).toBytes()
-            });
+            const pubKey = createPublicKey(session.publicKey);
+            setPublicKey(pubKey);
             setWalletName(session.walletName);
             if (session.authToken) {
               setAuthToken(session.authToken);
+            }
+            // Mark as connected for MWA sessions
+            if (session.type === 'mwa') {
+              setWallet({ type: 'mwa' });
             }
           }
         } catch (e) {
@@ -136,78 +166,86 @@ export function SolanaWalletProvider({ children }) {
       }
       
       // Check injected wallets (for desktop/in-app browsers)
-      if (!shouldUseMWA() && window.solana) {
-        try {
-          const resp = await window.solana.connect({ onlyIfTrusted: true });
-          if (resp.publicKey) {
-            setPublicKey(resp.publicKey);
-            setConnected(true);
-            setWallet(window.solana);
-            setWalletName(window.solana.isPhantom ? 'Phantom' : 'Wallet');
+      if (!shouldUseMWA()) {
+        const provider = window.phantom?.solana || window.solana;
+        if (provider) {
+          try {
+            const resp = await provider.connect({ onlyIfTrusted: true });
+            if (resp.publicKey) {
+              setPublicKey(resp.publicKey);
+              setConnected(true);
+              setWallet(provider);
+              setWalletName(provider.isPhantom ? 'Phantom' : 'Wallet');
+            }
+          } catch (e) {
+            // Not already connected
           }
-        } catch (e) {
-          // Not already connected
         }
       }
       
       setIsReady(true);
     };
     
-    setTimeout(checkConnection, 100);
+    setTimeout(checkConnection, 200);
   }, []);
 
-  // Get MWA transact function
-  const getTransact = useCallback(async () => {
-    if (mwaModuleRef.current?.transact) {
-      return mwaModuleRef.current.transact;
-    }
-    
-    // Try to load if not available
-    try {
-      const mwaModule = await import('@solana-mobile/wallet-adapter-mobile');
-      mwaModuleRef.current = mwaModule;
-      setMwaAvailable(true);
-      return mwaModule.transact;
-    } catch (e) {
-      console.error('Failed to load MWA:', e);
-      throw new Error('Mobile Wallet Adapter not available in this environment');
-    }
-  }, []);
+  // Helper to create PublicKey-like object
+  const createPublicKey = (address) => {
+    return {
+      toString: () => address,
+      toBase58: () => address,
+      toBytes: () => {
+        try {
+          return new PublicKey(address).toBytes();
+        } catch {
+          return new Uint8Array(32);
+        }
+      },
+    };
+  };
 
   // Connect via Mobile Wallet Adapter
   const connectMWA = useCallback(async () => {
+    console.log('[MWA] Connect called');
+    
+    if (!mwaModule?.transact) {
+      console.error('[MWA] Module not loaded or transact not available');
+      console.log('[MWA] Module:', mwaModule);
+      console.log('[MWA] Available functions:', mwaModule ? Object.keys(mwaModule) : 'none');
+      throw new Error('Mobile Wallet Adapter is not available on this device. Please use a Solana wallet app browser or install a wallet.');
+    }
+    
     setConnecting(true);
     
     try {
-      const transact = await getTransact();
+      console.log('[MWA] Starting transact...');
       
-      if (!transact || typeof transact !== 'function') {
-        throw new Error('Mobile Wallet Adapter not available. Please ensure you have a Solana wallet app installed.');
-      }
-
-      const result = await transact(async (mobileWallet) => {
-        // Authorize with the wallet
+      const result = await mwaModule.transact(async (mobileWallet) => {
+        console.log('[MWA] Inside transact, authorizing...');
+        
+        // Authorize
         const authResult = await mobileWallet.authorize({
-          chain: cluster,
+          cluster,
           identity: APP_IDENTITY,
         });
         
+        console.log('[MWA] Auth result:', authResult);
+        
         return {
-          publicKey: authResult.accounts[0].address,
+          accounts: authResult.accounts,
           authToken: authResult.auth_token,
           walletUriBase: authResult.wallet_uri_base,
         };
       });
       
-      const walletDisplayName = result.walletUriBase ? 
-        new URL(result.walletUriBase).hostname.replace('www.', '').split('.')[0] : 
-        'Mobile Wallet';
+      console.log('[MWA] Transact completed:', result);
       
-      const pubKey = {
-        toString: () => result.publicKey,
-        toBase58: () => result.publicKey,
-        toBytes: () => new PublicKey(result.publicKey).toBytes(),
-      };
+      const address = result.accounts[0].address;
+      const walletDisplayName = result.walletUriBase 
+        ? new URL(result.walletUriBase).hostname.replace('www.', '').split('.')[0]
+        : 'Wallet';
+      
+      const pubKey = createPublicKey(address);
       
       setPublicKey(pubKey);
       setConnected(true);
@@ -217,22 +255,22 @@ export function SolanaWalletProvider({ children }) {
       
       // Save session
       localStorage.setItem('solmate_wallet_session', JSON.stringify({
-        publicKey: result.publicKey,
+        publicKey: address,
         walletName: walletDisplayName,
         authToken: result.authToken,
         type: 'mwa',
       }));
       
-      return result.publicKey;
+      return address;
     } catch (error) {
-      console.error('MWA Connect error:', error);
+      console.error('[MWA] Connect error:', error);
       throw error;
     } finally {
       setConnecting(false);
     }
-  }, [cluster, getTransact]);
+  }, [cluster, mwaModule]);
 
-  // Connect via injected wallet (desktop/in-app browser)
+  // Connect via injected wallet
   const connectInjected = useCallback(async (walletType = 'phantom') => {
     if (typeof window === 'undefined') {
       throw new Error('Cannot connect on server');
@@ -272,21 +310,12 @@ export function SolanaWalletProvider({ children }) {
           name = 'Backpack';
           break;
           
-        case 'trust':
-          provider = window.trustwallet?.solana || window.solana;
-          if (!provider) {
-            window.open('https://trustwallet.com/', '_blank');
-            throw new Error('Trust Wallet not installed');
-          }
-          name = 'Trust';
-          break;
-          
         default:
-          provider = window.solana;
+          provider = window.phantom?.solana || window.solana;
           if (!provider) {
             throw new Error('No wallet found');
           }
-          name = 'Wallet';
+          name = provider.isPhantom ? 'Phantom' : 'Wallet';
       }
       
       const resp = await provider.connect();
@@ -295,7 +324,6 @@ export function SolanaWalletProvider({ children }) {
       setWallet(provider);
       setWalletName(name);
       
-      // Save session
       localStorage.setItem('solmate_wallet_session', JSON.stringify({
         publicKey: resp.publicKey.toString(),
         walletName: name,
@@ -304,7 +332,7 @@ export function SolanaWalletProvider({ children }) {
       
       return resp.publicKey.toString();
     } catch (error) {
-      console.error('Injected wallet connect error:', error);
+      console.error('[Injected] Connect error:', error);
       throw error;
     } finally {
       setConnecting(false);
@@ -312,19 +340,16 @@ export function SolanaWalletProvider({ children }) {
   }, []);
 
   // Main connect function
-  const connect = useCallback(async (walletType = 'mwa') => {
-    // Use MWA for mobile/PWA
-    if (walletType === 'mwa') {
+  const connect = useCallback(async (walletType = 'auto') => {
+    console.log('[Connect] Type:', walletType, 'shouldUseMWA:', shouldUseMWA());
+    
+    // If MWA requested or auto on mobile without injected wallet
+    if (walletType === 'mwa' || (walletType === 'auto' && shouldUseMWA())) {
       return connectMWA();
     }
     
-    // On mobile, if specific wallet requested, still use MWA
-    if (shouldUseMWA() && ['phantom', 'solflare', 'backpack', 'trust'].includes(walletType.toLowerCase())) {
-      return connectMWA();
-    }
-    
-    // Use injected wallet for desktop
-    return connectInjected(walletType);
+    // Use injected wallet
+    return connectInjected(walletType === 'auto' ? 'phantom' : walletType);
   }, [connectMWA, connectInjected]);
 
   // Disconnect
@@ -347,53 +372,40 @@ export function SolanaWalletProvider({ children }) {
 
   // Sign message via MWA
   const signMessageMWA = useCallback(async (message) => {
-    const transact = await getTransact();
-    
-    if (!transact) {
-      throw new Error('Mobile Wallet Adapter not available');
+    if (!mwaModule?.transact) {
+      throw new Error('MWA not available');
     }
 
     const messageBytes = typeof message === 'string' 
       ? new TextEncoder().encode(message)
       : message;
-    
-    // Convert to base64 for MWA
-    const messageBase64 = btoa(String.fromCharCode(...messageBytes));
 
-    const result = await transact(async (mobileWallet) => {
-      // Re-authorize if we have a token
-      let currentAuthToken = authToken;
-      
+    const result = await mwaModule.transact(async (mobileWallet) => {
       const authResult = await mobileWallet.authorize({
-        chain: cluster,
+        cluster,
         identity: APP_IDENTITY,
-        auth_token: currentAuthToken,
+        auth_token: authToken,
       });
       
-      currentAuthToken = authResult.auth_token;
       const address = authResult.accounts[0].address;
 
-      // Sign the message
       const signedMessages = await mobileWallet.signMessages({
         addresses: [address],
-        payloads: [messageBase64],
+        payloads: [messageBytes],
       });
 
       return {
         signature: signedMessages[0],
-        authToken: currentAuthToken,
+        authToken: authResult.auth_token,
       };
     });
 
-    // Update auth token
     if (result.authToken) {
       setAuthToken(result.authToken);
     }
 
-    // Decode base64 signature to Uint8Array
-    const signatureBytes = Uint8Array.from(atob(result.signature), c => c.charCodeAt(0));
-    return signatureBytes;
-  }, [cluster, authToken, getTransact]);
+    return result.signature;
+  }, [cluster, authToken, mwaModule]);
 
   // Sign message via injected wallet
   const signMessageInjected = useCallback(async (message) => {
@@ -409,9 +421,9 @@ export function SolanaWalletProvider({ children }) {
     return signedMessage.signature;
   }, [wallet, connected]);
 
-  // Main sign message function
+  // Main sign message
   const signMessage = useCallback(async (message) => {
-    if (wallet?.type === 'mwa' || (shouldUseMWA() && !wallet?.signMessage)) {
+    if (wallet?.type === 'mwa') {
       return signMessageMWA(message);
     }
     return signMessageInjected(message);
@@ -419,33 +431,30 @@ export function SolanaWalletProvider({ children }) {
 
   // Sign transaction via MWA
   const signTransactionMWA = useCallback(async (transaction) => {
-    const transact = await getTransact();
-    
-    if (!transact) {
-      throw new Error('Mobile Wallet Adapter not available');
+    if (!mwaModule?.transact) {
+      throw new Error('MWA not available');
     }
 
     const connection = new Connection(endpoint, 'confirmed');
     
-    // Ensure transaction has recent blockhash
     if (!transaction.recentBlockhash) {
       const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
     }
     
-    // Serialize the transaction
-    const serializedTx = transaction.serialize({ requireAllSignatures: false });
-    const txBase64 = btoa(String.fromCharCode(...serializedTx));
+    if (!transaction.feePayer && publicKey) {
+      transaction.feePayer = new PublicKey(publicKey.toString());
+    }
 
-    const result = await transact(async (mobileWallet) => {
+    const result = await mwaModule.transact(async (mobileWallet) => {
       const authResult = await mobileWallet.authorize({
-        chain: cluster,
+        cluster,
         identity: APP_IDENTITY,
         auth_token: authToken,
       });
 
       const signedTxs = await mobileWallet.signTransactions({
-        payloads: [txBase64],
+        transactions: [transaction],
       });
 
       return {
@@ -458,12 +467,10 @@ export function SolanaWalletProvider({ children }) {
       setAuthToken(result.authToken);
     }
 
-    // Deserialize back to transaction
-    const signedBytes = Uint8Array.from(atob(result.signedTx), c => c.charCodeAt(0));
-    return Transaction.from(signedBytes);
-  }, [cluster, endpoint, authToken, getTransact]);
+    return result.signedTx;
+  }, [cluster, endpoint, authToken, publicKey, mwaModule]);
 
-  // Sign transaction via injected wallet
+  // Sign transaction via injected
   const signTransactionInjected = useCallback(async (transaction) => {
     if (!wallet || !connected) {
       throw new Error('Wallet not connected');
@@ -471,44 +478,40 @@ export function SolanaWalletProvider({ children }) {
     return wallet.signTransaction(transaction);
   }, [wallet, connected]);
 
-  // Main sign transaction function
+  // Main sign transaction
   const signTransaction = useCallback(async (transaction) => {
-    if (wallet?.type === 'mwa' || (shouldUseMWA() && !wallet?.signTransaction)) {
+    if (wallet?.type === 'mwa') {
       return signTransactionMWA(transaction);
     }
     return signTransactionInjected(transaction);
   }, [wallet, signTransactionMWA, signTransactionInjected]);
 
-  // Sign and send transaction via MWA
+  // Sign and send via MWA
   const signAndSendTransactionMWA = useCallback(async (transaction, options = {}) => {
-    const transact = await getTransact();
-    
-    if (!transact) {
-      throw new Error('Mobile Wallet Adapter not available');
+    if (!mwaModule?.transact) {
+      throw new Error('MWA not available');
     }
 
     const connection = new Connection(endpoint, 'confirmed');
     
-    // Ensure transaction has recent blockhash
     if (!transaction.recentBlockhash) {
       const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
     }
     
-    // Serialize the transaction
-    const serializedTx = transaction.serialize({ requireAllSignatures: false });
-    const txBase64 = btoa(String.fromCharCode(...serializedTx));
+    if (!transaction.feePayer && publicKey) {
+      transaction.feePayer = new PublicKey(publicKey.toString());
+    }
 
-    const result = await transact(async (mobileWallet) => {
+    const result = await mwaModule.transact(async (mobileWallet) => {
       const authResult = await mobileWallet.authorize({
-        chain: cluster,
+        cluster,
         identity: APP_IDENTITY,
         auth_token: authToken,
       });
 
-      // Sign and send
       const signatures = await mobileWallet.signAndSendTransactions({
-        payloads: [txBase64],
+        transactions: [transaction],
         options: {
           minContextSlot: options.minContextSlot,
           skipPreflight: options.skipPreflight,
@@ -527,20 +530,16 @@ export function SolanaWalletProvider({ children }) {
     }
 
     return result.signature;
-  }, [cluster, endpoint, authToken, getTransact]);
+  }, [cluster, endpoint, authToken, publicKey, mwaModule]);
 
-  // Sign and send via injected wallet
+  // Sign and send via injected
   const signAndSendTransactionInjected = useCallback(async (transaction, options = {}) => {
     if (!wallet || !connected) {
       throw new Error('Wallet not connected');
     }
     
     const connection = new Connection(endpoint, 'confirmed');
-    
-    // Sign
     const signed = await wallet.signTransaction(transaction);
-    
-    // Send
     const signature = await connection.sendRawTransaction(signed.serialize(), {
       skipPreflight: options.skipPreflight || false,
       preflightCommitment: options.preflightCommitment || 'confirmed',
@@ -549,105 +548,80 @@ export function SolanaWalletProvider({ children }) {
     return signature;
   }, [wallet, connected, endpoint]);
 
-  // Main sign and send function
+  // Main sign and send
   const signAndSendTransaction = useCallback(async (transaction, options = {}) => {
-    if (wallet?.type === 'mwa' || (shouldUseMWA() && !wallet?.signTransaction)) {
+    if (wallet?.type === 'mwa') {
       return signAndSendTransactionMWA(transaction, options);
     }
     return signAndSendTransactionInjected(transaction, options);
   }, [wallet, signAndSendTransactionMWA, signAndSendTransactionInjected]);
 
-  // Get available wallets for the connect modal
+  // Get available wallets
   const getAvailableWallets = useCallback(() => {
     const available = [];
     
     if (typeof window === 'undefined') return available;
     
-    const isMobile = isMobileDevice();
-    const isPWA = isInstalledPWA();
-    const isSeeker = isSolanaSeeker();
+    const mobile = isMobileDevice();
+    const android = isAndroid();
+    const ios = isIOS();
     const useMWA = shouldUseMWA();
+    const hasInjected = !!(window.solana || window.phantom);
     
-    // On mobile/PWA, show Mobile Wallet Adapter FIRST
-    if (useMWA) {
+    console.log('[Wallets] Detection:', { mobile, android, ios, useMWA, hasInjected, mwaSupported });
+    
+    // On Android without injected wallet, show MWA first
+    if (android && !hasInjected) {
       available.push({
         id: 'mwa',
         name: 'Mobile Wallet Adapter',
-        subtitle: isSeeker ? 'Connect to Seed Vault' : 'Tap to connect your wallet',
+        subtitle: 'Connect your Solana wallet app',
         icon: '/wallets/seeker.svg',
         installed: true,
         recommended: true,
         isMWA: true,
-        available: mwaAvailable,
+        ready: !!mwaModule?.transact,
       });
     }
     
-    // Add individual wallets
-    const wallets = [
-      {
-        id: 'phantom',
-        name: 'Phantom',
-        subtitle: 'Popular Solana wallet',
-        icon: '/wallets/phantom.svg',
-        downloadUrl: 'https://phantom.app/',
-        checkInstalled: () => !!(window.phantom?.solana?.isPhantom || window.solana?.isPhantom),
-      },
-      {
-        id: 'solflare',
-        name: 'Solflare',
-        subtitle: 'Non-custodial wallet',
-        icon: '/wallets/solflare.svg',
-        downloadUrl: 'https://solflare.com/',
-        checkInstalled: () => !!window.solflare?.isSolflare,
-      },
-      {
-        id: 'backpack',
-        name: 'Backpack',
-        subtitle: 'xNFT enabled wallet',
-        icon: '/wallets/backpack.svg',
-        downloadUrl: 'https://backpack.app/',
-        checkInstalled: () => !!window.backpack,
-      },
-      {
-        id: 'trust',
-        name: 'Trust Wallet',
-        subtitle: 'Multi-chain wallet',
-        icon: '/wallets/trust.svg',
-        downloadUrl: 'https://trustwallet.com/',
-        checkInstalled: () => !!window.trustwallet?.solana,
-      },
-    ];
+    // Check injected wallets
+    const phantomInstalled = !!(window.phantom?.solana?.isPhantom || window.solana?.isPhantom);
+    const solflareInstalled = !!window.solflare?.isSolflare;
+    const backpackInstalled = !!window.backpack;
     
-    for (const w of wallets) {
-      const installed = w.checkInstalled();
-      
-      // On mobile with MWA, show all as "Tap to connect"
-      if (useMWA) {
-        available.push({
-          id: w.id,
-          name: w.name,
-          subtitle: 'Tap to connect',
-          icon: w.icon,
-          installed: true,
-          recommended: false,
-          usesMWA: true,
-        });
-      } else {
-        // Desktop - check if actually installed
-        available.push({
-          id: w.id,
-          name: w.name,
-          subtitle: installed ? 'Tap to connect' : w.subtitle,
-          icon: w.icon,
-          installed,
-          downloadUrl: installed ? null : w.downloadUrl,
-          recommended: w.id === 'phantom' && installed,
-        });
-      }
-    }
+    // Phantom
+    available.push({
+      id: 'phantom',
+      name: 'Phantom',
+      subtitle: phantomInstalled ? 'Tap to connect' : (mobile ? 'Open in Phantom app' : 'Install Phantom'),
+      icon: '/wallets/phantom.svg',
+      installed: phantomInstalled,
+      recommended: phantomInstalled && !useMWA,
+      downloadUrl: phantomInstalled ? null : 'https://phantom.app/',
+    });
+    
+    // Solflare
+    available.push({
+      id: 'solflare',
+      name: 'Solflare',
+      subtitle: solflareInstalled ? 'Tap to connect' : (mobile ? 'Open in Solflare app' : 'Install Solflare'),
+      icon: '/wallets/solflare.svg',
+      installed: solflareInstalled,
+      downloadUrl: solflareInstalled ? null : 'https://solflare.com/',
+    });
+    
+    // Backpack
+    available.push({
+      id: 'backpack',
+      name: 'Backpack',
+      subtitle: backpackInstalled ? 'Tap to connect' : (mobile ? 'Open in Backpack app' : 'Install Backpack'),
+      icon: '/wallets/backpack.svg',
+      installed: backpackInstalled,
+      downloadUrl: backpackInstalled ? null : 'https://backpack.app/',
+    });
     
     return available;
-  }, [mwaAvailable]);
+  }, [mwaSupported, mwaModule]);
 
   const value = useMemo(() => ({
     publicKey,
@@ -666,15 +640,17 @@ export function SolanaWalletProvider({ children }) {
     getAvailableWallets,
     isSeeker: isSolanaSeeker(),
     isMobile: isMobileDevice(),
+    isAndroid: isAndroid(),
+    isIOS: isIOS(),
     isPWA: isInstalledPWA(),
-    shouldUseMWA: shouldUseMWA(),
-    mwaAvailable,
+    mwaSupported,
+    mwaReady: !!mwaModule?.transact,
     isReady,
   }), [
     publicKey, connected, connecting, wallet, walletName,
     network, endpoint, cluster, connect, disconnect, signMessage,
-    signTransaction, signAndSendTransaction, getAvailableWallets, 
-    mwaAvailable, isReady
+    signTransaction, signAndSendTransaction, getAvailableWallets,
+    mwaSupported, mwaModule, isReady
   ]);
   
   return (
