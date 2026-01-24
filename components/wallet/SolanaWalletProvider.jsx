@@ -70,11 +70,11 @@ export function useWallet() {
   return useSolanaWallet();
 }
 
-// App identity for MWA
+// App identity for MWA - icon MUST be a relative URI
 const APP_IDENTITY = {
   name: 'SolMate',
   uri: typeof window !== 'undefined' ? window.location.origin : 'https://solmate.app',
-  icon: typeof window !== 'undefined' ? `${window.location.origin}/icon-192.png` : '/icon-192.png',
+  icon: '/icon-192.png', // Must be relative path, not absolute URL
 };
 
 export function SolanaWalletProvider({ children }) {
