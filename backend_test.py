@@ -274,19 +274,28 @@ class SolMateAPITester:
         
         if success and 'gameId' in data:
             game_id = data['gameId']
+            player_color = data.get('playerColor', 'w')
             
-            # Test valid move (e2 to e4 - common opening)
+            # Choose appropriate move based on player color
+            if player_color == 'w':
+                # White player moves
+                from_square, to_square = 'e2', 'e4'
+            else:
+                # Black player moves
+                from_square, to_square = 'e7', 'e5'
+            
+            # Test valid move
             success, data, status = self.make_request('POST', '/game/bot/move', {
                 'gameId': game_id,
-                'from': 'e2',
-                'to': 'e4'
+                'from': from_square,
+                'to': to_square
             })
             
             move_success = success and data.get('success') == True
             self.log_result(
                 "Bot Game Move - Valid Move", 
                 move_success, 
-                f"Move processed successfully" if move_success else f"Status: {status}",
+                f"Move {from_square}-{to_square} processed successfully" if move_success else f"Status: {status}",
                 data if not move_success else None
             )
             
