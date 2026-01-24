@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useCallback, useEffect, useState, createContext, useContext, useRef } from 'react';
+import React, { useMemo, useCallback, useEffect, useState, createContext, useContext } from 'react';
 import { Connection, Transaction, PublicKey } from '@solana/web3.js';
 
 // ============================================
@@ -35,21 +35,38 @@ export function isSolanaSeeker() {
   return ua.includes('seeker') || ua.includes('solanamobile');
 }
 
-// MWA is supported on Android only (iOS doesn't support the protocol)
+// MWA is supported on Android only
 export function isMWASupported() {
   return isAndroid();
 }
 
 export function shouldUseMWA() {
-  // MWA works on Android mobile devices
   const mobile = isMobileDevice();
   const android = isAndroid();
   const hasInjectedWallet = typeof window !== 'undefined' && !!(window.solana || window.phantom);
   
   console.log('[MWA] Detection:', { mobile, android, hasInjectedWallet });
-  
-  // Use MWA on Android if no injected wallet (in-app browser has injected wallet)
   return mobile && android && !hasInjectedWallet;
+}
+
+// ============================================
+// DEEP LINK UTILITIES
+// ============================================
+
+function getWalletDeepLink(walletId, appUrl) {
+  const encodedUrl = encodeURIComponent(appUrl);
+  
+  switch (walletId) {
+    case 'phantom':
+      // Phantom deep link to open URL in Phantom browser
+      return `https://phantom.app/ul/browse/${encodedUrl}?ref=${encodedUrl}`;
+    case 'solflare':
+      return `https://solflare.com/ul/v1/browse/${encodedUrl}?ref=${encodedUrl}`;
+    case 'backpack':
+      return `https://backpack.app/ul/browse/${encodedUrl}`;
+    default:
+      return null;
+  }
 }
 
 // ============================================
@@ -70,13 +87,13 @@ export function useWallet() {
   return useSolanaWallet();
 }
 
-// App identity for MWA - icon MUST be a relative URI
+// App identity for MWA
 const APP_IDENTITY = {
   name: 'SolMate',
   uri: typeof window !== 'undefined' 
     ? (process.env.NEXT_PUBLIC_APP_URL || window.location.origin) 
     : (process.env.NEXT_PUBLIC_APP_URL || 'https://playsolmates.app'),
-  icon: '/icon-192.png', // Must be relative path, not absolute URL
+  icon: '/icon-192.png',
 };
 
 export function SolanaWalletProvider({ children }) {
@@ -96,7 +113,7 @@ export function SolanaWalletProvider({ children }) {
   }, []);
   
   const endpoint = useMemo(() => {
-    const customRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
+    const customRpc = process.env.NEXT_PUBLIC_RPC_URL;
     if (customRpc) return customRpc;
     
     const endpoints = {
@@ -124,7 +141,6 @@ export function SolanaWalletProvider({ children }) {
       
       if (supported) {
         try {
-          // Import the web3js protocol which provides transact()
           const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol-web3js');
           console.log('[MWA] Module loaded:', Object.keys(mwa));
           setMwaModule(mwa);
@@ -157,7 +173,6 @@ export function SolanaWalletProvider({ children }) {
             if (session.authToken) {
               setAuthToken(session.authToken);
             }
-            // Mark as connected for MWA sessions
             if (session.type === 'mwa') {
               setWallet({ type: 'mwa' });
             }
@@ -167,7 +182,7 @@ export function SolanaWalletProvider({ children }) {
         }
       }
       
-      // Check injected wallets (for desktop/in-app browsers)
+      // Check injected wallets
       if (!shouldUseMWA()) {
         const provider = window.phantom?.solana || window.solana;
         if (provider) {
@@ -211,10 +226,8 @@ export function SolanaWalletProvider({ children }) {
     console.log('[MWA] Connect called');
     
     if (!mwaModule?.transact) {
-      console.error('[MWA] Module not loaded or transact not available');
-      console.log('[MWA] Module:', mwaModule);
-      console.log('[MWA] Available functions:', mwaModule ? Object.keys(mwaModule) : 'none');
-      throw new Error('Mobile Wallet Adapter is not available on this device. Please use a Solana wallet app browser or install a wallet.');
+      console.error('[MWA] Module not loaded');
+      throw new Error('Mobile Wallet Adapter is not available. Please install a Solana wallet app (Phantom, Solflare, etc.)');
     }
     
     setConnecting(true);
@@ -225,7 +238,6 @@ export function SolanaWalletProvider({ children }) {
       const result = await mwaModule.transact(async (mobileWallet) => {
         console.log('[MWA] Inside transact, authorizing...');
         
-        // Authorize
         const authResult = await mobileWallet.authorize({
           cluster,
           identity: APP_IDENTITY,
@@ -233,16 +245,26 @@ export function SolanaWalletProvider({ children }) {
         
         console.log('[MWA] Auth result:', authResult);
         
+        // Safely get the address
+        const accounts = authResult?.accounts || [];
+        if (!accounts.length) {
+          throw new Error('No accounts returned from wallet');
+        }
+        
         return {
-          accounts: authResult.accounts,
-          authToken: authResult.auth_token,
-          walletUriBase: authResult.wallet_uri_base,
+          accounts,
+          authToken: authResult?.auth_token,
+          walletUriBase: authResult?.wallet_uri_base,
         };
       });
       
       console.log('[MWA] Transact completed:', result);
       
-      const address = result.accounts[0].address;
+      const address = result.accounts[0]?.address;
+      if (!address) {
+        throw new Error('No wallet address returned');
+      }
+      
       const walletDisplayName = result.walletUriBase 
         ? new URL(result.walletUriBase).hostname.replace('www.', '').split('.')[0]
         : 'Wallet';
@@ -255,7 +277,6 @@ export function SolanaWalletProvider({ children }) {
       setAuthToken(result.authToken);
       setWallet({ type: 'mwa', authToken: result.authToken });
       
-      // Save session
       localStorage.setItem('solmate_wallet_session', JSON.stringify({
         publicKey: address,
         walletName: walletDisplayName,
@@ -266,6 +287,12 @@ export function SolanaWalletProvider({ children }) {
       return address;
     } catch (error) {
       console.error('[MWA] Connect error:', error);
+      
+      // Provide user-friendly error messages
+      if (error.message?.includes('cancelled') || error.message?.includes('rejected')) {
+        throw new Error('Connection cancelled by user');
+      }
+      
       throw error;
     } finally {
       setConnecting(false);
@@ -284,40 +311,74 @@ export function SolanaWalletProvider({ children }) {
       let provider = null;
       let name = '';
       
+      // Check for injected wallet first
+      const hasPhantom = !!(window.phantom?.solana?.isPhantom || window.solana?.isPhantom);
+      const hasSolflare = !!window.solflare?.isSolflare;
+      const hasBackpack = !!window.backpack;
+      
       switch (walletType.toLowerCase()) {
         case 'phantom':
-          provider = window.phantom?.solana || window.solana;
-          if (!provider?.isPhantom) {
+          if (hasPhantom) {
+            provider = window.phantom?.solana || window.solana;
+            name = 'Phantom';
+          } else if (isMobileDevice()) {
+            // On mobile, open in Phantom's in-app browser
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const deepLink = getWalletDeepLink('phantom', appUrl);
+            if (deepLink) {
+              window.location.href = deepLink;
+              throw new Error('Opening Phantom app...');
+            }
+          } else {
             window.open('https://phantom.app/', '_blank');
-            throw new Error('Phantom not installed');
+            throw new Error('Please install Phantom wallet');
           }
-          name = 'Phantom';
           break;
           
         case 'solflare':
-          provider = window.solflare;
-          if (!provider?.isSolflare) {
+          if (hasSolflare) {
+            provider = window.solflare;
+            name = 'Solflare';
+          } else if (isMobileDevice()) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const deepLink = getWalletDeepLink('solflare', appUrl);
+            if (deepLink) {
+              window.location.href = deepLink;
+              throw new Error('Opening Solflare app...');
+            }
+          } else {
             window.open('https://solflare.com/', '_blank');
-            throw new Error('Solflare not installed');
+            throw new Error('Please install Solflare wallet');
           }
-          name = 'Solflare';
           break;
           
         case 'backpack':
-          provider = window.backpack;
-          if (!provider) {
+          if (hasBackpack) {
+            provider = window.backpack;
+            name = 'Backpack';
+          } else if (isMobileDevice()) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const deepLink = getWalletDeepLink('backpack', appUrl);
+            if (deepLink) {
+              window.location.href = deepLink;
+              throw new Error('Opening Backpack app...');
+            }
+          } else {
             window.open('https://backpack.app/', '_blank');
-            throw new Error('Backpack not installed');
+            throw new Error('Please install Backpack wallet');
           }
-          name = 'Backpack';
           break;
           
         default:
           provider = window.phantom?.solana || window.solana;
           if (!provider) {
-            throw new Error('No wallet found');
+            throw new Error('No wallet found. Please install a Solana wallet.');
           }
           name = provider.isPhantom ? 'Phantom' : 'Wallet';
+      }
+      
+      if (!provider) {
+        throw new Error(`${name || walletType} wallet not available`);
       }
       
       const resp = await provider.connect();
@@ -345,12 +406,10 @@ export function SolanaWalletProvider({ children }) {
   const connect = useCallback(async (walletType = 'auto') => {
     console.log('[Connect] Type:', walletType, 'shouldUseMWA:', shouldUseMWA());
     
-    // If MWA requested or auto on mobile without injected wallet
     if (walletType === 'mwa' || (walletType === 'auto' && shouldUseMWA())) {
       return connectMWA();
     }
     
-    // Use injected wallet
     return connectInjected(walletType === 'auto' ? 'phantom' : walletType);
   }, [connectMWA, connectInjected]);
 
@@ -382,31 +441,67 @@ export function SolanaWalletProvider({ children }) {
       ? new TextEncoder().encode(message)
       : message;
 
-    const result = await mwaModule.transact(async (mobileWallet) => {
-      const authResult = await mobileWallet.authorize({
-        cluster,
-        identity: APP_IDENTITY,
-        auth_token: authToken,
+    try {
+      const result = await mwaModule.transact(async (mobileWallet) => {
+        const authResult = await mobileWallet.authorize({
+          cluster,
+          identity: APP_IDENTITY,
+          auth_token: authToken,
+        });
+        
+        const accounts = authResult?.accounts || [];
+        if (!accounts.length) {
+          throw new Error('No accounts available');
+        }
+        
+        const address = accounts[0].address;
+
+        const signedMessages = await mobileWallet.signMessages({
+          addresses: [address],
+          payloads: [messageBytes],
+        });
+
+        // MWA returns array of signed messages
+        const signature = signedMessages?.[0];
+        if (!signature) {
+          throw new Error('No signature returned');
+        }
+
+        return {
+          signature,
+          authToken: authResult?.auth_token,
+        };
       });
+
+      if (result.authToken) {
+        setAuthToken(result.authToken);
+      }
+
+      // Return as Uint8Array - handle both Uint8Array and base64 string
+      if (result.signature instanceof Uint8Array) {
+        return result.signature;
+      }
       
-      const address = authResult.accounts[0].address;
-
-      const signedMessages = await mobileWallet.signMessages({
-        addresses: [address],
-        payloads: [messageBytes],
-      });
-
-      return {
-        signature: signedMessages[0],
-        authToken: authResult.auth_token,
-      };
-    });
-
-    if (result.authToken) {
-      setAuthToken(result.authToken);
+      // If it's a base64 string, decode it
+      if (typeof result.signature === 'string') {
+        return Uint8Array.from(atob(result.signature), c => c.charCodeAt(0));
+      }
+      
+      // If it's an object with signature property
+      if (result.signature?.signature) {
+        return result.signature.signature;
+      }
+      
+      throw new Error('Invalid signature format');
+    } catch (error) {
+      console.error('[MWA] SignMessage error:', error);
+      
+      if (error.message?.includes('cancelled') || error.message?.includes('rejected')) {
+        throw new Error('Signing cancelled by user');
+      }
+      
+      throw error;
     }
-
-    return result.signature;
   }, [cluster, authToken, mwaModule]);
 
   // Sign message via injected wallet
@@ -418,9 +513,28 @@ export function SolanaWalletProvider({ children }) {
     const encodedMessage = typeof message === 'string' 
       ? new TextEncoder().encode(message)
       : message;
+    
+    try {
+      const signedMessage = await wallet.signMessage(encodedMessage, 'utf8');
       
-    const signedMessage = await wallet.signMessage(encodedMessage, 'utf8');
-    return signedMessage.signature;
+      // Handle different wallet response formats
+      if (signedMessage?.signature) {
+        return signedMessage.signature;
+      }
+      if (signedMessage instanceof Uint8Array) {
+        return signedMessage;
+      }
+      
+      throw new Error('Invalid signature format from wallet');
+    } catch (error) {
+      console.error('[Injected] SignMessage error:', error);
+      
+      if (error.message?.includes('rejected') || error.message?.includes('cancelled')) {
+        throw new Error('Signing cancelled by user');
+      }
+      
+      throw error;
+    }
   }, [wallet, connected]);
 
   // Main sign message
@@ -460,8 +574,8 @@ export function SolanaWalletProvider({ children }) {
       });
 
       return {
-        signedTx: signedTxs[0],
-        authToken: authResult.auth_token,
+        signedTx: signedTxs?.[0],
+        authToken: authResult?.auth_token,
       };
     });
 
@@ -522,8 +636,8 @@ export function SolanaWalletProvider({ children }) {
       });
 
       return {
-        signature: signatures[0],
-        authToken: authResult.auth_token,
+        signature: signatures?.[0],
+        authToken: authResult?.auth_token,
       };
     });
 
@@ -566,14 +680,15 @@ export function SolanaWalletProvider({ children }) {
     
     const mobile = isMobileDevice();
     const android = isAndroid();
-    const ios = isIOS();
     const useMWA = shouldUseMWA();
-    const hasInjected = !!(window.solana || window.phantom);
     
-    console.log('[Wallets] Detection:', { mobile, android, ios, useMWA, hasInjected, mwaSupported });
+    // Check injected wallets
+    const phantomInstalled = !!(window.phantom?.solana?.isPhantom || window.solana?.isPhantom);
+    const solflareInstalled = !!window.solflare?.isSolflare;
+    const backpackInstalled = !!window.backpack;
     
     // On Android without injected wallet, show MWA first
-    if (android && !hasInjected) {
+    if (android && !phantomInstalled && !solflareInstalled && !backpackInstalled) {
       available.push({
         id: 'mwa',
         name: 'Mobile Wallet Adapter',
@@ -586,44 +701,42 @@ export function SolanaWalletProvider({ children }) {
       });
     }
     
-    // Check injected wallets
-    const phantomInstalled = !!(window.phantom?.solana?.isPhantom || window.solana?.isPhantom);
-    const solflareInstalled = !!window.solflare?.isSolflare;
-    const backpackInstalled = !!window.backpack;
-    
     // Phantom
     available.push({
       id: 'phantom',
       name: 'Phantom',
-      subtitle: phantomInstalled ? 'Tap to connect' : (mobile ? 'Open in Phantom app' : 'Install Phantom'),
+      subtitle: phantomInstalled ? 'Tap to connect' : (mobile ? 'Open in Phantom' : 'Install Phantom'),
       icon: '/wallets/phantom.svg',
-      installed: phantomInstalled,
+      installed: phantomInstalled || mobile, // On mobile, we can deep link
       recommended: phantomInstalled && !useMWA,
       downloadUrl: phantomInstalled ? null : 'https://phantom.app/',
+      canDeepLink: mobile && !phantomInstalled,
     });
     
     // Solflare
     available.push({
       id: 'solflare',
       name: 'Solflare',
-      subtitle: solflareInstalled ? 'Tap to connect' : (mobile ? 'Open in Solflare app' : 'Install Solflare'),
+      subtitle: solflareInstalled ? 'Tap to connect' : (mobile ? 'Open in Solflare' : 'Install Solflare'),
       icon: '/wallets/solflare.svg',
-      installed: solflareInstalled,
+      installed: solflareInstalled || mobile,
       downloadUrl: solflareInstalled ? null : 'https://solflare.com/',
+      canDeepLink: mobile && !solflareInstalled,
     });
     
     // Backpack
     available.push({
       id: 'backpack',
       name: 'Backpack',
-      subtitle: backpackInstalled ? 'Tap to connect' : (mobile ? 'Open in Backpack app' : 'Install Backpack'),
+      subtitle: backpackInstalled ? 'Tap to connect' : (mobile ? 'Open in Backpack' : 'Install Backpack'),
       icon: '/wallets/backpack.svg',
-      installed: backpackInstalled,
+      installed: backpackInstalled || mobile,
       downloadUrl: backpackInstalled ? null : 'https://backpack.app/',
+      canDeepLink: mobile && !backpackInstalled,
     });
     
     return available;
-  }, [mwaSupported, mwaModule]);
+  }, [mwaModule]);
 
   const value = useMemo(() => ({
     publicKey,
