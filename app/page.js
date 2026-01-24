@@ -1638,6 +1638,189 @@ export default function SolMate() {
         onOpenChange={setShowWalletModal}
         onConnected={handleWalletConnected}
       />
+
+      {/* Private Match Dialog */}
+      <Dialog open={showPrivateMatchDialog} onOpenChange={(open) => {
+        if (!privateMatchWaiting) {
+          setShowPrivateMatchDialog(open);
+          if (!open) {
+            setGeneratedCode('');
+            setJoinCode('');
+            setPrivateMatchWaiting(false);
+          }
+        }
+      }}>
+        <DialogContent className="max-w-sm" dir={direction}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-purple-500" />
+              {privateMatchMode === 'create' 
+                ? (t('play.createPrivate') || 'Create Private Match')
+                : (t('play.joinPrivate') || 'Join Private Match')
+              }
+            </DialogTitle>
+            <DialogDescription>
+              {privateMatchMode === 'create'
+                ? (t('play.createPrivateDesc') || 'Share the code with a friend to play')
+                : (t('play.joinPrivateDesc') || 'Enter the code shared by your friend')
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {privateMatchMode === 'create' ? (
+              <>
+                {!generatedCode ? (
+                  <Button 
+                    className="w-full h-12 solana-gradient text-black font-semibold"
+                    onClick={async () => {
+                      try {
+                        setPrivateMatchWaiting(true);
+                        const res = await fetch('/api/match/private', {
+                          method: 'POST',
+                          headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                          },
+                          body: JSON.stringify({ action: 'create' })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setGeneratedCode(data.code);
+                          toast.success(t('play.codeCreated') || 'Invite code created!');
+                        } else {
+                          toast.error(data.error || 'Failed to create code');
+                          setPrivateMatchWaiting(false);
+                        }
+                      } catch (e) {
+                        toast.error('Failed to create match');
+                        setPrivateMatchWaiting(false);
+                      }
+                    }}
+                    disabled={privateMatchWaiting}
+                  >
+                    {privateMatchWaiting ? (
+                      <><Loader2 className="w-5 h-5 me-2 animate-spin" />Creating...</>
+                    ) : (
+                      <><Sparkles className="w-5 h-5 me-2" />Generate Invite Code</>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-6 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 text-center">
+                      <p className="text-sm text-muted-foreground mb-2">{t('play.shareCode') || 'Share this code:'}</p>
+                      <p className="text-4xl font-mono font-bold tracking-widest text-purple-400">
+                        {generatedCode}
+                      </p>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="mt-3"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedCode);
+                          toast.success('Code copied!');
+                        }}
+                      >
+                        <Copy className="w-4 h-4 me-2" />
+                        {t('common.copy') || 'Copy'}
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+                      <Clock className="w-4 h-4 text-muted-foreground animate-pulse" />
+                      <p className="text-sm text-muted-foreground">
+                        {t('play.waitingForFriend') || 'Waiting for friend to join...'}
+                      </p>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground text-center">
+                      {t('play.codeExpires') || 'Code expires in 10 minutes'}
+                    </p>
+
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          await fetch('/api/match/private', {
+                            method: 'POST',
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify({ action: 'cancel', code: generatedCode })
+                          });
+                        } catch (e) {}
+                        setGeneratedCode('');
+                        setPrivateMatchWaiting(false);
+                        setShowPrivateMatchDialog(false);
+                      }}
+                    >
+                      {t('common.cancel') || 'Cancel'}
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('play.enterCode') || 'Enter invite code'}</label>
+                  <Input
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                    placeholder="ABC123"
+                    className="text-center text-2xl font-mono tracking-widest h-14"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </div>
+
+                <Button 
+                  className="w-full h-12 solana-gradient text-black font-semibold"
+                  onClick={async () => {
+                    if (joinCode.length < 4) {
+                      toast.error('Please enter a valid code');
+                      return;
+                    }
+                    try {
+                      setPrivateMatchWaiting(true);
+                      const res = await fetch('/api/match/private', {
+                        method: 'POST',
+                        headers: { 
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({ action: 'join', code: joinCode })
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        toast.success(t('play.matchJoined') || 'Joined match!');
+                        setPrivateMatchCode(joinCode);
+                        setShowPrivateMatchDialog(false);
+                        // Start the private match (triggers matchmaking with code)
+                        setShowMatchmaking(true);
+                      } else {
+                        toast.error(data.error || 'Invalid code');
+                      }
+                    } catch (e) {
+                      toast.error('Failed to join match');
+                    } finally {
+                      setPrivateMatchWaiting(false);
+                    }
+                  }}
+                  disabled={privateMatchWaiting || joinCode.length < 4}
+                >
+                  {privateMatchWaiting ? (
+                    <><Loader2 className="w-5 h-5 me-2 animate-spin" />Joining...</>
+                  ) : (
+                    <><Users className="w-5 h-5 me-2" />Join Match</>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
