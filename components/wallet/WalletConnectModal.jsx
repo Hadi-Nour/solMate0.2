@@ -40,9 +40,11 @@ export default function WalletConnectModal({
     connecting, 
     getAvailableWallets, 
     isSeeker, 
-    isMobile, 
+    isMobile,
+    isAndroid,
     isPWA, 
-    shouldUseMWA 
+    mwaSupported,
+    mwaReady
   } = useSolanaWallet();
   
   const [availableWallets, setAvailableWallets] = useState([]);
