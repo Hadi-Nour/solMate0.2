@@ -135,8 +135,18 @@ async function handleRoute(request, { params }) {
   const route = `/${path.join('/')}`;
   const method = request.method;
 
+  let db;
   try {
-    const db = await connectToMongo();
+    db = await connectToMongo();
+  } catch (dbError) {
+    console.error('[API] Database connection failed:', dbError.message);
+    return handleCORS(NextResponse.json(
+      { error: 'Database connection failed. Please try again.' },
+      { status: 503 }
+    ));
+  }
+
+  try {
 
     // ============================================
     // ROOT ENDPOINTS
