@@ -191,7 +191,8 @@ class SolMateAPITester:
         self.log_result(
             "User Signup - Valid Data", 
             signup_success, 
-            f"Created account for {test_email}" if signup_success else f"Status: {status}"
+            f"Created account for {test_email}" if signup_success else f"Status: {status}",
+            data if not signup_success else None
         )
         
         # Test with missing email
