@@ -970,6 +970,50 @@ export default function SolMate() {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Private Match */}
+              <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-purple-500" />
+                    {t('play.privateMatch') || 'Private Match'}
+                    <Badge variant="secondary" className="text-[10px]">{t('common.free')}</Badge>
+                  </CardTitle>
+                  <CardDescription>{t('play.privateMatchDesc') || 'Play with a friend using an invite code'}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    className="w-full h-14 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30"
+                    variant="outline"
+                    onClick={() => {
+                      if (!authToken) {
+                        toast.error(t('play.signInRequired'));
+                        return;
+                      }
+                      setPrivateMatchMode('create');
+                      setShowPrivateMatchDialog(true);
+                    }}
+                  >
+                    <Sparkles className="w-5 h-5 me-2" />
+                    {t('play.createPrivate') || 'Create Private Match'}
+                  </Button>
+                  <Button 
+                    className="w-full h-14 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20"
+                    variant="outline"
+                    onClick={() => {
+                      if (!authToken) {
+                        toast.error(t('play.signInRequired'));
+                        return;
+                      }
+                      setPrivateMatchMode('join');
+                      setShowPrivateMatchDialog(true);
+                    }}
+                  >
+                    <Users className="w-5 h-5 me-2" />
+                    {t('play.joinPrivate') || 'Join with Code'}
+                  </Button>
+                </CardContent>
+              </Card>
             </motion.div>
           )}
 
