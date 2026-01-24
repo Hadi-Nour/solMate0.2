@@ -44,7 +44,7 @@ async function connectToMongo() {
     
     // Initialize indexes (only on first connect)
     try {
-      await db.collection('users').createIndex({ wallet: 1 }, { unique: true });
+      await db.collection('users').createIndex({ wallet: 1 }, { unique: true, sparse: true });
       await db.collection('users').createIndex({ friendCode: 1 }, { unique: true, sparse: true });
       await db.collection('nonces').createIndex({ nonce: 1 }, { unique: true });
       await db.collection('nonces').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
