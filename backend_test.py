@@ -286,7 +286,8 @@ class SolMateAPITester:
             self.log_result(
                 "Bot Game Move - Valid Move", 
                 move_success, 
-                f"Move processed successfully" if move_success else f"Status: {status}"
+                f"Move processed successfully" if move_success else f"Status: {status}",
+                data if not move_success else None
             )
             
             # Test invalid move
