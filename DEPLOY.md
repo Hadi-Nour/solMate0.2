@@ -1,7 +1,7 @@
 # SolMate - Deployment Guide
 
 ## Overview
-SolMate is a Solana-powered chess PWA with VIP memberships, cosmetic rewards, and real-time multiplayer.
+SolMate is a Solana-powered chess PWA with VIP memberships, cosmetic rewards, real-time multiplayer, and full authentication (Email + OAuth).
 
 ## System Requirements
 
@@ -42,14 +42,62 @@ nano .env
 | `NEXT_PUBLIC_APP_URL` | Your public domain URL | `https://playsolmates.app` |
 | `NEXT_PUBLIC_BASE_URL` | Same as APP_URL | `https://playsolmates.app` |
 | `MONGO_URL` | MongoDB connection string | `mongodb://localhost:27017/solmate` |
-| `JWT_SECRET` | Secret for JWT tokens (64+ chars) | Random string |
+| `JWT_SECRET` | Secret for wallet JWT tokens (64+ chars) | Random string |
+| `NEXTAUTH_SECRET` | Secret for NextAuth sessions | `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | Your production URL | `https://playsolmates.app` |
 | `NEXT_PUBLIC_SOLANA_CLUSTER` | Solana network | `devnet` or `mainnet-beta` |
 | `NEXT_PUBLIC_RPC_URL` | Solana RPC endpoint | `https://api.devnet.solana.com` |
 | `DEVELOPER_WALLET` | Your wallet for payments | Solana address |
-| `NEXT_PUBLIC_USDC_MINT_DEVNET` | Devnet USDC mint | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
-| `NEXT_PUBLIC_USDC_MINT_MAINNET` | Mainnet USDC mint | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |
 
-### 4. Build for Production
+### 4. OAuth Provider Setup (Optional but Recommended)
+
+#### Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create OAuth 2.0 credentials
+3. Set Authorized redirect URI: `https://playsolmates.app/api/auth/callback/google`
+4. Add to `.env`:
+   ```
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ```
+
+#### Facebook/Meta OAuth
+1. Go to [Meta Developers](https://developers.facebook.com/apps/)
+2. Create an app → Consumer type
+3. Add Facebook Login product
+4. Set Valid OAuth Redirect URI: `https://playsolmates.app/api/auth/callback/facebook`
+5. Set Privacy Policy URL: `https://playsolmates.app/privacy-policy`
+6. Set Data Deletion Callback: `https://playsolmates.app/api/auth/data-deletion`
+7. Add to `.env`:
+   ```
+   FACEBOOK_CLIENT_ID=your-app-id
+   FACEBOOK_CLIENT_SECRET=your-app-secret
+   ```
+
+#### Twitter/X OAuth
+1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/projects-and-apps)
+2. Create app with OAuth 2.0
+3. Set Callback URL: `https://playsolmates.app/api/auth/callback/twitter`
+4. Add to `.env`:
+   ```
+   TWITTER_CLIENT_ID=your-client-id
+   TWITTER_CLIENT_SECRET=your-client-secret
+   ```
+
+### 5. Email/SMTP Setup (Required for Email Registration)
+
+Using Zoho Mail (recommended):
+1. Create email accounts at your domain (e.g., noreply@playsolmates.app)
+2. Generate App Password at [Zoho Security](https://accounts.zoho.com/home#security/security_app-password)
+3. Add to `.env`:
+   ```
+   SMTP_HOST=smtp.zoho.com
+   SMTP_PORT=465
+   SMTP_USER=noreply@playsolmates.app
+   SMTP_PASS=your-app-password
+   ```
+
+### 6. Build for Production
 
 ```bash
 # Build the Next.js application
@@ -58,14 +106,23 @@ yarn build
 npm run build
 ```
 
-### 5. Start the Server
+### 7. Start the Server with PM2 (Recommended)
 
 ```bash
-# Production mode (recommended)
-NODE_ENV=production node server.mjs
+# Install PM2 globally
+npm install -g pm2
 
-# Or use PM2 for process management
+# Start using ecosystem file (recommended)
+pm2 start ecosystem.config.js --env production
+
+# Or start directly
 pm2 start server.mjs --name solmate
+
+# Save process list (persists across reboots)
+pm2 save
+
+# Setup auto-start on system boot
+pm2 startup
 ```
 
 The server runs on port `3000` by default (configurable via `PORT` env var).
