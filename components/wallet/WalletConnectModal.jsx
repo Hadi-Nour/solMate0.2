@@ -122,9 +122,10 @@ export default function WalletConnectModal({
   const deviceDescription = useMemo(() => {
     if (isSeeker) return 'Solana Seeker Device';
     if (isPWA) return 'Installed PWA';
+    if (isAndroid) return 'Android Mobile';
     if (isMobile) return 'Mobile Browser';
     return 'Desktop Browser';
-  }, [isSeeker, isPWA, isMobile]);
+  }, [isSeeker, isPWA, isMobile, isAndroid]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,8 +140,8 @@ export default function WalletConnectModal({
               Connect Wallet
             </DialogTitle>
             <DialogDescription className="text-sm mt-2">
-              {shouldUseMWA 
-                ? 'Tap to connect your Solana wallet'
+              {isAndroid && mwaSupported
+                ? 'Tap to connect your Solana wallet app'
                 : 'Choose a Solana wallet to connect'
               }
             </DialogDescription>
@@ -152,10 +153,10 @@ export default function WalletConnectModal({
               <>
                 <Smartphone className="w-4 h-4 text-primary" />
                 <span className="text-xs font-medium">{deviceDescription}</span>
-                {shouldUseMWA && (
-                  <Badge className="ms-auto bg-primary/20 text-primary text-[10px]">
+                {isAndroid && mwaSupported && (
+                  <Badge className={`ms-auto text-[10px] ${mwaReady ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
                     <Zap className="w-3 h-3 me-1" />
-                    MWA Ready
+                    {mwaReady ? 'MWA Ready' : 'MWA Loading...'}
                   </Badge>
                 )}
               </>
