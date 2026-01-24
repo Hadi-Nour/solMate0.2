@@ -172,7 +172,12 @@ export default function SolMate() {
     const savedSettings = localStorage.getItem('solmate_settings');
     if (savedSettings) setSettings(JSON.parse(savedSettings));
     const token = localStorage.getItem('solmate_token');
-    if (token) { setAuthToken(token); fetchUser(token); }
+    if (token) { 
+      setAuthToken(token); 
+      fetchUser(token).finally(() => setIsCheckingAuth(false));
+    } else {
+      setIsCheckingAuth(false);
+    }
   }, []);
 
   // Save settings
