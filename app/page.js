@@ -213,8 +213,20 @@ export default function SolMate() {
       const { nonce, messageToSign } = await nonceRes.json();
       
       // Use our wallet provider's signMessage
-      const signatureBytes = await signMessage(messageToSign);
-      const signature = btoa(String.fromCharCode(...signatureBytes));
+      const signatureResult = await signMessage(messageToSign);
+      
+      // Handle different signature formats
+      let signature;
+      if (signatureResult instanceof Uint8Array) {
+        signature = btoa(String.fromCharCode.apply(null, signatureResult));
+      } else if (typeof signatureResult === 'string') {
+        signature = signatureResult;
+      } else if (signatureResult?.signature) {
+        const sigBytes = signatureResult.signature;
+        signature = btoa(String.fromCharCode.apply(null, sigBytes instanceof Uint8Array ? sigBytes : new Uint8Array(sigBytes)));
+      } else {
+        throw new Error('Invalid signature format');
+      }
       
       const verifyRes = await fetch('/api/auth/verify', {
         method: 'POST',
