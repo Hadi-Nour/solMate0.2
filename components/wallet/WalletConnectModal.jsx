@@ -67,15 +67,15 @@ export default function WalletConnectModal({
   const handleSelectWallet = async (walletId) => {
     const wallet = availableWallets.find(w => w.id === walletId);
     
-    // If not installed and has download URL, open it
-    if (!wallet?.installed && wallet?.downloadUrl) {
+    // If truly not installed and not on mobile (can't deep link), open download
+    if (!wallet?.installed && !wallet?.canDeepLink && wallet?.downloadUrl) {
       window.open(wallet.downloadUrl, '_blank');
       return;
     }
     
     // Check MWA readiness
     if (wallet?.isMWA && !wallet?.ready) {
-      setError('Mobile Wallet Adapter is still loading. Please wait a moment and try again.');
+      setError('Mobile Wallet Adapter is loading. Please wait a moment and try again.');
       return;
     }
     
@@ -93,14 +93,21 @@ export default function WalletConnectModal({
       
       let errorMsg = err.message || 'Failed to connect wallet';
       
-      // Provide helpful messages
-      if (errorMsg.includes('not available')) {
+      // Handle deep link redirects
+      if (errorMsg.includes('Opening')) {
+        setError(errorMsg);
+        setSelectedWallet(null);
+        return;
+      }
+      
+      // User-friendly error messages
+      if (errorMsg.includes('not available') || errorMsg.includes('not found')) {
         if (isAndroid) {
           errorMsg = 'Please install a Solana wallet app (Phantom, Solflare, etc.) and try again.';
         } else {
-          errorMsg = 'Wallet connection not available. Please install a wallet extension.';
+          errorMsg = 'Wallet not available. Please install the wallet extension.';
         }
-      } else if (errorMsg.includes('User rejected') || errorMsg.includes('cancelled')) {
+      } else if (errorMsg.includes('cancelled') || errorMsg.includes('rejected')) {
         errorMsg = 'Connection cancelled. Please try again.';
       }
       
