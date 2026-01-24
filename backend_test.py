@@ -433,7 +433,7 @@ class SolMateAPITester:
         self.test_private_match_check()
         
         # Print summary
-        self.print_summary()
+        return self.print_summary()
 
     def print_summary(self):
         """Print test summary"""
