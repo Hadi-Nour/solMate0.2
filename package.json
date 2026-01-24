@@ -1,14 +1,15 @@
 {
-    "name": "nextjs-mongo-template",
-    "version": "0.1.0",
+    "name": "solmate",
+    "version": "1.0.0",
+    "description": "SolMate - Solana Chess PWA with VIP Arena",
     "private": true,
     "scripts": {
-        "dev": "NODE_OPTIONS='--max-old-space-size=512' next dev --hostname 0.0.0.0 --port 3000",
-        "dev:socket": "NODE_OPTIONS='--max-old-space-size=512' node --experimental-modules server.mjs",
-        "dev:no-reload": "next dev --hostname 0.0.0.0 --port 3000",
-        "dev:webpack": "next dev --hostname 0.0.0.0 --port 3000",
+        "dev": "NODE_OPTIONS='--max-old-space-size=512' node server.mjs",
+        "dev:next": "NODE_OPTIONS='--max-old-space-size=512' next dev --hostname 0.0.0.0 --port 3000",
         "build": "next build",
-        "start": "next start"
+        "start": "NODE_ENV=production node server.mjs",
+        "start:pm2": "pm2 start server.mjs --name solmate",
+        "lint": "next lint"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.1.1",
