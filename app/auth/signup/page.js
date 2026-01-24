@@ -290,9 +290,9 @@ export default function SignupPage() {
 
         <p className="text-xs text-center text-muted-foreground mt-6">
           By creating an account, you agree to our{' '}
-          <Link href="/privacy" className="underline">Privacy Policy</Link>
+          <Link href="/privacy-policy" className="underline">Privacy Policy</Link>
           {' '}and{' '}
-          <Link href="/terms" className="underline">Terms of Service</Link>
+          <Link href="/privacy-policy" className="underline">Terms of Service</Link>
         </p>
       </motion.div>
     </div>
