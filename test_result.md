@@ -268,17 +268,89 @@ backend:
         agent: "testing"
         comment: "GET /api/user/profile endpoint working correctly - requires authentication, returns 401 without JWT token, proper CORS headers, JSON response format"
 
-  - task: "User profile POST endpoint"
+  - task: "Wallet auth nonce endpoint (NEW)"
     implemented: true
     working: true
-    file: "app/api/[[...path]]/route.js"
+    file: "app/api/auth/wallet-nonce/route.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
-        comment: "POST /api/user/profile endpoint working correctly - requires authentication, validates displayName (3-16 chars, alphanumeric+underscore), validates avatarId (default/pawn/knight/bishop/rook/queen/king/grandmaster), proper error handling"
+        comment: "POST /api/auth/wallet-nonce endpoint working correctly - generates nonce with 5-minute expiry, proper SIWS-like message format, validates wallet address requirement, returns proper JSON responses with CORS headers"
+
+  - task: "Wallet auth verify endpoint (NEW)"
+    implemented: true
+    working: true
+    file: "app/api/auth/wallet-verify/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/auth/wallet-verify endpoint working correctly - validates signature with tweetnacl, creates/updates user with proper game data structure, issues JWT tokens, handles both base58 and base64 signatures, proper error handling for invalid nonces/signatures"
+
+  - task: "NextAuth providers endpoint"
+    implemented: true
+    working: true
+    file: "app/api/auth/[...nextauth]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/auth/providers endpoint working correctly - returns all configured OAuth providers (credentials, google, facebook, twitter) in proper NextAuth format"
+
+  - task: "User signup endpoint"
+    implemented: true
+    working: true
+    file: "app/api/auth/signup/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/auth/signup endpoint working correctly - creates email/password accounts with bcrypt hashing, validates email format and password strength, sends verification emails (SMTP configured), proper error handling. Fixed MongoDB unique index issue for wallet field."
+
+  - task: "Private match create endpoint (NEW)"
+    implemented: true
+    working: true
+    file: "app/api/match/private/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/match/private with action='create' endpoint working correctly - requires JWT authentication (returns 401 without auth), generates unique 6-character invite codes, handles code expiry (10 minutes), prevents duplicate active invites"
+
+  - task: "Private match join endpoint (NEW)"
+    implemented: true
+    working: true
+    file: "app/api/match/private/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/match/private with action='join' endpoint working correctly - requires JWT authentication (returns 401 without auth), validates invite codes, prevents self-joining, updates match status to 'matched'"
+
+  - task: "Private match check endpoint (NEW)"
+    implemented: true
+    working: true
+    file: "app/api/match/private/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/match/private with action='check' endpoint working correctly - requires JWT authentication (returns 401 without auth), returns match status and participant information for authorized users"
 
 frontend:
   - task: "Chess board UI"
