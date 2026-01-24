@@ -152,7 +152,6 @@ export async function POST(request) {
       // Game data
       friends: [],
       stats: { wins: 0, losses: 0, draws: 0 },
-      wallet: null,
       isVip: false,
     });
 
