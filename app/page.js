@@ -205,11 +205,18 @@ export default function SolMate() {
     }
     
     try {
-      const nonceRes = await fetch('/api/auth/nonce', {
+      // Use dedicated wallet auth endpoints (not NextAuth)
+      const nonceRes = await fetch('/api/auth/wallet-nonce', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wallet: walletAddress })
       });
+      
+      if (!nonceRes.ok) {
+        const errorData = await nonceRes.json().catch(() => ({ error: 'Server error' }));
+        throw new Error(errorData.error || 'Failed to get nonce');
+      }
+      
       const { nonce, messageToSign } = await nonceRes.json();
       
       // Use our wallet provider's signMessage
@@ -228,7 +235,7 @@ export default function SolMate() {
         throw new Error('Invalid signature format');
       }
       
-      const verifyRes = await fetch('/api/auth/verify', {
+      const verifyRes = await fetch('/api/auth/wallet-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wallet: walletAddress, nonce, signature })
@@ -241,9 +248,11 @@ export default function SolMate() {
         localStorage.setItem('solmate_token', data.token);
         toast.success(t('wallet.signedIn'));
       } else { 
-        toast.error((await verifyRes.json()).error || 'Sign in failed'); 
+        const errorData = await verifyRes.json().catch(() => ({ error: 'Verification failed' }));
+        toast.error(errorData.error || 'Sign in failed'); 
       }
     } catch (e) { 
+      console.error('Wallet sign in error:', e);
       toast.error('Sign in failed: ' + e.message); 
     }
   };
