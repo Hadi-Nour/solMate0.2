@@ -67,15 +67,15 @@ export default function WalletConnectModal({
   const handleSelectWallet = async (walletId) => {
     const wallet = availableWallets.find(w => w.id === walletId);
     
-    // If not installed and not using MWA, open download page
+    // If not installed and has download URL, open it
     if (!wallet?.installed && wallet?.downloadUrl) {
       window.open(wallet.downloadUrl, '_blank');
       return;
     }
     
-    // Check MWA availability for MWA connections
-    if (wallet?.isMWA && !wallet?.available) {
-      setError('Mobile Wallet Adapter is loading. Please wait and try again.');
+    // Check MWA readiness
+    if (wallet?.isMWA && !wallet?.ready) {
+      setError('Mobile Wallet Adapter is still loading. Please wait a moment and try again.');
       return;
     }
     
@@ -83,23 +83,25 @@ export default function WalletConnectModal({
     setSelectedWallet(walletId);
     
     try {
-      // Use MWA for mobile wallet adapter or if wallet specifies it
-      const connectType = wallet?.isMWA || wallet?.usesMWA ? 'mwa' : walletId;
+      const connectType = wallet?.isMWA ? 'mwa' : walletId;
+      console.log('[WalletModal] Connecting with type:', connectType);
       const address = await connect(connectType);
       onConnected?.(address);
       onOpenChange(false);
     } catch (err) {
-      console.error('Connection error:', err);
+      console.error('[WalletModal] Connection error:', err);
       
-      // Provide helpful error messages
       let errorMsg = err.message || 'Failed to connect wallet';
       
+      // Provide helpful messages
       if (errorMsg.includes('not available')) {
-        errorMsg = 'Mobile Wallet Adapter not available. Please ensure you have a Solana wallet app installed (Phantom, Solflare, etc.)';
-      } else if (errorMsg.includes('User rejected')) {
-        errorMsg = 'Connection rejected. Please try again.';
-      } else if (errorMsg.includes('timeout')) {
-        errorMsg = 'Connection timed out. Please try again.';
+        if (isAndroid) {
+          errorMsg = 'Please install a Solana wallet app (Phantom, Solflare, etc.) and try again.';
+        } else {
+          errorMsg = 'Wallet connection not available. Please install a wallet extension.';
+        }
+      } else if (errorMsg.includes('User rejected') || errorMsg.includes('cancelled')) {
+        errorMsg = 'Connection cancelled. Please try again.';
       }
       
       setError(errorMsg);
