@@ -71,6 +71,12 @@ export default function WalletConnectModal({
       return;
     }
     
+    // Check MWA availability for MWA connections
+    if (wallet?.isMWA && !wallet?.available) {
+      setError('Mobile Wallet Adapter is loading. Please wait and try again.');
+      return;
+    }
+    
     setError(null);
     setSelectedWallet(walletId);
     
@@ -82,7 +88,19 @@ export default function WalletConnectModal({
       onOpenChange(false);
     } catch (err) {
       console.error('Connection error:', err);
-      setError(err.message || 'Failed to connect wallet');
+      
+      // Provide helpful error messages
+      let errorMsg = err.message || 'Failed to connect wallet';
+      
+      if (errorMsg.includes('not available')) {
+        errorMsg = 'Mobile Wallet Adapter not available. Please ensure you have a Solana wallet app installed (Phantom, Solflare, etc.)';
+      } else if (errorMsg.includes('User rejected')) {
+        errorMsg = 'Connection rejected. Please try again.';
+      } else if (errorMsg.includes('timeout')) {
+        errorMsg = 'Connection timed out. Please try again.';
+      }
+      
+      setError(errorMsg);
       setSelectedWallet(null);
     }
   };
