@@ -106,6 +106,14 @@ export default function SolMate() {
   const [onlineMatch, setOnlineMatch] = useState(null);
   const [onlineMatchColor, setOnlineMatchColor] = useState(null);
   
+  // Private match state
+  const [showPrivateMatchDialog, setShowPrivateMatchDialog] = useState(false);
+  const [privateMatchMode, setPrivateMatchMode] = useState('create'); // 'create' or 'join'
+  const [privateMatchCode, setPrivateMatchCode] = useState('');
+  const [privateMatchWaiting, setPrivateMatchWaiting] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  
   // UI state
   const [showVipDialog, setShowVipDialog] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -114,6 +122,7 @@ export default function SolMate() {
   const [gameResult, setGameResult] = useState(null);
   const [gameRewards, setGameRewards] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
   // Settings
   const [settings, setSettings] = useState({
