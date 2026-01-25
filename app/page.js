@@ -113,6 +113,7 @@ export default function SolMate() {
   const [privateMatchWaiting, setPrivateMatchWaiting] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [joinCode, setJoinCode] = useState('');
+  const [privateTimeControl, setPrivateTimeControl] = useState(5); // Default 5 minutes
   
   // UI state
   const [showVipDialog, setShowVipDialog] = useState(false);
