@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, Smile, X } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
+import { useFeedbackContext } from '@/lib/feedback/provider';
 import { sendQuickChat, getSocket } from '@/lib/socket/client';
 
 // Debug mode controlled by environment variable (default: false)
@@ -41,6 +42,7 @@ export default function QuickChat({
   onChatReceived 
 }) {
   const { t } = useI18n();
+  const feedback = useFeedbackContext();
   const [showPanel, setShowPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('messages');
   const [onCooldown, setOnCooldown] = useState(false);
@@ -72,6 +74,11 @@ export default function QuickChat({
       
       // Increment debug counter
       setDebugCounter(prev => prev + 1);
+      
+      // Play feedback sound/haptic for received chat
+      if (feedback) {
+        feedback.quickChat();
+      }
       
       // Show the chat bubble
       const chatData = { from, presetId, type, timestamp };
