@@ -239,6 +239,19 @@ export default function QuickChat({
         )}
       </Button>
 
+      {/* DEBUG: Show debug counter and receivedChat state */}
+      <div className="fixed top-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
+        <div>Debug Counter: {debugCounter}</div>
+        <div>ReceivedChat: {receivedChat ? 'SET' : 'NULL'}</div>
+        {receivedChat && (
+          <div className="text-[10px]">
+            <div>From: {receivedChat.from}</div>
+            <div>Type: {receivedChat.type}</div>
+            <div>PresetId: {receivedChat.presetId}</div>
+          </div>
+        )}
+      </div>
+
       {/* Chat Panel Dialog */}
       <Dialog open={showPanel} onOpenChange={setShowPanel}>
         <DialogContent className="max-w-xs p-3">
