@@ -309,26 +309,32 @@ export const authOptions = {
       }
     }),
 
-    // Google OAuth
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      allowDangerousEmailAccountLinking: true,
-    }),
+    // Google OAuth (requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        allowDangerousEmailAccountLinking: true,
+      }),
+    ] : []),
 
-    // Facebook OAuth
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID || '',
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || '',
-      allowDangerousEmailAccountLinking: true,
-    }),
+    // Facebook OAuth (requires FACEBOOK_CLIENT_ID and FACEBOOK_CLIENT_SECRET)
+    ...(process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET ? [
+      FacebookProvider({
+        clientId: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+        allowDangerousEmailAccountLinking: true,
+      }),
+    ] : []),
 
-    // Twitter/X OAuth
-    TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID || '',
-      clientSecret: process.env.TWITTER_CLIENT_SECRET || '',
-      version: '2.0',
-    }),
+    // Twitter/X OAuth (requires TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET)
+    ...(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET ? [
+      TwitterProvider({
+        clientId: process.env.TWITTER_CLIENT_ID,
+        clientSecret: process.env.TWITTER_CLIENT_SECRET,
+        version: '2.0',
+      }),
+    ] : []),
   ],
 
   pages: {
