@@ -1,4 +1,4 @@
-# SolMate Production Deployment Guide
+# PlaySolMates Production Deployment Guide
 ## For Hetzner Server (playsolmates.app)
 
 ---
@@ -31,7 +31,7 @@ SMTP_HOST=smtp.zoho.eu
 SMTP_PORT=465
 SMTP_USER=noreply@playsolmates.app
 SMTP_PASS=<your-zoho-app-password>
-EMAIL_FROM=SolMate <noreply@playsolmates.app>
+EMAIL_FROM=PlaySolMates <noreply@playsolmates.app>
 ```
 
 ### 💳 Payment Configuration (Required for VIP purchases):

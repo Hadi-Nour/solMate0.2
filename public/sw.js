@@ -1,4 +1,4 @@
-// SolMate Service Worker v1.0.0
+// PlaySolMates Service Worker v1.0.0
 const CACHE_NAME = 'solmate-v1';
 
 // Assets to cache on install

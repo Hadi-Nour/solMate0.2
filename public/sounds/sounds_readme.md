@@ -1,4 +1,4 @@
-# SolMate Sound Effects
+# PlaySolMates Sound Effects
 
 ## Required Sound Files
 Place the following sound files in this directory:
