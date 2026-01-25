@@ -57,19 +57,44 @@ export default function QuickChat({
     let pollInterval = null;
 
     const handleQuickChat = (data) => {
-      if (!mounted) return;
+      if (!mounted) {
+        console.log('[QuickChat] ⚠️ Not mounted, ignoring event');
+        return;
+      }
       const { from, presetId, type, timestamp } = data;
       console.log('[QuickChat] ✅ EVENT RECEIVED:', { from, presetId, type, timestamp, myColor: yourColor });
+      console.log('[QuickChat] 🔄 Setting receivedChat state...');
+      
+      // Increment debug counter
+      setDebugCounter(prev => {
+        console.log('[QuickChat] 📊 Debug counter:', prev + 1);
+        return prev + 1;
+      });
       
       // Show the chat bubble
-      setReceivedChat({ from, presetId, type, timestamp });
+      const chatData = { from, presetId, type, timestamp };
+      console.log('[QuickChat] 🔄 Chat data to set:', chatData);
+      setReceivedChat(chatData);
       
-      // Auto-hide after 3 seconds
+      // Log after state update (won't be immediate due to React batching)
+      setTimeout(() => {
+        console.log('[QuickChat] 🔍 State should be updated now');
+      }, 100);
+      
+      // Auto-hide after 4 seconds (increased from 3)
       setTimeout(() => {
         if (mounted) {
-          setReceivedChat(prev => prev?.timestamp === timestamp ? null : prev);
+          console.log('[QuickChat] ⏰ Auto-hiding chat bubble');
+          setReceivedChat(prev => {
+            if (prev?.timestamp === timestamp) {
+              console.log('[QuickChat] 🔄 Clearing receivedChat (same timestamp)');
+              return null;
+            }
+            console.log('[QuickChat] 🔄 Keeping receivedChat (different timestamp)');
+            return prev;
+          });
         }
-      }, 3000);
+      }, 4000);
 
       if (onChatReceivedRef.current) {
         onChatReceivedRef.current({ from, presetId, type });
