@@ -19,7 +19,7 @@ import os
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://chess-connect-4.preview.emergentagent.com"
+BASE_URL = "https://solmate-auth.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class SolMateAPITester:
