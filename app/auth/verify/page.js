@@ -65,7 +65,7 @@ function VerifyEmailContent() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 text-3xl font-bold">
             <span className="text-4xl">♟️</span>
-            <span className="solana-text-gradient">SolMate</span>
+            <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
         </div>
 
@@ -86,7 +86,7 @@ function VerifyEmailContent() {
           <CardContent className="space-y-6">
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <p className="text-sm text-muted-foreground">
-                Click the link in the email to sign in to your SolMate account. 
+                Click the link in the email to sign in to your PlaySolMates account. 
                 The link will expire in <span className="font-semibold text-foreground">24 hours</span>.
               </p>
             </div>
@@ -230,7 +230,7 @@ function VerifyEmailContent() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-2 text-3xl font-bold">
               <span className="text-4xl">♟️</span>
-              <span className="solana-text-gradient">SolMate</span>
+              <span className="solana-text-gradient">PlaySolMates</span>
             </Link>
           </div>
 

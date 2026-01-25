@@ -47,7 +47,7 @@ export default function DataDeletionPage() {
             <span className="text-4xl">♟️</span>
             <h1 className="text-3xl font-bold solana-text-gradient">Data Deletion</h1>
           </div>
-          <p className="text-muted-foreground">Request deletion of your SolMate account and data</p>
+          <p className="text-muted-foreground">Request deletion of your PlaySolMates account and data</p>
         </div>
 
         {submitted ? (
@@ -109,7 +109,7 @@ export default function DataDeletionPage() {
                   Request Account Deletion
                 </CardTitle>
                 <CardDescription>
-                  Enter the email address associated with your SolMate account
+                  Enter the email address associated with your PlaySolMates account
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -171,7 +171,7 @@ export default function DataDeletionPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Revoke Social Login Permissions</CardTitle>
                 <CardDescription>
-                  If you signed in with a social provider, you can also revoke SolMate's access:
+                  If you signed in with a social provider, you can also revoke PlaySolMates's access:
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -241,7 +241,7 @@ export default function DataDeletionPage() {
               support@playsolmates.app
             </a>
           </p>
-          <p className="mt-2">© 2025 SolMate. All rights reserved.</p>
+          <p className="mt-2">© 2025 PlaySolMates. All rights reserved.</p>
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ function AuthErrorContent() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 text-3xl font-bold">
             <span className="text-4xl">♟️</span>
-            <span className="solana-text-gradient">SolMate</span>
+            <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
         </div>
 

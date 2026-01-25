@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
           </Link>
           <div className="flex items-center gap-3 mb-4">
             <span className="text-4xl">♟️</span>
-            <h1 className="text-3xl font-bold solana-text-gradient">SolMate Privacy Policy</h1>
+            <h1 className="text-3xl font-bold solana-text-gradient">PlaySolMates Privacy Policy</h1>
           </div>
           <p className="text-muted-foreground">Last updated: June 2025</p>
         </div>
@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-4">1. Introduction</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Welcome to SolMate ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our chess gaming application and website at playsolmates.app (the "Service").
+              Welcome to PlaySolMates ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our chess gaming application and website at playsolmates.app (the "Service").
             </p>
             <p className="text-muted-foreground leading-relaxed mt-3">
               Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the Service.
@@ -181,7 +181,7 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          <p>© 2025 SolMate. All rights reserved.</p>
+          <p>© 2025 PlaySolMates. All rights reserved.</p>
         </div>
       </div>
     </div>
