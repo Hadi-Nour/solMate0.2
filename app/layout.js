@@ -3,13 +3,13 @@ import { Toaster } from '@/components/ui/sonner';
 import Providers from '@/components/Providers';
 
 export const metadata = {
-  title: 'SolMate - Solana Chess',
+  title: 'PlaySolMates - Chess on Solana',
   description: 'Play chess on Solana. Earn cosmetics, compete in VIP Arena, and collect rewards.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'SolMate',
+    title: 'PlaySolMates',
   },
 };
 
