@@ -221,8 +221,22 @@ export default function QuickChat({
     return emote?.emoji || '❓';
   };
 
+  // Debug log when receivedChat changes
+  useEffect(() => {
+    console.log('[QuickChat] 🎯 receivedChat state changed:', receivedChat);
+  }, [receivedChat]);
+
   return (
     <>
+      {/* DEBUG INDICATOR - visible on screen */}
+      <div className="fixed top-2 right-2 z-[9999] bg-black/80 text-white text-xs p-2 rounded font-mono">
+        <div>📨 Received: {debugCounter}</div>
+        <div>💬 Chat: {receivedChat ? 'SET' : 'NULL'}</div>
+        {receivedChat && (
+          <div>From: {receivedChat.from} | Type: {receivedChat.type}</div>
+        )}
+      </div>
+
       {/* Chat Button */}
       <Button 
         variant="outline" 
