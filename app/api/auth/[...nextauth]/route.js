@@ -109,9 +109,118 @@ async function connectToMongo() {
   
   // Create indexes
   await db.collection('users').createIndex({ email: 1 }, { unique: true, sparse: true });
-  await db.collection('users').createIndex({ odudx: 1 }, { unique: true });
+  await db.collection('users').createIndex({ userId: 1 }, { unique: true });
+  await db.collection('verification_tokens').createIndex({ token: 1 }, { unique: true });
+  await db.collection('verification_tokens').createIndex({ identifier: 1 });
+  await db.collection('verification_tokens').createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
   
   return db;
+}
+
+// Custom minimal adapter for Email Provider verification tokens
+function createCustomAdapter() {
+  return {
+    async createVerificationToken(verificationToken) {
+      const db = await connectToMongo();
+      await db.collection('verification_tokens').insertOne({
+        ...verificationToken,
+        createdAt: new Date(),
+      });
+      return verificationToken;
+    },
+    
+    async useVerificationToken({ identifier, token }) {
+      const db = await connectToMongo();
+      const result = await db.collection('verification_tokens').findOneAndDelete({
+        identifier,
+        token,
+      });
+      return result || null;
+    },
+    
+    async createUser(user) {
+      const db = await connectToMongo();
+      const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newUser = {
+        userId,
+        email: user.email?.toLowerCase(),
+        displayName: user.name || user.email?.split('@')[0],
+        avatarUrl: user.image || null,
+        authProvider: 'email',
+        emailVerified: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastLogin: new Date(),
+        friends: [],
+        stats: { wins: 0, losses: 0, draws: 0 },
+        wallet: null,
+        isVip: false,
+      };
+      await db.collection('users').insertOne(newUser);
+      return { id: userId, ...newUser };
+    },
+    
+    async getUser(id) {
+      const db = await connectToMongo();
+      const user = await db.collection('users').findOne({ userId: id });
+      return user ? { id: user.userId, ...user } : null;
+    },
+    
+    async getUserByEmail(email) {
+      const db = await connectToMongo();
+      const user = await db.collection('users').findOne({ email: email?.toLowerCase() });
+      return user ? { id: user.userId, ...user } : null;
+    },
+    
+    async getUserByAccount({ providerAccountId, provider }) {
+      const db = await connectToMongo();
+      const user = await db.collection('users').findOne({
+        [`oauth.${provider}`]: providerAccountId,
+      });
+      return user ? { id: user.userId, ...user } : null;
+    },
+    
+    async updateUser(user) {
+      const db = await connectToMongo();
+      const { id, ...updateData } = user;
+      await db.collection('users').updateOne(
+        { userId: id },
+        { $set: { ...updateData, updatedAt: new Date() } }
+      );
+      return user;
+    },
+    
+    async linkAccount(account) {
+      const db = await connectToMongo();
+      await db.collection('users').updateOne(
+        { userId: account.userId },
+        { 
+          $set: { 
+            [`oauth.${account.provider}`]: account.providerAccountId,
+            updatedAt: new Date(),
+          } 
+        }
+      );
+      return account;
+    },
+    
+    // These are optional but help with session management
+    async createSession(session) {
+      return session;
+    },
+    
+    async getSessionAndUser(sessionToken) {
+      return null;
+    },
+    
+    async updateSession(session) {
+      return session;
+    },
+    
+    async deleteSession(sessionToken) {
+      return null;
+    },
+  };
 }
 
 export const authOptions = {
