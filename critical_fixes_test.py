@@ -123,13 +123,14 @@ class CriticalFixesTester:
             
             if nonce_response.status_code != 200:
                 print(f"❌ Nonce request failed: {nonce_response.status_code}")
+                print(f"Response: {nonce_response.text}")
                 return None
                 
             nonce_data = nonce_response.json()
             message = nonce_data["messageToSign"]
             nonce = nonce_data["nonce"]
             
-            # Step 2: Sign message (use base58 for authentication)
+            # Step 2: Sign message (use base58 for authentication - more reliable)
             message_bytes = message.encode('utf-8')
             signature = signing_key.sign(message_bytes)
             base58_signature = base58.b58encode(signature.signature).decode()
@@ -148,6 +149,7 @@ class CriticalFixesTester:
                 return token
             else:
                 print(f"❌ {wallet_name} authentication failed: {verify_response.status_code}")
+                print(f"Response: {verify_response.text}")
                 return None
             
         except Exception as e:
