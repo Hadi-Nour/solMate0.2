@@ -168,6 +168,11 @@ export default function QuickChat({
   const handleSendMessage = useCallback((presetId) => {
     if (onCooldown) return;
     
+    // Play button click feedback when sending
+    if (feedback) {
+      feedback.buttonClick();
+    }
+    
     if (DEBUG_QUICKCHAT) {
       const socket = getSocket();
       console.log('[QuickChat] 📤 Sending message:', { matchId, presetId, type: 'message' });
@@ -183,10 +188,15 @@ export default function QuickChat({
     setShowPanel(false);
     setOnCooldown(true);
     setCooldownRemaining(3);
-  }, [matchId, onCooldown]);
+  }, [matchId, onCooldown, feedback]);
 
   const handleSendEmote = useCallback((emoteId) => {
     if (onCooldown) return;
+    
+    // Play button click feedback when sending
+    if (feedback) {
+      feedback.buttonClick();
+    }
     
     if (DEBUG_QUICKCHAT) {
       const socket = getSocket();
