@@ -74,7 +74,8 @@
     "waitingForFriend": "Waiting for friend to join...",
     "codeExpires": "Code expires in 10 minutes",
     "enterCode": "Enter invite code",
-    "matchJoined": "Joined match!"
+    "matchJoined": "Joined match!",
+    "selectTime": "Select Time Control"
   },
   "difficulty": {
     "easy": "Easy",
