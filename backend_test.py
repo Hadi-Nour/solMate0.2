@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-SolMate Backend API Testing - Review Request Critical Fixes
-Tests the specific scenarios mentioned in the review request:
-1. Private Match API with Logging (create/join with same code)
-2. User Profile Update (avatarId='pawn' persistence)
-3. Wallet Signature Verification (multiple formats)
+SolMate Backend API Testing - Private Match Timer Fix
+Tests the Private Match timer fix for SolMate:
+1. Private Match Timer Test (5 min time control)
+2. Verify No Instant Timeout
+3. Timer only starts on first move (gameStarted flag)
+4. Server logs showing correct timer initialization
 """
 
 import requests
