@@ -144,8 +144,20 @@ export default function QuickChat({
 
   const handleSendMessage = useCallback((presetId) => {
     if (onCooldown) return;
-    console.log('[QuickChat] Sending message:', { matchId, presetId, type: 'message' });
-    sendQuickChat(matchId, presetId, 'message');
+    
+    const socket = getSocket();
+    console.log('[QuickChat] 📤 Sending message:', { matchId, presetId, type: 'message' });
+    console.log('[QuickChat] 📤 Using socket:', socket?.id, 'Connected:', socket?.connected);
+    
+    sendQuickChat(matchId, presetId, 'message', (ack) => {
+      console.log('[QuickChat] 📤 Server ACK:', ack);
+      if (ack?.ok) {
+        console.log('[QuickChat] ✅ Message delivered! Room members:', ack.roomMembers);
+      } else {
+        console.log('[QuickChat] ❌ Message failed:', ack?.error);
+      }
+    });
+    
     setShowPanel(false);
     setOnCooldown(true);
     setCooldownRemaining(3);
@@ -153,8 +165,20 @@ export default function QuickChat({
 
   const handleSendEmote = useCallback((emoteId) => {
     if (onCooldown) return;
-    console.log('[QuickChat] Sending emote:', { matchId, emoteId, type: 'emote' });
-    sendQuickChat(matchId, emoteId, 'emote');
+    
+    const socket = getSocket();
+    console.log('[QuickChat] 📤 Sending emote:', { matchId, emoteId, type: 'emote' });
+    console.log('[QuickChat] 📤 Using socket:', socket?.id, 'Connected:', socket?.connected);
+    
+    sendQuickChat(matchId, emoteId, 'emote', (ack) => {
+      console.log('[QuickChat] 📤 Server ACK:', ack);
+      if (ack?.ok) {
+        console.log('[QuickChat] ✅ Emote delivered! Room members:', ack.roomMembers);
+      } else {
+        console.log('[QuickChat] ❌ Emote failed:', ack?.error);
+      }
+    });
+    
     setShowPanel(false);
     setOnCooldown(true);
     setCooldownRemaining(3);
