@@ -11,6 +11,7 @@ import { Wifi, WifiOff, Clock, Flag, Handshake, Home, X, User, AlertTriangle, In
 import ChessBoard3D from '@/components/chess/ChessBoard3D';
 import GameResultModal from '@/components/game/GameResultModal';
 import QuickChat from '@/components/game/QuickChat';
+import { useFeedbackContext } from '@/lib/feedback/provider';
 import { getSocket, makeMove as socketMakeMove, resign as socketResign, offerDraw, acceptDraw, declineDraw } from '@/lib/socket/client';
 
 export default function OnlineGameScreen({ 
@@ -21,6 +22,7 @@ export default function OnlineGameScreen({
   authToken,
   onGameEnd
 }) {
+  const feedback = useFeedbackContext();
   const [chess, setChess] = useState(() => new Chess(matchData.fen));
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
@@ -44,19 +46,26 @@ export default function OnlineGameScreen({
   
   const socketRef = useRef(null);
 
-  // Define playSound with useCallback before the effect that uses it
+  // Sound/haptic feedback helper using the feedback context
   const playSound = useCallback((type) => {
-    if (!settings?.soundEnabled) return;
-    if (settings?.hapticEnabled && navigator.vibrate) {
-      switch(type) {
-        case 'move': navigator.vibrate(10); break;
-        case 'capture': navigator.vibrate([20, 10, 20]); break;
-        case 'check': navigator.vibrate([50, 30, 50]); break;
-        case 'win': navigator.vibrate([100, 50, 100, 50, 100]); break;
-        default: break;
-      }
+    if (!feedback) return;
+    switch(type) {
+      case 'move': feedback.moveMade(); break;
+      case 'capture': feedback.capture(); break;
+      case 'check': feedback.check(); break;
+      case 'castle': feedback.castle(); break;
+      case 'promotion': feedback.promotion(); break;
+      case 'checkmate': feedback.checkmate(); break;
+      case 'win': feedback.win(); break;
+      case 'lose': feedback.lose(); break;
+      case 'draw': feedback.draw(); break;
+      case 'timeout': feedback.timeout(); break;
+      case 'error': feedback.error(); break;
+      case 'click':
+      case 'select': feedback.buttonClick(); break;
+      default: feedback.buttonClick();
     }
-  }, [settings?.soundEnabled, settings?.hapticEnabled]);
+  }, [feedback]);
 
   useEffect(() => {
     const socket = getSocket();
