@@ -5,8 +5,10 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Volume2, Vibrate, Eye, Palette, Globe } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Volume2, VolumeX, Vibrate, Eye, Palette, Globe, Volume1 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
+import { useFeedbackContext } from '@/lib/feedback/provider';
 import { locales, languageNames } from '@/lib/i18n/config';
 
 export default function SettingsModal({ 
@@ -16,10 +18,37 @@ export default function SettingsModal({
   onSettingsChange
 }) {
   const { t, locale, setLocale, direction } = useI18n();
+  const feedback = useFeedbackContext();
 
   const handleChange = (key, value) => {
     onSettingsChange({ ...settings, [key]: value });
+    
+    // Also update feedback context for sound/haptic
+    if (key === 'soundEnabled') {
+      feedback.setSoundEnabled(value);
+      // Play a test sound when enabling
+      if (value) {
+        setTimeout(() => feedback.buttonClick(), 100);
+      }
+    } else if (key === 'hapticEnabled') {
+      feedback.setHapticEnabled(value);
+      // Trigger a test vibration when enabling
+      if (value) {
+        setTimeout(() => feedback.buttonClick(), 100);
+      }
+    }
   };
+
+  const handleVolumeChange = (value) => {
+    const volume = value[0] / 100;
+    feedback.setMasterVolume(volume);
+    // Play a test sound at the new volume
+    feedback.playSound(feedback.EVENTS.BUTTON_CLICK);
+  };
+
+  // Get volume icon based on level
+  const VolumeIcon = feedback.masterVolume === 0 ? VolumeX : 
+                     feedback.masterVolume < 0.5 ? Volume1 : Volume2;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,28 +84,55 @@ export default function SettingsModal({
           <Separator />
           
           {/* Sound */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Volume2 className="h-5 w-5 text-muted-foreground" />
-              <Label htmlFor="sound">{t('settings.sound')}</Label>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Volume2 className="h-5 w-5 text-muted-foreground" />
+                <Label htmlFor="sound">{t('settings.sound')}</Label>
+              </div>
+              <Switch 
+                id="sound" 
+                checked={settings?.soundEnabled ?? true}
+                onCheckedChange={(v) => handleChange('soundEnabled', v)}
+              />
             </div>
-            <Switch 
-              id="sound" 
-              checked={settings?.soundEnabled ?? true}
-              onCheckedChange={(v) => handleChange('soundEnabled', v)}
-            />
+            
+            {/* Volume Slider - only show when sound is enabled */}
+            {(settings?.soundEnabled ?? true) && (
+              <div className="flex items-center gap-3 pl-8">
+                <VolumeIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Slider
+                  value={[feedback.masterVolume * 100]}
+                  onValueChange={handleVolumeChange}
+                  max={100}
+                  step={10}
+                  className="flex-1"
+                />
+                <span className="text-xs text-muted-foreground w-8 text-right">
+                  {Math.round(feedback.masterVolume * 100)}%
+                </span>
+              </div>
+            )}
           </div>
           
           {/* Vibration */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Vibrate className="h-5 w-5 text-muted-foreground" />
-              <Label htmlFor="haptic">{t('settings.haptic')}</Label>
+              <div>
+                <Label htmlFor="haptic">{t('settings.haptic')}</Label>
+                {!feedback.isVibrationSupported && (
+                  <p className="text-xs text-muted-foreground">
+                    Not supported on this device
+                  </p>
+                )}
+              </div>
             </div>
             <Switch 
               id="haptic" 
               checked={settings?.hapticEnabled ?? true}
               onCheckedChange={(v) => handleChange('hapticEnabled', v)}
+              disabled={!feedback.isVibrationSupported}
             />
           </div>
           
