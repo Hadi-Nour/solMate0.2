@@ -11,13 +11,14 @@
 - **PM2**: Process manager (recommended)
 - **Nginx**: Reverse proxy with SSL
 - **Domain**: playsolmates.app configured with DNS
+- **Solana Wallet**: For receiving VIP payments
 
 ---
 
 ## 🔑 Required Environment Variables
 
 ### Critical (App won't work without these):
-```
+```bash
 NEXTAUTH_URL=https://playsolmates.app
 NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
 JWT_SECRET=<generate with: openssl rand -base64 32>
@@ -25,7 +26,7 @@ MONGO_URL=mongodb://localhost:27017
 ```
 
 ### Email Magic Link (Required for email auth):
-```
+```bash
 SMTP_HOST=smtp.zoho.eu
 SMTP_PORT=465
 SMTP_USER=noreply@playsolmates.app
@@ -33,8 +34,37 @@ SMTP_PASS=<your-zoho-app-password>
 EMAIL_FROM=SolMate <noreply@playsolmates.app>
 ```
 
-### OAuth Providers (Optional - configure only what you need):
+### 💳 Payment Configuration (Required for VIP purchases):
+```bash
+# Network (IMPORTANT: use 'mainnet-beta' for real payments)
+SOLANA_CLUSTER=mainnet-beta
+NEXT_PUBLIC_SOLANA_CLUSTER=mainnet-beta
+
+# RPC URL - Premium RPC recommended for production
+# Free: https://api.mainnet-beta.solana.com
+# Premium: Helius, QuickNode, Triton, etc.
+RPC_URL=https://api.mainnet-beta.solana.com
+NEXT_PUBLIC_RPC_URL=https://api.mainnet-beta.solana.com
+
+# Your Solana wallet address to receive payments
+DEVELOPER_WALLET=<your-solana-wallet-address>
+NEXT_PUBLIC_DEVELOPER_WALLET=<your-solana-wallet-address>
+
+# USDC Mint (don't change these)
+USDC_MINT_MAINNET=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+NEXT_PUBLIC_USDC_MINT_MAINNET=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+
+# For devnet testing only:
+USDC_MINT_DEVNET=4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+NEXT_PUBLIC_USDC_MINT_DEVNET=4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+
+# VIP Price
+VIP_PRICE_USDC=6.99
+NEXT_PUBLIC_VIP_PRICE_USDC=6.99
 ```
+
+### OAuth Providers (Optional - configure only what you need):
+```bash
 # Google
 GOOGLE_CLIENT_ID=<from-google-console>
 GOOGLE_CLIENT_SECRET=<from-google-console>
@@ -47,6 +77,41 @@ FACEBOOK_CLIENT_SECRET=<from-facebook-developers>
 TWITTER_CLIENT_ID=<from-twitter-developer-portal>
 TWITTER_CLIENT_SECRET=<from-twitter-developer-portal>
 ```
+
+---
+
+## 💰 Payment System Overview
+
+### How VIP Payments Work:
+1. User connects Solana wallet (Phantom, etc.)
+2. User initiates VIP purchase ($6.99 USDC)
+3. Frontend creates USDC transfer transaction
+4. User signs transaction in wallet
+5. Transaction sent to Solana network
+6. Frontend waits for confirmation
+7. Backend verifies on-chain:
+   - Transaction exists and is confirmed
+   - USDC sent to developer wallet
+   - Amount >= $6.99 USDC
+   - Sender matches authenticated user
+   - Signature not previously used (idempotency)
+8. Backend marks user as VIP
+
+### Security Features:
+- ✅ **Server-side verification**: Never trust client "success"
+- ✅ **Idempotency**: Same tx signature cannot credit twice
+- ✅ **Network check**: Client verifies correct network before sending
+- ✅ **Amount verification**: Exact USDC amount checked
+- ✅ **Sender verification**: Must match authenticated wallet
+
+### Network Configuration:
+| Setting | Devnet (Testing) | Mainnet (Production) |
+|---------|------------------|----------------------|
+| `SOLANA_CLUSTER` | `devnet` | `mainnet-beta` |
+| `RPC_URL` | `https://api.devnet.solana.com` | Premium RPC recommended |
+| USDC Tokens | Test tokens (free) | Real USDC |
+
+⚠️ **IMPORTANT**: The app blocks payments if wallet network doesn't match config!
 
 ---
 
