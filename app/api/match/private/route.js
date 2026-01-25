@@ -97,6 +97,8 @@ export async function POST(request) {
     const db = await connectToMongo();
 
     if (action === 'create') {
+      console.log(`[Private API] Create request from wallet: ${payload.wallet}`);
+      
       // Check if user already has an active invite
       const existingInvite = await db.collection('private_matches').findOne({
         creatorWallet: payload.wallet,
@@ -105,6 +107,7 @@ export async function POST(request) {
       });
 
       if (existingInvite) {
+        console.log(`[Private API] Returning existing code: ${existingInvite.code}`);
         return handleCORS(NextResponse.json({
           success: true,
           code: existingInvite.code,
@@ -143,6 +146,8 @@ export async function POST(request) {
         expiresAt,
         createdAt: new Date()
       });
+
+      console.log(`[Private API] Created new code: ${inviteCode}, expires: ${expiresAt.toISOString()}`);
 
       return handleCORS(NextResponse.json({
         success: true,
