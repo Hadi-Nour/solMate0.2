@@ -449,6 +449,124 @@ mongosh --eval "db.adminCommand('ping')"
 3. `/.env.example` - Complete template with all required variables
 4. `/ecosystem.config.js` - PM2 configuration (already existed)
 5. `/DEPLOYMENT.md` - This deployment guide
+6. `/hooks/useVipPayment.js` - Payment hook with network verification and timeouts
+7. `/components/dialogs/VipDialog.jsx` - Payment UI with status indicators
+8. `/app/api/[[...path]]/route.js` - Payment verification with enhanced logging
+
+---
+
+## ✅ Payment Test Checklist
+
+### Pre-Deployment Tests (Devnet):
+```bash
+# Set devnet in .env
+SOLANA_CLUSTER=devnet
+NEXT_PUBLIC_SOLANA_CLUSTER=devnet
+RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
+```
+
+- [ ] Connect Phantom wallet (switch to Devnet)
+- [ ] Get devnet USDC from faucet
+- [ ] Click "Pay USDC" in VIP dialog
+- [ ] Verify wallet prompts for signature
+- [ ] Approve transaction
+- [ ] Watch status: Sending → Confirming → Verifying → Success
+- [ ] Check explorer link works
+- [ ] Verify user marked as VIP in database
+- [ ] Try same transaction again (should fail - idempotency)
+- [ ] Test with wrong network (should show error)
+
+### Post-Deployment Tests (Mainnet):
+- [ ] Verify payment config in logs: `[Payment] Config loaded: cluster=mainnet-beta`
+- [ ] Test wallet connection
+- [ ] Verify network indicator shows "Mainnet"
+- [ ] Test "insufficient balance" error with empty wallet
+- [ ] Complete a real $6.99 USDC payment
+- [ ] Verify VIP activation
+- [ ] Check transaction in MongoDB `transactions` collection
+
+### Error Scenarios to Test:
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Wallet not connected | "Please connect your wallet first" |
+| Not authenticated | "Please sign in before making a purchase" |
+| Wrong network | "Wrong network! App is configured for X but wallet is on Y" |
+| Insufficient USDC | "Insufficient USDC balance. You have X, need 6.99" |
+| User rejects signature | "Transaction was cancelled" |
+| Network timeout | "Transaction confirmation timed out..." |
+| Already VIP | "You already have VIP access" |
+| Duplicate signature | "Transaction signature already used" |
+
+---
+
+## 📋 Expected Server Logs
+
+### Successful Payment:
+```
+[Payment] Config loaded: cluster=mainnet-beta, wallet=ABCD1234...
+[Payment] Processing VIP payment for <user-wallet>, sig: EFGH5678...
+[Payment] Fetching transaction from mainnet-beta...
+[Payment] Transaction found in slot 123456789, verifying...
+[Payment] Developer wallet received 6.99 USDC
+[Payment] ✅ VIP activated for <user-wallet> - 6.99 USDC on mainnet-beta
+```
+
+### Failed Payment (Wrong Amount):
+```
+[Payment] Processing VIP payment for <user-wallet>, sig: WXYZ9012...
+[Payment] Fetching transaction from mainnet-beta...
+[Payment] Transaction found in slot 123456790, verifying...
+[Payment] Verification failed: ["Insufficient amount. Expected 6.99 USDC, received 1.00 USDC"]
+```
+
+### Duplicate Signature:
+```
+[Payment] Processing VIP payment for <user-wallet>, sig: EFGH5678...
+[Payment] Duplicate signature rejected: EFGH5678...
+```
+
+### Missing Configuration:
+```
+[Payment] Missing configuration: DEVELOPER_WALLET, RPC_URL
+[Payment] Rejecting payment - system not configured
+```
+
+---
+
+## 🔧 Payment Troubleshooting
+
+### Payment stuck on "Confirming"
+```bash
+# Check RPC connection
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' \
+  https://api.mainnet-beta.solana.com
+
+# Consider using premium RPC (Helius, QuickNode)
+```
+
+### Transaction not found
+- Check wallet is on correct network (mainnet vs devnet)
+- Wait longer - network congestion can delay confirmations
+- Verify signature format is correct (base58, 64+ chars)
+
+### Payment verified but VIP not active
+```bash
+# Check MongoDB
+mongosh solmate --eval 'db.users.findOne({wallet: "YOUR_WALLET"})'
+
+# Check transaction was recorded
+mongosh solmate --eval 'db.transactions.findOne({signature: "TX_SIGNATURE"})'
+```
+
+### RPC Rate Limited
+```bash
+# Use premium RPC provider
+# Helius: https://www.helius.dev/
+# QuickNode: https://www.quicknode.com/
+# Replace RPC_URL in .env
+```
 
 ---
 
@@ -458,3 +576,4 @@ For issues specific to this deployment, check:
 - PM2 logs: `pm2 logs solmate`
 - Nginx logs: `/var/log/nginx/error.log`
 - Application logs: `/var/log/pm2/solmate-*.log`
+- Payment logs: `pm2 logs solmate | grep Payment`
