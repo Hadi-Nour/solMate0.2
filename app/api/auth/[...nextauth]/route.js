@@ -224,6 +224,8 @@ function createCustomAdapter() {
 }
 
 export const authOptions = {
+  adapter: createCustomAdapter(),
+  
   providers: [
     // Email Magic Link Provider (Zoho SMTP)
     EmailProvider({
