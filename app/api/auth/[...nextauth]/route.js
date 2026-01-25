@@ -34,6 +34,15 @@ const createTransporter = () => {
 async function sendVerificationEmail({ identifier, url, provider }) {
   const transporter = createTransporter();
   
+  if (!transporter) {
+    throw new Error('Email service not configured. Please set SMTP credentials in environment variables.');
+  }
+  
+  const emailFrom = process.env.EMAIL_FROM;
+  if (!emailFrom) {
+    throw new Error('EMAIL_FROM not configured in environment variables.');
+  }
+  
   const emailHtml = `
     <!DOCTYPE html>
     <html>
