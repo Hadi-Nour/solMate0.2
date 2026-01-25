@@ -49,7 +49,7 @@ async function sendVerificationEmail({ identifier, url, provider }) {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Sign in to SolMate</title>
+      <title>Sign in to PlaySolMates</title>
     </head>
     <body style="margin: 0; padding: 0; background-color: #0f0f23; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
@@ -58,7 +58,7 @@ async function sendVerificationEmail({ identifier, url, provider }) {
             <!-- Logo/Header -->
             <div style="margin-bottom: 32px;">
               <h1 style="color: #ffffff; font-size: 32px; margin: 0; display: flex; align-items: center; justify-content: center;">
-                ♟️ <span style="background: linear-gradient(135deg, #9333ea, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-left: 8px;">SolMate</span>
+                ♟️ <span style="background: linear-gradient(135deg, #9333ea, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-left: 8px;">PlaySolMates</span>
               </h1>
               <p style="color: #a1a1aa; font-size: 14px; margin-top: 8px;">Chess on Solana</p>
             </div>
@@ -66,7 +66,7 @@ async function sendVerificationEmail({ identifier, url, provider }) {
             <!-- Main Card -->
             <div style="background: linear-gradient(145deg, #1a1a2e, #16162a); border-radius: 16px; padding: 40px; border: 1px solid #2d2d44;">
               <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 16px 0; text-align: center;">
-                🔐 Sign in to SolMate
+                🔐 Sign in to PlaySolMates
               </h2>
               
               <p style="color: #d1d5db; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
@@ -76,7 +76,7 @@ async function sendVerificationEmail({ identifier, url, provider }) {
               <!-- Magic Link Button -->
               <div style="text-align: center; margin: 32px 0;">
                 <a href="${url}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #9333ea, #6366f1); color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
-                  ✨ Sign in to SolMate
+                  ✨ Sign in to PlaySolMates
                 </a>
               </div>
               
