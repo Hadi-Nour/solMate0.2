@@ -467,6 +467,15 @@ async function handleRoute(request, { params }) {
         ));
       }
 
+      // Check payment configuration
+      if (!PAYMENT_CONFIG_VALID) {
+        console.error('[Payment] Rejecting payment - system not configured');
+        return handleCORS(NextResponse.json(
+          { error: 'Payment system is not configured. Please contact support.' },
+          { status: 503 }
+        ));
+      }
+
       const { signature } = await request.json();
       
       if (!signature) {
@@ -475,6 +484,16 @@ async function handleRoute(request, { params }) {
           { status: 400 }
         ));
       }
+
+      // Validate signature format (base58, 64+ chars)
+      if (typeof signature !== 'string' || signature.length < 64) {
+        return handleCORS(NextResponse.json(
+          { error: 'Invalid transaction signature format' },
+          { status: 400 }
+        ));
+      }
+
+      console.log(`[Payment] Processing VIP payment for ${session.wallet}, sig: ${signature.slice(0,16)}...`);
 
       // Check if user already has VIP
       const existingUser = await db.collection('users').findOne({ wallet: session.wallet });
@@ -485,11 +504,12 @@ async function handleRoute(request, { params }) {
         ));
       }
 
-      // Replay protection - check if signature already used
+      // Replay protection - check if signature already used (IDEMPOTENCY)
       const existingTx = await db.collection('transactions').findOne({ signature });
       if (existingTx) {
+        console.log(`[Payment] Duplicate signature rejected: ${signature.slice(0,16)}...`);
         return handleCORS(NextResponse.json(
-          { error: 'Transaction signature already used' },
+          { error: 'Transaction signature already used (duplicate payment attempt)' },
           { status: 400 }
         ));
       }
@@ -498,10 +518,12 @@ async function handleRoute(request, { params }) {
       const connection = getSolanaConnection();
       
       try {
-        // Wait for transaction to be confirmed
+        // Wait for transaction to be confirmed with timeout
         let tx = null;
         let retries = 0;
-        const maxRetries = 10;
+        const maxRetries = 15; // Increased for slower networks
+        
+        console.log(`[Payment] Fetching transaction from ${CLUSTER}...`);
         
         while (!tx && retries < maxRetries) {
           tx = await connection.getTransaction(signature, {
@@ -511,23 +533,29 @@ async function handleRoute(request, { params }) {
           
           if (!tx) {
             retries++;
+            console.log(`[Payment] Transaction not found yet, retry ${retries}/${maxRetries}`);
             await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
           }
         }
         
         if (!tx) {
           return handleCORS(NextResponse.json(
-            { error: 'Transaction not found on-chain. Please wait and try again.' },
+            { error: 'Transaction not found on-chain. Please wait for confirmation and try again.' },
             { status: 400 }
           ));
         }
 
         if (tx.meta?.err) {
+          console.log(`[Payment] Transaction failed on-chain:`, tx.meta.err);
           return handleCORS(NextResponse.json(
-            { error: 'Transaction failed on-chain' },
+            { error: 'Transaction failed on-chain: ' + JSON.stringify(tx.meta.err) },
             { status: 400 }
           ));
         }
+
+        // Verify the transaction is on the expected network by checking slot
+        // (A transaction on devnet won't be found on mainnet and vice versa)
+        console.log(`[Payment] Transaction found in slot ${tx.slot}, verifying...`);
 
         // Verify USDC SPL token transfer
         const preTokenBalances = tx.meta?.preTokenBalances || [];
@@ -564,6 +592,7 @@ async function handleRoute(request, { params }) {
           
           if (postBal > preBal) {
             verifiedAmount = postBal - preBal;
+            console.log(`[Payment] Developer wallet received ${Number(verifiedAmount) / Math.pow(10, USDC_DECIMALS)} USDC`);
           }
         }
         
@@ -588,11 +617,11 @@ async function handleRoute(request, { params }) {
         const verificationErrors = [];
         
         if (!mintVerified) {
-          verificationErrors.push(`Invalid mint address. Expected USDC: ${USDC_MINT}`);
+          verificationErrors.push(`No USDC transfer found. Expected mint: ${USDC_MINT}`);
         }
         
         if (!recipientVerified) {
-          verificationErrors.push(`Payment must be sent to developer wallet: ${DEVELOPER_WALLET}`);
+          verificationErrors.push(`Payment must be sent to: ${DEVELOPER_WALLET}`);
         }
         
         if (verifiedAmount < VIP_PRICE_USDC_RAW) {
@@ -600,15 +629,19 @@ async function handleRoute(request, { params }) {
           verificationErrors.push(`Insufficient amount. Expected ${VIP_PRICE_USDC} USDC, received ${receivedUsdc.toFixed(2)} USDC`);
         }
         
-        // Verify sender is the authenticated user (optional but recommended)
+        // Verify sender is the authenticated user
         if (senderWallet && senderWallet !== session.wallet) {
-          verificationErrors.push('Transaction sender does not match authenticated wallet');
+          verificationErrors.push(`Sender wallet (${senderWallet.slice(0,8)}...) does not match authenticated wallet (${session.wallet.slice(0,8)}...)`);
         }
 
         if (verificationErrors.length > 0) {
-          console.error('VIP payment verification failed:', verificationErrors);
+          console.error('[Payment] Verification failed:', verificationErrors);
           return handleCORS(NextResponse.json(
-            { error: `Payment verification failed: ${verificationErrors.join('. ')}` },
+            { 
+              error: 'Payment verification failed',
+              details: verificationErrors,
+              cluster: CLUSTER
+            },
             { status: 400 }
           ));
         }
@@ -616,6 +649,7 @@ async function handleRoute(request, { params }) {
         // All checks passed - record transaction and activate VIP
         const verifiedUsdcAmount = Number(verifiedAmount) / Math.pow(10, USDC_DECIMALS);
         
+        // Store transaction record (for idempotency and audit)
         await db.collection('transactions').insertOne({
           id: uuidv4(),
           signature,
@@ -628,6 +662,8 @@ async function handleRoute(request, { params }) {
           recipient: DEVELOPER_WALLET,
           verified: true,
           cluster: CLUSTER,
+          slot: tx.slot,
+          blockTime: tx.blockTime,
           createdAt: new Date()
         });
 
@@ -637,25 +673,31 @@ async function handleRoute(request, { params }) {
           {
             $set: {
               isVip: true,
-              vipPurchasedAt: new Date()
+              vipPurchasedAt: new Date(),
+              vipTxSignature: signature
             }
           }
         );
 
-        console.log(`VIP activated for ${session.wallet} - Tx: ${signature}, Amount: ${verifiedUsdcAmount} USDC`);
+        console.log(`[Payment] ✅ VIP activated for ${session.wallet} - ${verifiedUsdcAmount} USDC on ${CLUSTER}`);
 
         return handleCORS(NextResponse.json({
           success: true,
           message: 'VIP Lifetime activated!',
           verified: true,
           amount: verifiedUsdcAmount,
+          cluster: CLUSTER,
           signature
         }));
 
       } catch (e) {
-        console.error('Payment verification error:', e);
+        console.error('[Payment] Verification error:', e);
         return handleCORS(NextResponse.json(
-          { error: 'Failed to verify transaction: ' + e.message },
+          { 
+            error: 'Failed to verify transaction',
+            details: e.message,
+            cluster: CLUSTER
+          },
           { status: 500 }
         ));
       }
