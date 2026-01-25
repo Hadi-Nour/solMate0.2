@@ -1,10 +1,99 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 import FacebookProvider from 'next-auth/providers/facebook';
 import TwitterProvider from 'next-auth/providers/twitter';
 import { MongoClient } from 'mongodb';
 import bcrypt from 'bcryptjs';
+import nodemailer from 'nodemailer';
+
+// Create Nodemailer transporter for Zoho SMTP
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.zoho.eu',
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: true, // true for 465, false for 587
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+};
+
+// Custom email sending function for Magic Link
+async function sendVerificationEmail({ identifier, url, provider }) {
+  const transporter = createTransporter();
+  
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Sign in to SolMate</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #0f0f23; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <tr>
+          <td align="center">
+            <!-- Logo/Header -->
+            <div style="margin-bottom: 32px;">
+              <h1 style="color: #ffffff; font-size: 32px; margin: 0; display: flex; align-items: center; justify-content: center;">
+                ♟️ <span style="background: linear-gradient(135deg, #9333ea, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-left: 8px;">SolMate</span>
+              </h1>
+              <p style="color: #a1a1aa; font-size: 14px; margin-top: 8px;">Chess on Solana</p>
+            </div>
+            
+            <!-- Main Card -->
+            <div style="background: linear-gradient(145deg, #1a1a2e, #16162a); border-radius: 16px; padding: 40px; border: 1px solid #2d2d44;">
+              <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 16px 0; text-align: center;">
+                🔐 Sign in to SolMate
+              </h2>
+              
+              <p style="color: #d1d5db; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                Click the button below to securely sign in to your account. This link expires in 24 hours.
+              </p>
+              
+              <!-- Magic Link Button -->
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${url}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #9333ea, #6366f1); color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+                  ✨ Sign in to SolMate
+                </a>
+              </div>
+              
+              <p style="color: #9ca3af; font-size: 14px; text-align: center; margin: 24px 0 0 0;">
+                If you didn't request this email, you can safely ignore it.
+              </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="margin-top: 32px; text-align: center;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                © ${new Date().getFullYear()} SolMate. All rights reserved.
+              </p>
+              <p style="color: #4b5563; font-size: 11px; margin-top: 8px;">
+                This is an automated email from SolMate. Please do not reply.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const result = await transporter.sendMail({
+    from: process.env.EMAIL_FROM || 'SolMate <noreply@playsolmates.app>',
+    to: identifier,
+    subject: '🔐 Sign in to SolMate',
+    html: emailHtml,
+    text: `Sign in to SolMate\n\nClick this link to sign in: ${url}\n\nThis link expires in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.`,
+  });
+
+  console.log('[Email] Verification email sent:', result.messageId);
+  return result;
+}
 
 // MongoDB connection
 let client;
@@ -27,6 +116,24 @@ async function connectToMongo() {
 
 export const authOptions = {
   providers: [
+    // Email Magic Link Provider (Zoho SMTP)
+    EmailProvider({
+      server: {
+        host: process.env.SMTP_HOST || 'smtp.zoho.eu',
+        port: parseInt(process.env.SMTP_PORT || '465'),
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      },
+      from: process.env.EMAIL_FROM || 'SolMate <noreply@playsolmates.app>',
+      sendVerificationRequest: async ({ identifier, url, provider }) => {
+        await sendVerificationEmail({ identifier, url, provider });
+      },
+      maxAge: 24 * 60 * 60, // 24 hours
+    }),
+
     // Email/Password Provider
     CredentialsProvider({
       id: 'credentials',
