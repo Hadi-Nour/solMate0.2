@@ -88,10 +88,10 @@ async function sendVerificationEmail({ identifier, url, provider }) {
             <!-- Footer -->
             <div style="margin-top: 32px; text-align: center;">
               <p style="color: #6b7280; font-size: 12px; margin: 0;">
-                © ${new Date().getFullYear()} SolMate. All rights reserved.
+                © ${new Date().getFullYear()} PlaySolMates. All rights reserved.
               </p>
               <p style="color: #4b5563; font-size: 11px; margin-top: 8px;">
-                This is an automated email from SolMate. Please do not reply.
+                This is an automated email from PlaySolMates. Please do not reply.
               </p>
             </div>
           </td>
@@ -104,9 +104,9 @@ async function sendVerificationEmail({ identifier, url, provider }) {
   const result = await transporter.sendMail({
     from: emailFrom,
     to: identifier,
-    subject: '🔐 Sign in to SolMate',
+    subject: '🔐 Sign in to PlaySolMates',
     html: emailHtml,
-    text: `Sign in to SolMate\n\nClick this link to sign in: ${url}\n\nThis link expires in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.`,
+    text: `Sign in to PlaySolMates\n\nClick this link to sign in: ${url}\n\nThis link expires in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.`,
   });
 
   console.log('[Email] Verification email sent:', result.messageId);
