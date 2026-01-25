@@ -109,24 +109,49 @@ export async function POST(request) {
       
       // Handle multiple signature formats from different wallets
       if (typeof signature === 'string') {
-        // Try base58 first (common for Phantom desktop)
-        try {
-          signatureBytes = bs58.decode(signature);
-          console.log('[Wallet Verify] Decoded as base58, length:', signatureBytes.length);
-        } catch (e1) {
-          // Try base64 (common for MWA/mobile wallets)
+        // Preview first 20 chars for debugging (safe, no secrets)
+        console.log('[Wallet Verify] Signature preview:', signature.substring(0, 20) + '...');
+        
+        // Check for base64 indicators FIRST (MWA/mobile wallets use base64)
+        // Base64 may contain: + / = which are NOT valid base58 characters
+        // Base58 alphabet: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+        const hasBase64Chars = /[+/=]/.test(signature);
+        const looksLikeBase64 = signature.length % 4 === 0 && /^[A-Za-z0-9+/]+=*$/.test(signature);
+        
+        console.log('[Wallet Verify] Has base64 chars (+/=):', hasBase64Chars);
+        console.log('[Wallet Verify] Looks like base64:', looksLikeBase64);
+        
+        if (hasBase64Chars || looksLikeBase64) {
+          // Decode as base64 (standard or URL-safe)
           try {
-            signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
+            // Handle URL-safe base64 (replace - with + and _ with /)
+            const standardBase64 = signature.replace(/-/g, '+').replace(/_/g, '/');
+            signatureBytes = Uint8Array.from(atob(standardBase64), c => c.charCodeAt(0));
             console.log('[Wallet Verify] Decoded as base64, length:', signatureBytes.length);
-          } catch (e2) {
-            // Try hex
+          } catch (e64) {
+            console.error('[Wallet Verify] Base64 decode failed:', e64.message);
+            throw new Error('Failed to decode base64 signature');
+          }
+        } else {
+          // Try base58 (Phantom desktop typically uses this)
+          try {
+            signatureBytes = bs58.decode(signature);
+            console.log('[Wallet Verify] Decoded as base58, length:', signatureBytes.length);
+          } catch (e58) {
+            // Fallback: try base64 anyway
             try {
-              const hex = signature.startsWith('0x') ? signature.slice(2) : signature;
-              signatureBytes = Uint8Array.from(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-              console.log('[Wallet Verify] Decoded as hex, length:', signatureBytes.length);
-            } catch (e3) {
-              console.error('[Wallet Verify] Could not decode signature string:', e1, e2, e3);
-              throw new Error('Unrecognized signature format');
+              signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
+              console.log('[Wallet Verify] Fallback decoded as base64, length:', signatureBytes.length);
+            } catch (e64) {
+              // Last resort: try hex
+              try {
+                const hex = signature.startsWith('0x') ? signature.slice(2) : signature;
+                signatureBytes = Uint8Array.from(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                console.log('[Wallet Verify] Decoded as hex, length:', signatureBytes.length);
+              } catch (eHex) {
+                console.error('[Wallet Verify] All decode attempts failed');
+                throw new Error('Could not decode signature - tried base58, base64, hex');
+              }
             }
           }
         }
