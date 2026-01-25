@@ -60,6 +60,9 @@ export default function SolMate() {
   // Derived wallet address
   const walletAddress = publicKey?.toString() || '';
 
+  // Feedback hook (sound + haptics)
+  const feedback = useFeedbackContext();
+
   // VIP Payment hook
   const handleVipSuccess = useCallback(({ signature, amount, message }) => {
     toast.success(message || 'VIP Lifetime activated!');
