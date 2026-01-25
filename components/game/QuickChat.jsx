@@ -333,26 +333,80 @@ export default function QuickChat({
         </DialogContent>
       </Dialog>
 
-      {/* Chat Bubble Display */}
-      <AnimatePresence>
-        {receivedChat && (
-          <>
-            {console.log('[QuickChat] 🎨 Rendering ChatBubble with data:', receivedChat)}
-            <ChatBubble
-              from={receivedChat.from}
-              presetId={receivedChat.presetId}
-              type={receivedChat.type}
-              yourColor={yourColor}
-              t={t}
-            />
-          </>
-        )}
-      </AnimatePresence>
+      {/* Chat Bubble Display - Using Portal to render at document.body level */}
+      {typeof document !== 'undefined' && receivedChat && createPortal(
+        <AnimatePresence>
+          <ChatBubblePortal
+            key={receivedChat.timestamp}
+            from={receivedChat.from}
+            presetId={receivedChat.presetId}
+            type={receivedChat.type}
+            yourColor={yourColor}
+            t={t}
+          />
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }
 
-// Chat Bubble Component
+// Chat Bubble Component - Rendered via Portal with FORCED VISIBILITY
+function ChatBubblePortal({ from, presetId, type, yourColor, t }) {
+  const isFromYou = from === yourColor;
+  
+  console.log('[ChatBubble] 🎨 PORTAL Rendering:', { from, presetId, type, yourColor, isFromYou });
+  
+  let content;
+  if (type === 'emote') {
+    const emote = FREE_EMOTES.find(e => e.id === presetId);
+    content = <span className="text-3xl">{emote?.emoji || '❓'}</span>;
+  } else {
+    const msg = PRESET_MESSAGES.find(m => m.id === presetId);
+    content = (
+      <span className="text-base font-semibold">
+        {msg?.emoji} {t(`quickchat.${presetId}`)}
+      </span>
+    );
+  }
+
+  // FORCED VISIBILITY: Fixed position, highest z-index, bright colors
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.8 }}
+      transition={{ type: 'spring', damping: 15, stiffness: 300 }}
+      style={{
+        position: 'fixed',
+        zIndex: 999999,
+        pointerEvents: 'none',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        top: isFromYou ? 'auto' : '100px',
+        bottom: isFromYou ? '200px' : 'auto',
+      }}
+    >
+      <div 
+        style={{
+          padding: '12px 24px',
+          borderRadius: '24px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          border: '3px solid',
+          borderColor: isFromYou ? '#22c55e' : '#3b82f6',
+          backgroundColor: isFromYou ? '#166534' : '#1e40af',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        }}
+      >
+        {content}
+      </div>
+    </motion.div>
+  );
+}
+
+// Legacy ChatBubble for backwards compatibility
 function ChatBubble({ from, presetId, type, yourColor, t }) {
   const isFromYou = from === yourColor;
   
