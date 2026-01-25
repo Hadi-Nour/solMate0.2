@@ -364,6 +364,18 @@ backend:
         agent: "testing"
         comment: "Private Match timer fix verified working correctly. Created private match with 5-minute time control, User B joined successfully, match remains active without instant timeout. Timer logic properly waits for first move (gameStarted flag) before starting countdown. Fixed the 'null - Date.now()' bug that caused immediate timeouts. Server logs show proper timer initialization: match status stays 'matched' and doesn't timeout prematurely. Timer only starts counting after first move is made, as intended."
 
+  - task: "Email Magic Link Provider (Zoho SMTP)"
+    implemented: true
+    working: "NA"
+    file: "app/api/auth/[...nextauth]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented NextAuth Email Provider with Zoho SMTP (smtp.zoho.eu:465 SSL). Custom sendVerificationEmail function sends Magic Link emails with professional SolMate branding. Custom MongoDB adapter handles verification tokens. Login page updated with Magic Link tab as default option. Verify page shows 'Check your email' message. Needs testing with real email to confirm delivery."
+
 frontend:
   - task: "Chess board UI"
     implemented: true
