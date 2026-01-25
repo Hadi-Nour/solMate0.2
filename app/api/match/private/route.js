@@ -165,8 +165,18 @@ export async function POST(request) {
       }
 
       const normalizedCode = code.toUpperCase().trim();
+      console.log(`[Private API] Join request: code=${normalizedCode}, wallet=${payload.wallet}`);
 
-      // Find the invite
+      // Find the invite - check ALL records for this code first for debugging
+      const allWithCode = await db.collection('private_matches').find({ code: normalizedCode }).toArray();
+      console.log(`[Private API] All records with code ${normalizedCode}:`, allWithCode.map(r => ({
+        status: r.status,
+        creator: r.creatorWallet,
+        expires: r.expiresAt,
+        isExpired: new Date() > r.expiresAt
+      })));
+
+      // Find valid invite
       const invite = await db.collection('private_matches').findOne({
         code: normalizedCode,
         status: 'waiting',
@@ -174,11 +184,19 @@ export async function POST(request) {
       });
 
       if (!invite) {
+        console.log(`[Private API] No valid invite found for code: ${normalizedCode}`);
         return handleCORS(NextResponse.json(
           { error: 'Invalid or expired invite code' },
           { status: 404 }
         ));
       }
+
+      console.log(`[Private API] Found invite:`, {
+        code: invite.code,
+        creator: invite.creatorWallet,
+        status: invite.status,
+        expiresAt: invite.expiresAt
+      });
 
       if (invite.creatorWallet === payload.wallet) {
         return handleCORS(NextResponse.json(
@@ -198,6 +216,8 @@ export async function POST(request) {
           } 
         }
       );
+
+      console.log(`[Private API] Join successful: ${normalizedCode}`);
 
       return handleCORS(NextResponse.json({
         success: true,
