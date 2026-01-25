@@ -104,16 +104,62 @@ export async function POST(request) {
       const message = new TextEncoder().encode(nonceRecord.message);
       let signatureBytes;
       
-      // Handle both base58 and base64 signatures
-      try {
-        signatureBytes = bs58.decode(signature);
-      } catch {
-        signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
+      console.log('[Wallet Verify] Signature input type:', typeof signature);
+      console.log('[Wallet Verify] Signature length:', signature?.length);
+      
+      // Handle multiple signature formats from different wallets
+      if (typeof signature === 'string') {
+        // Try base58 first (common for Phantom desktop)
+        try {
+          signatureBytes = bs58.decode(signature);
+          console.log('[Wallet Verify] Decoded as base58, length:', signatureBytes.length);
+        } catch (e1) {
+          // Try base64 (common for MWA/mobile wallets)
+          try {
+            signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
+            console.log('[Wallet Verify] Decoded as base64, length:', signatureBytes.length);
+          } catch (e2) {
+            // Try hex
+            try {
+              const hex = signature.startsWith('0x') ? signature.slice(2) : signature;
+              signatureBytes = Uint8Array.from(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+              console.log('[Wallet Verify] Decoded as hex, length:', signatureBytes.length);
+            } catch (e3) {
+              console.error('[Wallet Verify] Could not decode signature string:', e1, e2, e3);
+              throw new Error('Unrecognized signature format');
+            }
+          }
+        }
+      } else if (Array.isArray(signature)) {
+        // Handle array format (some wallets send as JSON array)
+        signatureBytes = new Uint8Array(signature);
+        console.log('[Wallet Verify] Converted from array, length:', signatureBytes.length);
+      } else if (signature instanceof Uint8Array) {
+        signatureBytes = signature;
+        console.log('[Wallet Verify] Already Uint8Array, length:', signatureBytes.length);
+      } else if (typeof signature === 'object' && signature?.data) {
+        // Handle { data: [...] } format
+        signatureBytes = new Uint8Array(signature.data);
+        console.log('[Wallet Verify] Extracted from data property, length:', signatureBytes.length);
+      } else {
+        console.error('[Wallet Verify] Unknown signature type:', typeof signature);
+        throw new Error('Invalid signature type');
+      }
+      
+      // Validate signature length (Ed25519 signatures are 64 bytes)
+      if (signatureBytes.length !== 64) {
+        console.error('[Wallet Verify] Invalid signature length:', signatureBytes.length, '(expected 64)');
+        return handleCORS(NextResponse.json(
+          { error: `Invalid signature length: ${signatureBytes.length} bytes (expected 64)` },
+          { status: 401 }
+        ));
       }
       
       const publicKeyBytes = bs58.decode(wallet);
+      console.log('[Wallet Verify] Public key length:', publicKeyBytes.length);
       
       const isValid = nacl.sign.detached.verify(message, signatureBytes, publicKeyBytes);
+      console.log('[Wallet Verify] Verification result:', isValid);
       
       if (!isValid) {
         return handleCORS(NextResponse.json(
@@ -122,9 +168,9 @@ export async function POST(request) {
         ));
       }
     } catch (e) {
-      console.error('Signature verification error:', e);
+      console.error('[Wallet Verify] Signature verification error:', e.message);
       return handleCORS(NextResponse.json(
-        { error: 'Signature verification failed' },
+        { error: 'Signature verification failed: ' + e.message },
         { status: 401 }
       ));
     }
