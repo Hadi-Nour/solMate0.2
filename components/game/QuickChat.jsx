@@ -213,7 +213,7 @@ export default function QuickChat({
     setShowPanel(false);
     setOnCooldown(true);
     setCooldownRemaining(3);
-  }, [matchId, onCooldown]);
+  }, [matchId, onCooldown, feedback]);
 
   // Get localized message text
   const getMessageText = (presetId) => {
