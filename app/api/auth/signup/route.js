@@ -44,9 +44,9 @@ async function sendVerificationEmail(email, token, displayName) {
   const verifyUrl = `${appUrl}/auth/verify?token=${token}`;
 
   const mailOptions = {
-    from: `"SolMate" <${process.env.SMTP_USER || 'noreply@playsolmates.app'}>`,
+    from: `"PlaySolMates" <${process.env.SMTP_USER || 'noreply@playsolmates.app'}>`,
     to: email,
-    subject: 'Verify your SolMate account',
+    subject: 'Verify your PlaySolMates account',
     html: `
       <!DOCTYPE html>
       <html>
@@ -64,14 +64,14 @@ async function sendVerificationEmail(email, token, displayName) {
       </head>
       <body>
         <div class="container">
-          <div class="logo">♟️ SolMate</div>
+          <div class="logo">♟️ PlaySolMates</div>
           <h1>Welcome, ${displayName}!</h1>
-          <p>Thanks for signing up for SolMate - the Solana chess app. Please verify your email address to get started.</p>
+          <p>Thanks for signing up for PlaySolMates - the Solana chess app. Please verify your email address to get started.</p>
           <a href="${verifyUrl}" class="button">Verify Email</a>
           <p style="margin-top: 24px; font-size: 14px;">Or copy this link: ${verifyUrl}</p>
           <div class="footer">
             <p>This link expires in 24 hours.</p>
-            <p>If you didn't create a SolMate account, please ignore this email.</p>
+            <p>If you didn't create a PlaySolMates account, please ignore this email.</p>
           </div>
         </div>
       </body>

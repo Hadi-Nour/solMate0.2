@@ -142,12 +142,12 @@ export async function POST(request) {
     const verifyUrl = `${appUrl}/auth/verify?token=${verificationToken}`;
 
     await transporter.sendMail({
-      from: `"SolMate" <${process.env.SMTP_USER || 'noreply@playsolmates.app'}>`,
+      from: `"PlaySolMates" <${process.env.SMTP_USER || 'noreply@playsolmates.app'}>`,
       to: normalizedEmail,
-      subject: 'Verify your SolMate account',
+      subject: 'Verify your PlaySolMates account',
       html: `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 40px; background: #1a1b26; color: #fff; border-radius: 16px;">
-          <h1 style="color: #14F195;">♟️ SolMate</h1>
+          <h1 style="color: #14F195;">♟️ PlaySolMates</h1>
           <p>Click the link below to verify your email:</p>
           <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #9945FF, #14F195); color: #000; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">Verify Email</a>
           <p style="margin-top: 24px; font-size: 12px; color: #666;">This link expires in 24 hours.</p>

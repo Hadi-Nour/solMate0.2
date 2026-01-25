@@ -1,4 +1,4 @@
-// PM2 Ecosystem Configuration for SolMate Production
+// PM2 Ecosystem Configuration for PlaySolMates Production
 // Usage: pm2 start ecosystem.config.js --env production
 // See: https://pm2.keymetrics.io/docs/usage/application-declaration/
 

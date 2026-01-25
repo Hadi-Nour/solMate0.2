@@ -89,7 +89,7 @@ export function useWallet() {
 
 // App identity for MWA
 const APP_IDENTITY = {
-  name: 'SolMate',
+  name: 'PlaySolMates',
   uri: typeof window !== 'undefined' 
     ? (process.env.NEXT_PUBLIC_APP_URL || window.location.origin) 
     : (process.env.NEXT_PUBLIC_APP_URL || 'https://playsolmates.app'),

@@ -179,7 +179,7 @@ async function handleRoute(request, { params }) {
     
     if ((route === '/' || route === '/root') && method === 'GET') {
       return handleCORS(NextResponse.json({
-        message: 'SolMate API',
+        message: 'PlaySolMates API',
         version: '1.0.0',
         cluster: CLUSTER
       }));

@@ -37,7 +37,7 @@ import { useFeedbackContext } from '@/lib/feedback/provider';
 const MatchmakingScreen = dynamic(() => import('@/components/game/MatchmakingScreen'), { ssr: false });
 const OnlineGameScreen = dynamic(() => import('@/components/game/OnlineGameScreen'), { ssr: false });
 
-export default function SolMate() {
+export default function PlaySolMates() {
   const { t, locale, direction, isRtl, syncLocaleToServer, isLoaded } = useI18n();
   
   // Wallet hooks - using our lightweight provider
@@ -822,7 +822,7 @@ export default function SolMate() {
               <Swords className="w-12 h-12 text-black" />
             </motion.div>
             
-            <h1 className="text-4xl font-bold mb-2 solana-text-gradient">SolMate</h1>
+            <h1 className="text-4xl font-bold mb-2 solana-text-gradient">PlaySolMates</h1>
             <p className="text-lg text-muted-foreground mb-8">
               {t('login.tagline') || 'Play Chess on Solana'}
             </p>
@@ -972,7 +972,7 @@ export default function SolMate() {
             >
               <Swords className="w-5 h-5 text-black" />
             </motion.div>
-            <span className="font-bold text-xl solana-text-gradient">SolMate</span>
+            <span className="font-bold text-xl solana-text-gradient">PlaySolMates</span>
           </div>
           <div className="flex items-center gap-2">
             {user?.isVip && (

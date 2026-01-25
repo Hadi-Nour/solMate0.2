@@ -59,7 +59,7 @@ export async function POST(request) {
     const timestamp = new Date().toISOString();
     const domain = request.headers.get('host') || 'solmate.app';
     
-    const messageToSign = `SolMate Authentication\n\nDomain: ${domain}\nWallet: ${wallet}\nNonce: ${nonce}\nTimestamp: ${timestamp}\n\nSign this message to verify wallet ownership.`;
+    const messageToSign = `PlaySolMates Authentication\n\nDomain: ${domain}\nWallet: ${wallet}\nNonce: ${nonce}\nTimestamp: ${timestamp}\n\nSign this message to verify wallet ownership.`;
     
     // Store nonce with expiry
     await db.collection('nonces').insertOne({

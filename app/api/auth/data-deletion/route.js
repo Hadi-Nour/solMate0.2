@@ -123,6 +123,6 @@ export async function GET(request) {
   return NextResponse.json({
     confirmation_code: code,
     status: 'completed',
-    message: 'Your data has been deleted from SolMate.'
+    message: 'Your data has been deleted from PlaySolMates.'
   });
 }
