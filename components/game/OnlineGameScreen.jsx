@@ -60,8 +60,19 @@ export default function OnlineGameScreen({
 
   useEffect(() => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket) {
+      console.log('[OnlineGame] No socket available');
+      return;
+    }
     socketRef.current = socket;
+
+    // Log match start info
+    console.log('[OnlineGame] === MATCH STARTED ===');
+    console.log('[OnlineGame] matchId:', matchId);
+    console.log('[OnlineGame] socket.id:', socket.id);
+    console.log('[OnlineGame] socket.connected:', socket.connected);
+    console.log('[OnlineGame] yourColor:', yourColor);
+    console.log('[OnlineGame] opponent:', opponent);
 
     // Socket event handlers
     const handleMoved = ({ move, fen, timeLeft: newTime, currentTurn: turn, isCheck }) => {
