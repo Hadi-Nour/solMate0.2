@@ -9,20 +9,45 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getBotMove, validateMove, getGameStatus } from '@/lib/chess/engine';
 import { openChest, getAllCosmetics, CHEST_DROP_RATES } from '@/lib/cosmetics';
 
-// Constants
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
-);
+// Constants - All values from environment (no hardcoded fallbacks in production)
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+if (!process.env.JWT_SECRET) {
+  console.error('[CRITICAL] JWT_SECRET environment variable is not set!');
+}
+
 const NONCE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const VIP_PRICE_USDC = parseFloat(process.env.VIP_PRICE_USDC || '6.99');
 const USDC_DECIMALS = 6;
 const VIP_PRICE_USDC_RAW = BigInt(Math.round(VIP_PRICE_USDC * Math.pow(10, USDC_DECIMALS))); // 6990000
-const DEVELOPER_WALLET = process.env.DEVELOPER_WALLET || process.env.NEXT_PUBLIC_DEVELOPER_WALLET || 'BNWbb1GJcTMJLn12yMh8deB2AmrAmT1VyMJJpaTNVefJ';
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
-const CLUSTER = process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet';
+
+// Payment configuration - MUST be set in production
+const DEVELOPER_WALLET = process.env.DEVELOPER_WALLET || process.env.NEXT_PUBLIC_DEVELOPER_WALLET;
+const RPC_URL = process.env.RPC_URL || process.env.NEXT_PUBLIC_RPC_URL;
+const CLUSTER = process.env.SOLANA_CLUSTER || process.env.NEXT_PUBLIC_SOLANA_CLUSTER;
+
+// USDC Mint addresses
 const USDC_MINT = CLUSTER === 'mainnet-beta' 
-  ? (process.env.NEXT_PUBLIC_USDC_MINT_MAINNET || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
-  : (process.env.NEXT_PUBLIC_USDC_MINT_DEVNET || '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
+  ? process.env.USDC_MINT_MAINNET || process.env.NEXT_PUBLIC_USDC_MINT_MAINNET
+  : process.env.USDC_MINT_DEVNET || process.env.NEXT_PUBLIC_USDC_MINT_DEVNET;
+
+// Validate critical payment config on startup
+const validatePaymentConfig = () => {
+  const missing = [];
+  if (!DEVELOPER_WALLET) missing.push('DEVELOPER_WALLET');
+  if (!RPC_URL) missing.push('RPC_URL');
+  if (!CLUSTER) missing.push('SOLANA_CLUSTER');
+  if (!USDC_MINT) missing.push(CLUSTER === 'mainnet-beta' ? 'USDC_MINT_MAINNET' : 'USDC_MINT_DEVNET');
+  
+  if (missing.length > 0) {
+    console.warn(`[Payment] Missing configuration: ${missing.join(', ')}`);
+    return false;
+  }
+  
+  console.log(`[Payment] Config loaded: cluster=${CLUSTER}, wallet=${DEVELOPER_WALLET?.slice(0,8)}...`);
+  return true;
+};
+
+const PAYMENT_CONFIG_VALID = validatePaymentConfig();
 
 // MongoDB connection
 let client;
