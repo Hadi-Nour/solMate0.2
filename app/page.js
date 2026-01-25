@@ -497,20 +497,54 @@ export default function SolMate() {
     setShowResultModal(false);
   };
 
-  // Sound functions
-  const playSound = (type) => {
-    if (!settings.soundEnabled) return;
-    // In a real app, you'd play actual sounds here
-    if (settings.hapticEnabled && navigator.vibrate) {
-      switch(type) {
-        case 'move': navigator.vibrate(10); break;
-        case 'capture': navigator.vibrate([20, 10, 20]); break;
-        case 'check': navigator.vibrate([50, 30, 50]); break;
-        case 'win': navigator.vibrate([100, 50, 100, 50, 100]); break;
-        default: break;
-      }
+  // Legacy playSound compatibility function - uses feedback hook
+  const playSound = useCallback((type) => {
+    if (!feedback) return;
+    switch(type) {
+      case 'select':
+      case 'click':
+        feedback.buttonClick();
+        break;
+      case 'move':
+        feedback.moveMade();
+        break;
+      case 'capture':
+        feedback.capture();
+        break;
+      case 'check':
+        feedback.check();
+        break;
+      case 'castle':
+        feedback.castle();
+        break;
+      case 'promote':
+        feedback.promotion();
+        break;
+      case 'checkmate':
+        feedback.checkmate();
+        break;
+      case 'win':
+        feedback.win();
+        break;
+      case 'lose':
+        feedback.lose();
+        break;
+      case 'draw':
+        feedback.draw();
+        break;
+      case 'timeout':
+        feedback.timeout();
+        break;
+      case 'error':
+        feedback.error();
+        break;
+      case 'chat':
+        feedback.quickChat();
+        break;
+      default:
+        feedback.buttonClick();
     }
-  };
+  }, [feedback]);
 
   // Social functions
   // Social functions - wrapped in useCallback for stable references
