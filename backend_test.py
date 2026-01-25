@@ -390,13 +390,16 @@ class SolMateAPITester:
         
         results = {}
         
-        # Test 1: Private Match API with Logging
+        # Test 1: Private Match Timer Fix
+        results['private_match_timer_fix'] = self.test_private_match_timer_fix()
+        
+        # Test 2: Private Match API with Logging
         results['private_match'] = self.test_private_match_flow()
         
-        # Test 2: User Profile Update
+        # Test 3: User Profile Update
         results['profile_update'] = self.test_user_profile_update()
         
-        # Test 3: Wallet Signature Verification
+        # Test 4: Wallet Signature Verification
         results['signature_verification'] = self.test_wallet_signature_formats()
         
         # Summary
