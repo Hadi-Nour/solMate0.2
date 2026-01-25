@@ -111,6 +111,7 @@ export default function QuickChat({
 
   const handleSendMessage = useCallback((presetId) => {
     if (onCooldown) return;
+    console.log('[QuickChat] Sending message:', { matchId, presetId, type: 'message' });
     sendQuickChat(matchId, presetId, 'message');
     setShowPanel(false);
     setOnCooldown(true);
@@ -119,6 +120,7 @@ export default function QuickChat({
 
   const handleSendEmote = useCallback((emoteId) => {
     if (onCooldown) return;
+    console.log('[QuickChat] Sending emote:', { matchId, emoteId, type: 'emote' });
     sendQuickChat(matchId, emoteId, 'emote');
     setShowPanel(false);
     setOnCooldown(true);
