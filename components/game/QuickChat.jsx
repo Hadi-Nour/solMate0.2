@@ -129,23 +129,6 @@ export default function QuickChat({
     };
   }, [yourColor]);
 
-  // Re-check socket connection periodically if not connected
-  useEffect(() => {
-    const checkSocket = () => {
-      const socket = getSocket();
-      if (socket && socket.connected) {
-        console.log('[QuickChat] Socket confirmed connected:', socket.id);
-      } else {
-        console.log('[QuickChat] Socket not ready, will retry...');
-      }
-    };
-    
-    checkSocket();
-    const interval = setInterval(checkSocket, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
   // Cooldown timer
   useEffect(() => {
     if (onCooldown && cooldownRemaining > 0) {
