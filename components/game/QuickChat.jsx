@@ -42,7 +42,7 @@ export default function QuickChat({
   const [onCooldown, setOnCooldown] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [receivedChat, setReceivedChat] = useState(null);
-  const listenerSetup = useRef(false);
+  const currentSocketId = useRef(null);
   const onChatReceivedRef = useRef(onChatReceived);
 
   // Keep callback ref updated
