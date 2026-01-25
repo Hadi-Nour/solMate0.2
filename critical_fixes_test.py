@@ -130,9 +130,11 @@ class CriticalFixesTester:
             message = nonce_data["messageToSign"]
             nonce = nonce_data["nonce"]
             
-            # Step 2: Sign message (use base58 for authentication - more reliable)
+            # Step 2: Sign message and try different formats until one works
             message_bytes = message.encode('utf-8')
             signature = signing_key.sign(message_bytes)
+            
+            # Try base58 first (most common for Solana)
             base58_signature = base58.b58encode(signature.signature).decode()
             
             verify_response = self.session.post(f"{API_BASE}/auth/wallet-verify", 
@@ -145,12 +147,44 @@ class CriticalFixesTester:
             if verify_response.status_code == 200:
                 verify_data = verify_response.json()
                 token = verify_data["token"]
-                print(f"✅ {wallet_name} authenticated successfully!")
+                print(f"✅ {wallet_name} authenticated successfully with base58!")
                 return token
             else:
-                print(f"❌ {wallet_name} authentication failed: {verify_response.status_code}")
-                print(f"Response: {verify_response.text}")
-                return None
+                # If base58 fails, try base64
+                print(f"⚠️  Base58 failed, trying base64...")
+                
+                # Get fresh nonce since the previous one was consumed
+                nonce_response = self.session.post(f"{API_BASE}/auth/wallet-nonce", 
+                    json={"wallet": wallet_address})
+                
+                if nonce_response.status_code != 200:
+                    print(f"❌ Fresh nonce request failed: {nonce_response.status_code}")
+                    return None
+                    
+                nonce_data = nonce_response.json()
+                message = nonce_data["messageToSign"]
+                nonce = nonce_data["nonce"]
+                message_bytes = message.encode('utf-8')
+                signature = signing_key.sign(message_bytes)
+                
+                base64_signature = base64.b64encode(signature.signature).decode()
+                
+                verify_response = self.session.post(f"{API_BASE}/auth/wallet-verify", 
+                    json={
+                        "wallet": wallet_address,
+                        "nonce": nonce,
+                        "signature": base64_signature
+                    })
+                
+                if verify_response.status_code == 200:
+                    verify_data = verify_response.json()
+                    token = verify_data["token"]
+                    print(f"✅ {wallet_name} authenticated successfully with base64!")
+                    return token
+                else:
+                    print(f"❌ {wallet_name} authentication failed with both formats")
+                    print(f"Base58 response: {verify_response.text}")
+                    return None
             
         except Exception as e:
             print(f"❌ Authentication error for {wallet_name}: {str(e)}")
