@@ -1647,6 +1647,7 @@ export default function SolMate() {
             setGeneratedCode('');
             setJoinCode('');
             setPrivateMatchWaiting(false);
+            setPrivateTimeControl(5);
           }
         }
       }}>
@@ -1671,40 +1672,88 @@ export default function SolMate() {
             {privateMatchMode === 'create' ? (
               <>
                 {!generatedCode ? (
-                  <Button 
-                    className="w-full h-12 solana-gradient text-black font-semibold"
-                    onClick={async () => {
-                      try {
-                        setPrivateMatchWaiting(true);
-                        const res = await fetch('/api/match/private', {
-                          method: 'POST',
-                          headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${authToken}`
-                          },
-                          body: JSON.stringify({ action: 'create' })
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                          setGeneratedCode(data.code);
-                          toast.success(t('play.codeCreated') || 'Invite code created!');
-                        } else {
-                          toast.error(data.error || 'Failed to create code');
+                  <div className="space-y-4">
+                    {/* Time Control Selection */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t('play.selectTime') || 'Select Time Control'}</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { id: 3, name: '3 min', icon: '⚡' },
+                          { id: 5, name: '5 min', icon: '🔥' },
+                          { id: 10, name: '10 min', icon: '⏱️' },
+                          { id: 0, name: 'No Timer', icon: '♾️' }
+                        ].map((tc) => (
+                          <Button
+                            key={tc.id}
+                            variant={privateTimeControl === tc.id ? "default" : "outline"}
+                            className={`h-14 flex-col gap-1 ${privateTimeControl === tc.id ? 'ring-2 ring-purple-500' : ''}`}
+                            onClick={() => setPrivateTimeControl(tc.id)}
+                          >
+                            <span className="text-lg">{tc.icon}</span>
+                            <span className="text-xs">{tc.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Button 
+                      className="w-full h-12 solana-gradient text-black font-semibold"
+                      onClick={async () => {
+                        try {
+                          setPrivateMatchWaiting(true);
+                          const res = await fetch('/api/match/private', {
+                            method: 'POST',
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify({ action: 'create' })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            setGeneratedCode(data.code);
+                            toast.success(t('play.codeCreated') || 'Invite code created!');
+                            // Now connect to socket and create room
+                            const { connectSocket } = await import('@/lib/socket/client');
+                            const socket = connectSocket(authToken);
+                            
+                            // Listen for match found
+                            socket.on('match:found', ({ matchId, yourColor, opponent, match }) => {
+                              toast.success('Friend joined! Starting match...');
+                              setShowPrivateMatchDialog(false);
+                              setGeneratedCode('');
+                              setPrivateMatchWaiting(false);
+                              handleOnlineMatchFound({ matchId, yourColor, opponent, match });
+                            });
+                            
+                            socket.on('error', ({ message }) => {
+                              toast.error(message);
+                            });
+                            
+                            // Create private room on socket
+                            socket.emit('private:create', { 
+                              code: data.code, 
+                              timeControl: privateTimeControl 
+                            });
+                          } else {
+                            toast.error(data.error || 'Failed to create code');
+                            setPrivateMatchWaiting(false);
+                          }
+                        } catch (e) {
+                          console.error('Private match error:', e);
+                          toast.error('Failed to create match: ' + e.message);
                           setPrivateMatchWaiting(false);
                         }
-                      } catch (e) {
-                        toast.error('Failed to create match');
-                        setPrivateMatchWaiting(false);
-                      }
-                    }}
-                    disabled={privateMatchWaiting}
-                  >
-                    {privateMatchWaiting ? (
-                      <><Loader2 className="w-5 h-5 me-2 animate-spin" />Creating...</>
-                    ) : (
-                      <><Sparkles className="w-5 h-5 me-2" />Generate Invite Code</>
-                    )}
-                  </Button>
+                      }}
+                      disabled={privateMatchWaiting}
+                    >
+                      {privateMatchWaiting ? (
+                        <><Loader2 className="w-5 h-5 me-2 animate-spin" />Creating...</>
+                      ) : (
+                        <><Sparkles className="w-5 h-5 me-2" />Generate Invite Code</>
+                      )}
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="p-6 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 text-center">
@@ -1733,6 +1782,10 @@ export default function SolMate() {
                       </p>
                     </div>
 
+                    <div className="text-center text-xs text-muted-foreground">
+                      <Badge variant="outline">{privateTimeControl === 0 ? 'No Timer' : `${privateTimeControl} min`}</Badge>
+                    </div>
+
                     <p className="text-xs text-muted-foreground text-center">
                       {t('play.codeExpires') || 'Code expires in 10 minutes'}
                     </p>
@@ -1742,6 +1795,7 @@ export default function SolMate() {
                       className="w-full"
                       onClick={async () => {
                         try {
+                          // Cancel on API
                           await fetch('/api/match/private', {
                             method: 'POST',
                             headers: { 
@@ -1750,6 +1804,12 @@ export default function SolMate() {
                             },
                             body: JSON.stringify({ action: 'cancel', code: generatedCode })
                           });
+                          // Cancel on socket
+                          const { getSocket } = await import('@/lib/socket/client');
+                          const socket = getSocket();
+                          if (socket) {
+                            socket.emit('private:cancel', { code: generatedCode });
+                          }
                         } catch (e) {}
                         setGeneratedCode('');
                         setPrivateMatchWaiting(false);
@@ -1784,6 +1844,8 @@ export default function SolMate() {
                     }
                     try {
                       setPrivateMatchWaiting(true);
+                      
+                      // First validate code via API
                       const res = await fetch('/api/match/private', {
                         method: 'POST',
                         headers: { 
@@ -1793,18 +1855,37 @@ export default function SolMate() {
                         body: JSON.stringify({ action: 'join', code: joinCode })
                       });
                       const data = await res.json();
-                      if (data.success) {
-                        toast.success(t('play.matchJoined') || 'Joined match!');
-                        setPrivateMatchCode(joinCode);
-                        setShowPrivateMatchDialog(false);
-                        // Start the private match (triggers matchmaking with code)
-                        setShowMatchmaking(true);
-                      } else {
+                      
+                      if (!data.success) {
                         toast.error(data.error || 'Invalid code');
+                        setPrivateMatchWaiting(false);
+                        return;
                       }
+
+                      // Connect to socket and join room
+                      const { connectSocket } = await import('@/lib/socket/client');
+                      const socket = connectSocket(authToken);
+                      
+                      // Listen for match found
+                      socket.on('match:found', ({ matchId, yourColor, opponent, match }) => {
+                        toast.success('Match started!');
+                        setShowPrivateMatchDialog(false);
+                        setJoinCode('');
+                        setPrivateMatchWaiting(false);
+                        handleOnlineMatchFound({ matchId, yourColor, opponent, match });
+                      });
+                      
+                      socket.on('error', ({ message }) => {
+                        toast.error(message);
+                        setPrivateMatchWaiting(false);
+                      });
+                      
+                      // Join private room on socket
+                      socket.emit('private:join', { code: joinCode });
+                      
                     } catch (e) {
-                      toast.error('Failed to join match');
-                    } finally {
+                      console.error('Join match error:', e);
+                      toast.error('Failed to join match: ' + e.message);
                       setPrivateMatchWaiting(false);
                     }
                   }}
