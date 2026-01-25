@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn, getProviders } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Mail, Lock, Loader2, AlertCircle, Sparkles, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 // OAuth provider icons
@@ -35,14 +36,17 @@ const ProviderIcons = {
   ),
 };
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [error, setError] = useState('');
   const [providers, setProviders] = useState(null);
+  const [loginMethod, setLoginMethod] = useState('magic'); // 'magic' or 'password'
 
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const errorParam = searchParams.get('error');
@@ -59,6 +63,7 @@ export default function LoginPage() {
         'EmailCreateAccount': 'Error creating email account',
         'Callback': 'Error during callback',
         'OAuthAccountNotLinked': 'This email is already linked to another account',
+        'EmailSignin': 'Error sending magic link email',
         'default': 'An error occurred during sign in',
       };
       setError(errorMessages[errorParam] || errorMessages.default);
@@ -87,6 +92,31 @@ export default function LoginPage() {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMagicLinkLogin = async (e) => {
+    e.preventDefault();
+    setMagicLinkLoading(true);
+    setError('');
+
+    try {
+      const result = await signIn('email', {
+        email: magicLinkEmail,
+        redirect: false,
+        callbackUrl,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.url) {
+        // Redirect to verify page
+        router.push('/auth/verify');
+      }
+    } catch (err) {
+      setError('Failed to send magic link. Please try again.');
+    } finally {
+      setMagicLinkLoading(false);
     }
   };
 
@@ -120,7 +150,7 @@ export default function LoginPage() {
             {/* Error message */}
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive text-sm">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
@@ -132,7 +162,7 @@ export default function LoginPage() {
                   variant="outline"
                   className="w-full h-11"
                   onClick={() => handleOAuthLogin('google')}
-                  disabled={loading}
+                  disabled={loading || magicLinkLoading}
                 >
                   {ProviderIcons.google}
                   <span className="ml-2">Continue with Google</span>
@@ -143,7 +173,7 @@ export default function LoginPage() {
                   variant="outline"
                   className="w-full h-11"
                   onClick={() => handleOAuthLogin('facebook')}
-                  disabled={loading}
+                  disabled={loading || magicLinkLoading}
                 >
                   {ProviderIcons.facebook}
                   <span className="ml-2">Continue with Facebook</span>
@@ -154,7 +184,7 @@ export default function LoginPage() {
                   variant="outline"
                   className="w-full h-11"
                   onClick={() => handleOAuthLogin('twitter')}
-                  disabled={loading}
+                  disabled={loading || magicLinkLoading}
                 >
                   {ProviderIcons.twitter}
                   <span className="ml-2">Continue with X</span>
@@ -169,60 +199,118 @@ export default function LoginPage() {
               </span>
             </div>
 
-            {/* Email/Password Form */}
-            <form onSubmit={handleEmailLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+            {/* Email Login Tabs */}
+            <Tabs value={loginMethod} onValueChange={setLoginMethod} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="magic" className="text-xs">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Magic Link
+                </TabsTrigger>
+                <TabsTrigger value="password" className="text-xs">
+                  <KeyRound className="w-3 h-3 mr-1" />
+                  Password
+                </TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+              {/* Magic Link Tab */}
+              <TabsContent value="magic" className="space-y-4 mt-4">
+                <form onSubmit={handleMagicLinkLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="magic-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="magic-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={magicLinkEmail}
+                        onChange={(e) => setMagicLinkEmail(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      We'll send you a magic link to sign in instantly. No password needed!
+                    </p>
+                  </div>
 
-              <Button
-                type="submit"
-                className="w-full h-11 solana-gradient text-black font-semibold"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign In'
-                )}
-              </Button>
-            </form>
+                  <Button
+                    type="submit"
+                    className="w-full h-11 solana-gradient text-black font-semibold"
+                    disabled={magicLinkLoading || loading}
+                  >
+                    {magicLinkLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending magic link...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Send Magic Link
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              {/* Password Tab */}
+              <TabsContent value="password" className="space-y-4 mt-4">
+                <form onSubmit={handleEmailLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 solana-gradient text-black font-semibold"
+                    disabled={loading || magicLinkLoading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
 
           <CardFooter className="flex-col gap-4 pt-0">
@@ -243,5 +331,17 @@ export default function LoginPage() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
