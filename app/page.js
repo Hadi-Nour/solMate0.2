@@ -1724,7 +1724,7 @@ export default function SolMate() {
                               setShowPrivateMatchDialog(false);
                               setGeneratedCode('');
                               setPrivateMatchWaiting(false);
-                              handleOnlineMatchFound({ matchId, yourColor, opponent, match });
+                              handleMatchFound({ matchId, yourColor, opponent, match });
                             });
                             
                             socket.on('error', ({ message }) => {
