@@ -245,23 +245,25 @@ export const authOptions = {
   adapter: createCustomAdapter(),
   
   providers: [
-    // Email Magic Link Provider (Zoho SMTP)
-    EmailProvider({
-      server: {
-        host: process.env.SMTP_HOST || 'smtp.zoho.eu',
-        port: parseInt(process.env.SMTP_PORT || '465'),
-        secure: true,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+    // Email Magic Link Provider (requires SMTP_* env vars)
+    ...(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS ? [
+      EmailProvider({
+        server: {
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '465'),
+          secure: parseInt(process.env.SMTP_PORT || '465') === 465,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
         },
-      },
-      from: process.env.EMAIL_FROM || 'SolMate <noreply@playsolmates.app>',
-      sendVerificationRequest: async ({ identifier, url, provider }) => {
-        await sendVerificationEmail({ identifier, url, provider });
-      },
-      maxAge: 24 * 60 * 60, // 24 hours
-    }),
+        from: process.env.EMAIL_FROM,
+        sendVerificationRequest: async ({ identifier, url, provider }) => {
+          await sendVerificationEmail({ identifier, url, provider });
+        },
+        maxAge: 24 * 60 * 60, // 24 hours
+      }),
+    ] : []),
 
     // Email/Password Provider
     CredentialsProvider({
