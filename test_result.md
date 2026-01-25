@@ -352,6 +352,18 @@ backend:
         agent: "testing"
         comment: "POST /api/match/private with action='check' endpoint working correctly - requires JWT authentication (returns 401 without auth), returns match status and participant information for authorized users"
 
+  - task: "Private match timer fix (5 min time control)"
+    implemented: true
+    working: true
+    file: "lib/socket/server.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Private Match timer fix verified working correctly. Created private match with 5-minute time control, User B joined successfully, match remains active without instant timeout. Timer logic properly waits for first move (gameStarted flag) before starting countdown. Fixed the 'null - Date.now()' bug that caused immediate timeouts. Server logs show proper timer initialization: match status stays 'matched' and doesn't timeout prematurely. Timer only starts counting after first move is made, as intended."
+
 frontend:
   - task: "Chess board UI"
     implemented: true
