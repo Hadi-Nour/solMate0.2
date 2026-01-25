@@ -45,6 +45,11 @@ export default function QuickChat({
   const listenerSetup = useRef(false);
   const onChatReceivedRef = useRef(onChatReceived);
 
+  // Keep callback ref updated
+  useEffect(() => {
+    onChatReceivedRef.current = onChatReceived;
+  }, [onChatReceived]);
+
   // Listen for incoming quick chats
   useEffect(() => {
     const socket = getSocket();
