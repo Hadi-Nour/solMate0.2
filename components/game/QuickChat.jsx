@@ -42,6 +42,8 @@ export default function QuickChat({
   const [onCooldown, setOnCooldown] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [receivedChat, setReceivedChat] = useState(null);
+  const listenerSetup = useRef(false);
+  const onChatReceivedRef = useRef(onChatReceived);
 
   // Listen for incoming quick chats
   useEffect(() => {
