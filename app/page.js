@@ -195,10 +195,27 @@ export default function SolMate() {
 
   const fetchUser = async (token) => {
     try {
+      console.log('[Auth] Fetching user data...');
       const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) { setUser((await res.json()).user); }
-      else { localStorage.removeItem('solmate_token'); setAuthToken(null); }
-    } catch (e) { console.error('Failed to fetch user:', e); }
+      
+      if (res.ok) { 
+        const data = await res.json();
+        console.log('[Auth] User data fetched successfully');
+        setUser(data.user); 
+      } else if (res.status === 401) {
+        // Only clear token on explicit 401 Unauthorized
+        console.log('[Auth] Token invalid (401), clearing session');
+        localStorage.removeItem('solmate_token'); 
+        setAuthToken(null);
+        setUser(null);
+      } else {
+        // Don't clear token on other errors (500, network issues, etc.)
+        console.warn('[Auth] Failed to fetch user, status:', res.status, '- keeping session');
+      }
+    } catch (e) { 
+      // Network error - don't clear token
+      console.error('[Auth] Network error fetching user:', e.message, '- keeping session'); 
+    }
   };
 
   // Wallet connection handler (opens modal)
