@@ -269,12 +269,15 @@ export default function QuickChat({
 
       {/* Chat Panel Dialog */}
       <Dialog open={showPanel} onOpenChange={setShowPanel}>
-        <DialogContent className="max-w-xs p-3">
+        <DialogContent className="max-w-xs p-3" aria-describedby="quickchat-description">
           <DialogHeader className="pb-2">
             <DialogTitle className="flex items-center gap-2 text-base">
               <MessageCircle className="h-4 w-4" />
               {t('quickchat.title')}
             </DialogTitle>
+            <DialogDescription id="quickchat-description" className="sr-only">
+              Send quick chat messages or emotes to your opponent
+            </DialogDescription>
           </DialogHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
