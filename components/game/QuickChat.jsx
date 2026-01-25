@@ -45,56 +45,74 @@ export default function QuickChat({
 
   // Listen for incoming quick chats
   useEffect(() => {
-    let mounted = true;
+    const socket = getSocket();
     
-    const setupListeners = () => {
-      const socket = getSocket();
-      if (!socket) {
-        // Retry after a short delay
-        setTimeout(() => mounted && setupListeners(), 500);
-        return;
+    // If no socket yet, we'll set up listeners when it connects
+    if (!socket) {
+      console.log('[QuickChat] No socket yet, waiting...');
+      return;
+    }
+
+    console.log('[QuickChat] Setting up listeners on socket:', socket.id, 'connected:', socket.connected);
+
+    const handleQuickChat = (data) => {
+      const { from, presetId, type, timestamp } = data;
+      console.log('[QuickChat] EVENT RECEIVED:', { from, presetId, type, timestamp });
+      
+      // Show the chat bubble
+      setReceivedChat({ from, presetId, type, timestamp });
+      
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        setReceivedChat(prev => 
+          prev?.timestamp === timestamp ? null : prev
+        );
+      }, 3000);
+
+      if (onChatReceived) {
+        onChatReceived({ from, presetId, type });
       }
-
-      console.log('[QuickChat] Setting up listeners on socket:', socket.id);
-
-      const handleQuickChat = ({ from, presetId, type, timestamp }) => {
-        console.log('[QuickChat] Received:', { from, presetId, type });
-        // Show the chat bubble
-        setReceivedChat({ from, presetId, type, timestamp });
-        
-        // Auto-hide after 3 seconds
-        setTimeout(() => {
-          if (mounted) {
-            setReceivedChat(prev => 
-              prev?.timestamp === timestamp ? null : prev
-            );
-          }
-        }, 3000);
-
-        onChatReceived?.({ from, presetId, type });
-      };
-
-      const handleCooldown = ({ remaining }) => {
-        setOnCooldown(true);
-        setCooldownRemaining(Math.ceil(remaining / 1000));
-      };
-
-      socket.on('match:quickchat', handleQuickChat);
-      socket.on('quickchat:cooldown', handleCooldown);
-
-      return () => {
-        socket.off('match:quickchat', handleQuickChat);
-        socket.off('quickchat:cooldown', handleCooldown);
-      };
     };
 
-    const cleanup = setupListeners();
+    const handleCooldown = ({ remaining }) => {
+      console.log('[QuickChat] Cooldown received:', remaining);
+      setOnCooldown(true);
+      setCooldownRemaining(Math.ceil(remaining / 1000));
+    };
+
+    // Remove any existing listeners first to avoid duplicates
+    socket.off('match:quickchat', handleQuickChat);
+    socket.off('quickchat:cooldown', handleCooldown);
     
+    // Add new listeners
+    socket.on('match:quickchat', handleQuickChat);
+    socket.on('quickchat:cooldown', handleCooldown);
+
+    console.log('[QuickChat] Listeners attached. Socket listeners:', socket.listeners('match:quickchat').length);
+
     return () => {
-      mounted = false;
-      if (typeof cleanup === 'function') cleanup();
+      console.log('[QuickChat] Cleaning up listeners');
+      socket.off('match:quickchat', handleQuickChat);
+      socket.off('quickchat:cooldown', handleCooldown);
     };
   }, [onChatReceived]);
+
+  // Re-check socket connection periodically if not connected
+  useEffect(() => {
+    const checkSocket = () => {
+      const socket = getSocket();
+      if (socket && socket.connected) {
+        console.log('[QuickChat] Socket confirmed connected:', socket.id);
+      } else {
+        console.log('[QuickChat] Socket not ready, will retry...');
+      }
+    };
+    
+    checkSocket();
+    const interval = setInterval(checkSocket, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Cooldown timer
   useEffect(() => {
