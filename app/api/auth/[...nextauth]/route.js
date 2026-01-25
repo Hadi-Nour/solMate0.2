@@ -8,12 +8,21 @@ import { MongoClient } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 
-// Create Nodemailer transporter for Zoho SMTP
+// Create Nodemailer transporter for SMTP (Zoho or other)
 const createTransporter = () => {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || '465');
+  const secure = port === 465; // true for 465 (SSL), false for 587 (TLS)
+  
+  if (!host || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.error('[Email] SMTP credentials not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env');
+    return null;
+  }
+  
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.zoho.eu',
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: true, // true for 465, false for 587
+    host,
+    port,
+    secure,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
