@@ -50,15 +50,15 @@ export default function QuickChat({
     onChatReceivedRef.current = onChatReceived;
   }, [onChatReceived]);
 
-  // Listen for incoming quick chats - with robust socket handling
+  // Listen for incoming quick chats
   useEffect(() => {
     let mounted = true;
-    let retryTimeout = null;
+    let pollInterval = null;
 
     const handleQuickChat = (data) => {
       if (!mounted) return;
       const { from, presetId, type, timestamp } = data;
-      console.log('[QuickChat] EVENT RECEIVED:', { from, presetId, type, timestamp, myColor: yourColor });
+      console.log('[QuickChat] ✅ EVENT RECEIVED:', { from, presetId, type, timestamp, myColor: yourColor });
       
       // Show the chat bubble
       setReceivedChat({ from, presetId, type, timestamp });
@@ -66,9 +66,7 @@ export default function QuickChat({
       // Auto-hide after 3 seconds
       setTimeout(() => {
         if (mounted) {
-          setReceivedChat(prev => 
-            prev?.timestamp === timestamp ? null : prev
-          );
+          setReceivedChat(prev => prev?.timestamp === timestamp ? null : prev);
         }
       }, 3000);
 
@@ -84,53 +82,52 @@ export default function QuickChat({
       setCooldownRemaining(Math.ceil(remaining / 1000));
     };
 
-    const setupListeners = () => {
+    const checkAndSetupListeners = () => {
       const socket = getSocket();
       
-      if (!socket) {
-        console.log('[QuickChat] No socket yet, retrying in 500ms...');
-        retryTimeout = setTimeout(setupListeners, 500);
-        return;
+      if (!socket || !socket.connected) {
+        return; // Will retry via interval
       }
 
-      if (!socket.connected) {
-        console.log('[QuickChat] Socket exists but not connected, retrying in 500ms...');
-        retryTimeout = setTimeout(setupListeners, 500);
-        return;
+      // If socket.id changed, we need to re-attach listeners
+      if (currentSocketId.current !== socket.id) {
+        // Remove old listeners if they exist
+        if (currentSocketId.current) {
+          console.log('[QuickChat] Socket changed from', currentSocketId.current, 'to', socket.id);
+          socket.off('match:quickchat', handleQuickChat);
+          socket.off('quickchat:cooldown', handleCooldown);
+        }
+        
+        // Attach new listeners
+        console.log('[QuickChat] Attaching listeners to socket:', socket.id);
+        socket.on('match:quickchat', handleQuickChat);
+        socket.on('quickchat:cooldown', handleCooldown);
+        currentSocketId.current = socket.id;
+        
+        const count = socket.listeners('match:quickchat').length;
+        console.log('[QuickChat] ✅ Listeners attached. Count:', count, 'Socket:', socket.id);
       }
-
-      // Avoid duplicate listeners
-      if (listenerSetup.current) {
-        console.log('[QuickChat] Listeners already set up, skipping');
-        return;
-      }
-
-      console.log('[QuickChat] Setting up listeners on socket:', socket.id);
-      
-      // Add listeners
-      socket.on('match:quickchat', handleQuickChat);
-      socket.on('quickchat:cooldown', handleCooldown);
-      listenerSetup.current = true;
-
-      const listenerCount = socket.listeners('match:quickchat').length;
-      console.log('[QuickChat] Listeners attached. Count:', listenerCount);
     };
 
-    setupListeners();
+    // Initial setup
+    checkAndSetupListeners();
+    
+    // Poll to catch socket reconnections
+    pollInterval = setInterval(checkAndSetupListeners, 1000);
 
     return () => {
       mounted = false;
-      if (retryTimeout) clearTimeout(retryTimeout);
+      if (pollInterval) clearInterval(pollInterval);
       
       const socket = getSocket();
-      if (socket && listenerSetup.current) {
-        console.log('[QuickChat] Cleaning up listeners');
+      if (socket) {
+        console.log('[QuickChat] Cleanup: removing listeners');
         socket.off('match:quickchat', handleQuickChat);
         socket.off('quickchat:cooldown', handleCooldown);
-        listenerSetup.current = false;
       }
+      currentSocketId.current = null;
     };
-  }, [yourColor]); // Re-run if color changes (shouldn't happen but just in case)
+  }, [yourColor]);
 
   // Re-check socket connection periodically if not connected
   useEffect(() => {
