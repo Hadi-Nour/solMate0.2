@@ -102,7 +102,7 @@ async function sendVerificationEmail({ identifier, url, provider }) {
   `;
 
   const result = await transporter.sendMail({
-    from: process.env.EMAIL_FROM || 'SolMate <noreply@playsolmates.app>',
+    from: emailFrom,
     to: identifier,
     subject: '🔐 Sign in to SolMate',
     html: emailHtml,
