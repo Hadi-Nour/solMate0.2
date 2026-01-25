@@ -45,34 +45,54 @@ export default function QuickChat({
 
   // Listen for incoming quick chats
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
+    let mounted = true;
+    
+    const setupListeners = () => {
+      const socket = getSocket();
+      if (!socket) {
+        // Retry after a short delay
+        setTimeout(() => mounted && setupListeners(), 500);
+        return;
+      }
 
-    const handleQuickChat = ({ from, presetId, type, timestamp }) => {
-      // Show the chat bubble
-      setReceivedChat({ from, presetId, type, timestamp });
-      
-      // Auto-hide after 3 seconds
-      setTimeout(() => {
-        setReceivedChat(prev => 
-          prev?.timestamp === timestamp ? null : prev
-        );
-      }, 3000);
+      console.log('[QuickChat] Setting up listeners on socket:', socket.id);
 
-      onChatReceived?.({ from, presetId, type });
+      const handleQuickChat = ({ from, presetId, type, timestamp }) => {
+        console.log('[QuickChat] Received:', { from, presetId, type });
+        // Show the chat bubble
+        setReceivedChat({ from, presetId, type, timestamp });
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+          if (mounted) {
+            setReceivedChat(prev => 
+              prev?.timestamp === timestamp ? null : prev
+            );
+          }
+        }, 3000);
+
+        onChatReceived?.({ from, presetId, type });
+      };
+
+      const handleCooldown = ({ remaining }) => {
+        setOnCooldown(true);
+        setCooldownRemaining(Math.ceil(remaining / 1000));
+      };
+
+      socket.on('match:quickchat', handleQuickChat);
+      socket.on('quickchat:cooldown', handleCooldown);
+
+      return () => {
+        socket.off('match:quickchat', handleQuickChat);
+        socket.off('quickchat:cooldown', handleCooldown);
+      };
     };
 
-    const handleCooldown = ({ remaining }) => {
-      setOnCooldown(true);
-      setCooldownRemaining(Math.ceil(remaining / 1000));
-    };
-
-    socket.on('match:quickchat', handleQuickChat);
-    socket.on('quickchat:cooldown', handleCooldown);
-
+    const cleanup = setupListeners();
+    
     return () => {
-      socket.off('match:quickchat', handleQuickChat);
-      socket.off('quickchat:cooldown', handleCooldown);
+      mounted = false;
+      if (typeof cleanup === 'function') cleanup();
     };
   }, [onChatReceived]);
 
