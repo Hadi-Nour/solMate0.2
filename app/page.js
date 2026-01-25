@@ -1919,7 +1919,7 @@ export default function SolMate() {
                         setShowPrivateMatchDialog(false);
                         setJoinCode('');
                         setPrivateMatchWaiting(false);
-                        handleOnlineMatchFound({ matchId, yourColor, opponent, match });
+                        handleMatchFound({ matchId, yourColor, opponent, match });
                       });
                       
                       socket.on('error', ({ message }) => {
