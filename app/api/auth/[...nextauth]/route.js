@@ -204,7 +204,7 @@ export const authOptions = {
     signIn: '/auth/login',
     signUp: '/auth/signup',
     error: '/auth/error',
-    verifyRequest: '/auth/verify-email',
+    verifyRequest: '/auth/verify',
   },
 
   session: {

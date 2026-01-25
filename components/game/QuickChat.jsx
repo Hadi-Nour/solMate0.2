@@ -10,6 +10,9 @@ import { MessageCircle, Smile, X } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
 import { sendQuickChat, getSocket } from '@/lib/socket/client';
 
+// Debug mode controlled by environment variable (default: false)
+const DEBUG_QUICKCHAT = process.env.NEXT_PUBLIC_DEBUG_QUICKCHAT === 'true';
+
 // Preset messages (keys for i18n)
 const PRESET_MESSAGES = [
   { id: 'goodLuck', emoji: '🍀' },
@@ -43,7 +46,7 @@ export default function QuickChat({
   const [onCooldown, setOnCooldown] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [receivedChat, setReceivedChat] = useState(null);
-  const [debugCounter, setDebugCounter] = useState(0); // DEBUG counter
+  const [debugCounter, setDebugCounter] = useState(0);
   const currentSocketId = useRef(null);
   const onChatReceivedRef = useRef(onChatReceived);
 
@@ -59,39 +62,28 @@ export default function QuickChat({
 
     const handleQuickChat = (data) => {
       if (!mounted) {
-        console.log('[QuickChat] ⚠️ Not mounted, ignoring event');
+        if (DEBUG_QUICKCHAT) console.log('[QuickChat] ⚠️ Not mounted, ignoring event');
         return;
       }
       const { from, presetId, type, timestamp } = data;
-      console.log('[QuickChat] ✅ EVENT RECEIVED:', { from, presetId, type, timestamp, myColor: yourColor });
-      console.log('[QuickChat] 🔄 Setting receivedChat state...');
+      if (DEBUG_QUICKCHAT) {
+        console.log('[QuickChat] ✅ EVENT RECEIVED:', { from, presetId, type, timestamp, myColor: yourColor });
+      }
       
       // Increment debug counter
-      setDebugCounter(prev => {
-        console.log('[QuickChat] 📊 Debug counter:', prev + 1);
-        return prev + 1;
-      });
+      setDebugCounter(prev => prev + 1);
       
       // Show the chat bubble
       const chatData = { from, presetId, type, timestamp };
-      console.log('[QuickChat] 🔄 Chat data to set:', chatData);
       setReceivedChat(chatData);
       
-      // Log after state update (won't be immediate due to React batching)
-      setTimeout(() => {
-        console.log('[QuickChat] 🔍 State should be updated now');
-      }, 100);
-      
-      // Auto-hide after 4 seconds (increased from 3)
+      // Auto-hide after 4 seconds
       setTimeout(() => {
         if (mounted) {
-          console.log('[QuickChat] ⏰ Auto-hiding chat bubble');
           setReceivedChat(prev => {
             if (prev?.timestamp === timestamp) {
-              console.log('[QuickChat] 🔄 Clearing receivedChat (same timestamp)');
               return null;
             }
-            console.log('[QuickChat] 🔄 Keeping receivedChat (different timestamp)');
             return prev;
           });
         }
@@ -104,7 +96,7 @@ export default function QuickChat({
 
     const handleCooldown = ({ remaining }) => {
       if (!mounted) return;
-      console.log('[QuickChat] Cooldown received:', remaining);
+      if (DEBUG_QUICKCHAT) console.log('[QuickChat] Cooldown received:', remaining);
       setOnCooldown(true);
       setCooldownRemaining(Math.ceil(remaining / 1000));
     };
@@ -120,19 +112,16 @@ export default function QuickChat({
       if (currentSocketId.current !== socket.id) {
         // Remove old listeners if they exist
         if (currentSocketId.current) {
-          console.log('[QuickChat] Socket changed from', currentSocketId.current, 'to', socket.id);
+          if (DEBUG_QUICKCHAT) console.log('[QuickChat] Socket changed from', currentSocketId.current, 'to', socket.id);
           socket.off('match:quickchat', handleQuickChat);
           socket.off('quickchat:cooldown', handleCooldown);
         }
         
         // Attach new listeners
-        console.log('[QuickChat] Attaching listeners to socket:', socket.id);
+        if (DEBUG_QUICKCHAT) console.log('[QuickChat] Attaching listeners to socket:', socket.id);
         socket.on('match:quickchat', handleQuickChat);
         socket.on('quickchat:cooldown', handleCooldown);
         currentSocketId.current = socket.id;
-        
-        const count = socket.listeners('match:quickchat').length;
-        console.log('[QuickChat] ✅ Listeners attached. Count:', count, 'Socket:', socket.id);
       }
     };
 
@@ -148,7 +137,7 @@ export default function QuickChat({
       
       const socket = getSocket();
       if (socket) {
-        console.log('[QuickChat] Cleanup: removing listeners');
+        if (DEBUG_QUICKCHAT) console.log('[QuickChat] Cleanup: removing listeners');
         socket.off('match:quickchat', handleQuickChat);
         socket.off('quickchat:cooldown', handleCooldown);
       }
@@ -172,16 +161,15 @@ export default function QuickChat({
   const handleSendMessage = useCallback((presetId) => {
     if (onCooldown) return;
     
-    const socket = getSocket();
-    console.log('[QuickChat] 📤 Sending message:', { matchId, presetId, type: 'message' });
-    console.log('[QuickChat] 📤 Using socket:', socket?.id, 'Connected:', socket?.connected);
+    if (DEBUG_QUICKCHAT) {
+      const socket = getSocket();
+      console.log('[QuickChat] 📤 Sending message:', { matchId, presetId, type: 'message' });
+      console.log('[QuickChat] 📤 Using socket:', socket?.id, 'Connected:', socket?.connected);
+    }
     
     sendQuickChat(matchId, presetId, 'message', (ack) => {
-      console.log('[QuickChat] 📤 Server ACK:', ack);
-      if (ack?.ok) {
-        console.log('[QuickChat] ✅ Message delivered! Room members:', ack.roomMembers);
-      } else {
-        console.log('[QuickChat] ❌ Message failed:', ack?.error);
+      if (DEBUG_QUICKCHAT) {
+        console.log('[QuickChat] 📤 Server ACK:', ack);
       }
     });
     
@@ -193,16 +181,15 @@ export default function QuickChat({
   const handleSendEmote = useCallback((emoteId) => {
     if (onCooldown) return;
     
-    const socket = getSocket();
-    console.log('[QuickChat] 📤 Sending emote:', { matchId, emoteId, type: 'emote' });
-    console.log('[QuickChat] 📤 Using socket:', socket?.id, 'Connected:', socket?.connected);
+    if (DEBUG_QUICKCHAT) {
+      const socket = getSocket();
+      console.log('[QuickChat] 📤 Sending emote:', { matchId, emoteId, type: 'emote' });
+      console.log('[QuickChat] 📤 Using socket:', socket?.id, 'Connected:', socket?.connected);
+    }
     
     sendQuickChat(matchId, emoteId, 'emote', (ack) => {
-      console.log('[QuickChat] 📤 Server ACK:', ack);
-      if (ack?.ok) {
-        console.log('[QuickChat] ✅ Emote delivered! Room members:', ack.roomMembers);
-      } else {
-        console.log('[QuickChat] ❌ Emote failed:', ack?.error);
+      if (DEBUG_QUICKCHAT) {
+        console.log('[QuickChat] 📤 Server ACK:', ack);
       }
     });
     
@@ -216,27 +203,25 @@ export default function QuickChat({
     return t(`quickchat.${presetId}`);
   };
 
-  // Get emote display
-  const getEmoteDisplay = (emoteId) => {
-    const emote = FREE_EMOTES.find(e => e.id === emoteId);
-    return emote?.emoji || '❓';
-  };
-
-  // Debug log when receivedChat changes
+  // Debug log when receivedChat changes (only in debug mode)
   useEffect(() => {
-    console.log('[QuickChat] 🎯 receivedChat state changed:', receivedChat);
+    if (DEBUG_QUICKCHAT) {
+      console.log('[QuickChat] 🎯 receivedChat state changed:', receivedChat);
+    }
   }, [receivedChat]);
 
   return (
     <>
-      {/* DEBUG INDICATOR - visible on screen */}
-      <div className="fixed top-2 right-2 z-[9999] bg-black/80 text-white text-xs p-2 rounded font-mono">
-        <div>📨 Received: {debugCounter}</div>
-        <div>💬 Chat: {receivedChat ? 'SET' : 'NULL'}</div>
-        {receivedChat && (
-          <div>From: {receivedChat.from} | Type: {receivedChat.type}</div>
-        )}
-      </div>
+      {/* DEBUG INDICATOR - Only visible when NEXT_PUBLIC_DEBUG_QUICKCHAT=true */}
+      {DEBUG_QUICKCHAT && (
+        <div className="fixed top-2 right-2 z-[9999] bg-black/80 text-white text-xs p-2 rounded font-mono">
+          <div>📨 Received: {debugCounter}</div>
+          <div>💬 Chat: {receivedChat ? 'SET' : 'NULL'}</div>
+          {receivedChat && (
+            <div>From: {receivedChat.from} | Type: {receivedChat.type}</div>
+          )}
+        </div>
+      )}
 
       {/* Chat Button */}
       <Button 
@@ -253,19 +238,6 @@ export default function QuickChat({
           </span>
         )}
       </Button>
-
-      {/* DEBUG: Show debug counter and receivedChat state */}
-      <div className="fixed top-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
-        <div>Debug Counter: {debugCounter}</div>
-        <div>ReceivedChat: {receivedChat ? 'SET' : 'NULL'}</div>
-        {receivedChat && (
-          <div className="text-[10px]">
-            <div>From: {receivedChat.from}</div>
-            <div>Type: {receivedChat.type}</div>
-            <div>PresetId: {receivedChat.presetId}</div>
-          </div>
-        )}
-      </div>
 
       {/* Chat Panel Dialog */}
       <Dialog open={showPanel} onOpenChange={setShowPanel}>
@@ -358,7 +330,9 @@ export default function QuickChat({
 function ChatBubblePortal({ from, presetId, type, yourColor, t }) {
   const isFromYou = from === yourColor;
   
-  console.log('[ChatBubble] 🎨 PORTAL Rendering:', { from, presetId, type, yourColor, isFromYou });
+  if (DEBUG_QUICKCHAT) {
+    console.log('[ChatBubble] 🎨 PORTAL Rendering:', { from, presetId, type, yourColor, isFromYou });
+  }
   
   let content;
   if (type === 'emote') {
@@ -403,50 +377,6 @@ function ChatBubblePortal({ from, presetId, type, yourColor, t }) {
           fontWeight: 'bold',
         }}
       >
-        {content}
-      </div>
-    </motion.div>
-  );
-}
-
-// Legacy ChatBubble for backwards compatibility
-function ChatBubble({ from, presetId, type, yourColor, t }) {
-  const isFromYou = from === yourColor;
-  
-  console.log('[ChatBubble] 🎨 Rendering bubble:', { from, presetId, type, yourColor, isFromYou });
-  
-  let content;
-  if (type === 'emote') {
-    const emote = FREE_EMOTES.find(e => e.id === presetId);
-    content = <span className="text-2xl">{emote?.emoji || '❓'}</span>;
-  } else {
-    const msg = PRESET_MESSAGES.find(m => m.id === presetId);
-    content = (
-      <span className="text-sm">
-        {msg?.emoji} {t(`quickchat.${presetId}`)}
-      </span>
-    );
-  }
-
-  console.log('[ChatBubble] 🎨 Content prepared:', content);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -10, scale: 0.9 }}
-      className={`fixed z-50 ${
-        isFromYou 
-          ? 'bottom-40 left-1/2 -translate-x-1/2' 
-          : 'top-32 left-1/2 -translate-x-1/2'
-      }`}
-      onAnimationComplete={() => console.log('[ChatBubble] 🎨 Animation complete')}
-    >
-      <div className={`px-4 py-2 rounded-2xl shadow-lg ${
-        isFromYou
-          ? 'bg-primary text-primary-foreground'
-          : 'bg-secondary text-secondary-foreground'
-      }`}>
         {content}
       </div>
     </motion.div>
