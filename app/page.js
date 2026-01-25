@@ -237,18 +237,63 @@ export default function SolMate() {
       // Use our wallet provider's signMessage
       const signatureResult = await signMessage(messageToSign);
       
-      // Handle different signature formats
+      console.log('[SignIn] Signature result type:', typeof signatureResult);
+      console.log('[SignIn] Signature result:', signatureResult);
+      
+      // Handle different signature formats from various wallets
       let signature;
+      
+      // Helper to convert Uint8Array to base64 safely
+      const uint8ToBase64 = (uint8) => {
+        let binary = '';
+        const bytes = new Uint8Array(uint8);
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+      };
+      
       if (signatureResult instanceof Uint8Array) {
-        signature = btoa(String.fromCharCode.apply(null, signatureResult));
+        // Direct Uint8Array (common for Phantom desktop)
+        signature = uint8ToBase64(signatureResult);
+        console.log('[SignIn] Converted Uint8Array to base64, length:', signatureResult.length);
       } else if (typeof signatureResult === 'string') {
+        // Already a string (could be base58 or base64)
         signature = signatureResult;
+        console.log('[SignIn] Using string signature directly');
       } else if (signatureResult?.signature) {
+        // Object with signature property (common for MWA)
         const sigBytes = signatureResult.signature;
-        signature = btoa(String.fromCharCode.apply(null, sigBytes instanceof Uint8Array ? sigBytes : new Uint8Array(sigBytes)));
+        if (sigBytes instanceof Uint8Array) {
+          signature = uint8ToBase64(sigBytes);
+        } else if (Array.isArray(sigBytes)) {
+          signature = uint8ToBase64(new Uint8Array(sigBytes));
+        } else {
+          signature = String(sigBytes);
+        }
+        console.log('[SignIn] Extracted signature from object');
+      } else if (Array.isArray(signatureResult)) {
+        // Array of bytes
+        signature = uint8ToBase64(new Uint8Array(signatureResult));
+        console.log('[SignIn] Converted array to base64');
+      } else if (signatureResult && typeof signatureResult === 'object') {
+        // Try to extract from any object format
+        const possibleSig = signatureResult.data || signatureResult.sig || signatureResult.signedMessage;
+        if (possibleSig) {
+          if (possibleSig instanceof Uint8Array || Array.isArray(possibleSig)) {
+            signature = uint8ToBase64(new Uint8Array(possibleSig));
+          } else {
+            signature = String(possibleSig);
+          }
+          console.log('[SignIn] Extracted from object property');
+        } else {
+          throw new Error('Could not extract signature from response');
+        }
       } else {
-        throw new Error('Invalid signature format');
+        throw new Error('Invalid signature format: ' + typeof signatureResult);
       }
+      
+      console.log('[SignIn] Final signature length:', signature.length);
       
       const verifyRes = await fetch('/api/auth/wallet-verify', {
         method: 'POST',
@@ -264,6 +309,7 @@ export default function SolMate() {
         toast.success(t('wallet.signedIn'));
       } else { 
         const errorData = await verifyRes.json().catch(() => ({ error: 'Verification failed' }));
+        console.error('[SignIn] Verify failed:', errorData);
         toast.error(errorData.error || 'Sign in failed'); 
       }
     } catch (e) { 
