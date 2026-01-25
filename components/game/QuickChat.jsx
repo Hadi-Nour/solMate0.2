@@ -321,13 +321,16 @@ export default function QuickChat({
       {/* Chat Bubble Display */}
       <AnimatePresence>
         {receivedChat && (
-          <ChatBubble
-            from={receivedChat.from}
-            presetId={receivedChat.presetId}
-            type={receivedChat.type}
-            yourColor={yourColor}
-            t={t}
-          />
+          <>
+            {console.log('[QuickChat] 🎨 Rendering ChatBubble with data:', receivedChat)}
+            <ChatBubble
+              from={receivedChat.from}
+              presetId={receivedChat.presetId}
+              type={receivedChat.type}
+              yourColor={yourColor}
+              t={t}
+            />
+          </>
         )}
       </AnimatePresence>
     </>
