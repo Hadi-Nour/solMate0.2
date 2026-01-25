@@ -338,6 +338,8 @@ export default function QuickChat({
 function ChatBubble({ from, presetId, type, yourColor, t }) {
   const isFromYou = from === yourColor;
   
+  console.log('[ChatBubble] 🎨 Rendering bubble:', { from, presetId, type, yourColor, isFromYou });
+  
   let content;
   if (type === 'emote') {
     const emote = FREE_EMOTES.find(e => e.id === presetId);
@@ -351,6 +353,8 @@ function ChatBubble({ from, presetId, type, yourColor, t }) {
     );
   }
 
+  console.log('[ChatBubble] 🎨 Content prepared:', content);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -361,6 +365,7 @@ function ChatBubble({ from, presetId, type, yourColor, t }) {
           ? 'bottom-40 left-1/2 -translate-x-1/2' 
           : 'top-32 left-1/2 -translate-x-1/2'
       }`}
+      onAnimationComplete={() => console.log('[ChatBubble] 🎨 Animation complete')}
     >
       <div className={`px-4 py-2 rounded-2xl shadow-lg ${
         isFromYou
