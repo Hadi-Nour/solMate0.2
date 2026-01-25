@@ -50,59 +50,87 @@ export default function QuickChat({
     onChatReceivedRef.current = onChatReceived;
   }, [onChatReceived]);
 
-  // Listen for incoming quick chats
+  // Listen for incoming quick chats - with robust socket handling
   useEffect(() => {
-    const socket = getSocket();
-    
-    // If no socket yet, we'll set up listeners when it connects
-    if (!socket) {
-      console.log('[QuickChat] No socket yet, waiting...');
-      return;
-    }
-
-    console.log('[QuickChat] Setting up listeners on socket:', socket.id, 'connected:', socket.connected);
+    let mounted = true;
+    let retryTimeout = null;
 
     const handleQuickChat = (data) => {
+      if (!mounted) return;
       const { from, presetId, type, timestamp } = data;
-      console.log('[QuickChat] EVENT RECEIVED:', { from, presetId, type, timestamp });
+      console.log('[QuickChat] EVENT RECEIVED:', { from, presetId, type, timestamp, myColor: yourColor });
       
       // Show the chat bubble
       setReceivedChat({ from, presetId, type, timestamp });
       
       // Auto-hide after 3 seconds
       setTimeout(() => {
-        setReceivedChat(prev => 
-          prev?.timestamp === timestamp ? null : prev
-        );
+        if (mounted) {
+          setReceivedChat(prev => 
+            prev?.timestamp === timestamp ? null : prev
+          );
+        }
       }, 3000);
 
-      if (onChatReceived) {
-        onChatReceived({ from, presetId, type });
+      if (onChatReceivedRef.current) {
+        onChatReceivedRef.current({ from, presetId, type });
       }
     };
 
     const handleCooldown = ({ remaining }) => {
+      if (!mounted) return;
       console.log('[QuickChat] Cooldown received:', remaining);
       setOnCooldown(true);
       setCooldownRemaining(Math.ceil(remaining / 1000));
     };
 
-    // Remove any existing listeners first to avoid duplicates
-    socket.off('match:quickchat', handleQuickChat);
-    socket.off('quickchat:cooldown', handleCooldown);
-    
-    // Add new listeners
-    socket.on('match:quickchat', handleQuickChat);
-    socket.on('quickchat:cooldown', handleCooldown);
+    const setupListeners = () => {
+      const socket = getSocket();
+      
+      if (!socket) {
+        console.log('[QuickChat] No socket yet, retrying in 500ms...');
+        retryTimeout = setTimeout(setupListeners, 500);
+        return;
+      }
 
-    console.log('[QuickChat] Listeners attached. Socket listeners:', socket.listeners('match:quickchat').length);
+      if (!socket.connected) {
+        console.log('[QuickChat] Socket exists but not connected, retrying in 500ms...');
+        retryTimeout = setTimeout(setupListeners, 500);
+        return;
+      }
+
+      // Avoid duplicate listeners
+      if (listenerSetup.current) {
+        console.log('[QuickChat] Listeners already set up, skipping');
+        return;
+      }
+
+      console.log('[QuickChat] Setting up listeners on socket:', socket.id);
+      
+      // Add listeners
+      socket.on('match:quickchat', handleQuickChat);
+      socket.on('quickchat:cooldown', handleCooldown);
+      listenerSetup.current = true;
+
+      const listenerCount = socket.listeners('match:quickchat').length;
+      console.log('[QuickChat] Listeners attached. Count:', listenerCount);
+    };
+
+    setupListeners();
 
     return () => {
-      console.log('[QuickChat] Cleaning up listeners');
-      socket.off('match:quickchat', handleQuickChat);
-      socket.off('quickchat:cooldown', handleCooldown);
+      mounted = false;
+      if (retryTimeout) clearTimeout(retryTimeout);
+      
+      const socket = getSocket();
+      if (socket && listenerSetup.current) {
+        console.log('[QuickChat] Cleaning up listeners');
+        socket.off('match:quickchat', handleQuickChat);
+        socket.off('quickchat:cooldown', handleCooldown);
+        listenerSetup.current = false;
+      }
     };
-  }, [onChatReceived]);
+  }, [yourColor]); // Re-run if color changes (shouldn't happen but just in case)
 
   // Re-check socket connection periodically if not connected
   useEffect(() => {
