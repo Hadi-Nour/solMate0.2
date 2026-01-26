@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Get base URL from environment
-BASE_URL = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://solmate-auth.preview.emergentagent.com')
+BASE_URL = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://auth-revamp-16.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
 def print_test_header(test_name):

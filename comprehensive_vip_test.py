@@ -12,7 +12,7 @@ import jwt
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://solmate-auth.preview.emergentagent.com/api"
+BASE_URL = "https://auth-revamp-16.preview.emergentagent.com/api"
 JWT_SECRET = "your-super-secret-jwt-key-change-in-production"  # From .env
 HEADERS = {
     'Content-Type': 'application/json',

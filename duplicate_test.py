@@ -11,7 +11,7 @@ import base58
 from nacl.signing import SigningKey
 
 # Configuration
-BASE_URL = "https://solmate-auth.preview.emergentagent.com"
+BASE_URL = "https://auth-revamp-16.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 def test_duplicate_protection():
