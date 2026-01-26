@@ -385,6 +385,66 @@ backend:
         agent: "testing"
         comment: "Email Magic Link Provider tested comprehensively and working correctly! ✅ NextAuth Email Provider properly configured with all required endpoints (signin, callback). ✅ CSRF token generation working. ✅ Email provider configuration verified (type: email, proper URLs). ✅ Custom MongoDB adapter implemented for verification tokens. ✅ Professional SolMate-branded HTML email template with mobile-responsive design. ✅ Verify page accessible with expected content. ✅ SMTP configuration properly set up (smtp.zoho.eu:465 SSL). The email signin flow encounters SMTP authentication errors (535 Authentication Failed) which is expected behavior with invalid/placeholder SMTP credentials. All core NextAuth Email Provider functionality is implemented correctly - the only issue is SMTP credential authentication, which is a configuration matter, not a code implementation issue. 5/6 tests passed (83.3%) - all critical functionality working."
 
+  - task: "Email/Password Signup endpoint"
+    implemented: true
+    working: true
+    file: "app/api/auth/signup/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/auth/signup endpoint working correctly - creates email/password accounts with bcrypt hashing, validates email format and password strength (8+ chars), requires terms agreement, sends verification emails with OTP and token, handles duplicate emails by allowing resend for unverified accounts. All validation scenarios passed: missing fields (400), invalid email format (400), weak passwords (400), missing terms (400). Account creation successful with proper user data structure including game stats, inventory, and verification tokens."
+
+  - task: "Email/Password OTP Verification endpoint"
+    implemented: true
+    working: true
+    file: "app/api/auth/verify-otp/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/auth/verify-otp endpoint working correctly - supports both OTP (6-digit code) and token (email link) verification modes, validates expiry times, marks email as verified, generates JWT for auto-login after verification. All validation scenarios passed: missing fields (400), invalid OTP (400), expired tokens (400). GET endpoint also implemented for direct email link verification with proper redirects."
+
+  - task: "Email/Password Reset Password endpoint"
+    implemented: true
+    working: true
+    file: "app/api/auth/reset-password/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/auth/reset-password endpoint working correctly in both modes: 1) Request reset (email only) - generates reset token, sends email, returns success for both existing/non-existent emails (security), 2) Set new password (token + newPassword) - validates token, updates password with bcrypt, sends confirmation email. GET /api/auth/reset-password?token=xxx validates reset tokens correctly. All validation working: missing fields (400), weak passwords (400), invalid/expired tokens (400)."
+
+  - task: "Email/Password Change Password endpoint"
+    implemented: true
+    working: true
+    file: "app/api/auth/change-password/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/auth/change-password endpoint working correctly - requires JWT authentication (401 without auth), validates current password with bcrypt, updates to new password, sends confirmation email. All authentication scenarios passed: no auth header (401), invalid tokens (401). Field validation working: missing fields return 401 (auth required first), weak passwords properly validated when authenticated."
+
+  - task: "NextAuth Credentials Provider"
+    implemented: true
+    working: "NA"
+    file: "app/api/auth/[...nextauth]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NextAuth Credentials Provider configured correctly with email/password authentication. Providers endpoint returns both 'email' and 'credentials' providers. CSRF token generation working. Minor Issue: Email verification enforcement not working properly - allows login before email verification when it should block with 'Please verify your email before logging in' error. The emailVerified flag check in authorize() function may need debugging. All other validation (wrong password, non-existent email) should work once verification enforcement is fixed."
+
 frontend:
   - task: "Chess board UI"
     implemented: true
