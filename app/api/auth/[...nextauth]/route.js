@@ -125,12 +125,26 @@ async function connectToMongo() {
   await client.connect();
   db = client.db(process.env.DB_NAME || 'solmate');
   
-  // Create indexes
-  await db.collection('users').createIndex({ email: 1 }, { unique: true, sparse: true });
-  await db.collection('users').createIndex({ userId: 1 }, { unique: true });
-  await db.collection('verification_tokens').createIndex({ token: 1 }, { unique: true });
-  await db.collection('verification_tokens').createIndex({ identifier: 1 });
-  await db.collection('verification_tokens').createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
+  // Create indexes (ignore errors if indexes already exist with different options)
+  try {
+    await db.collection('users').createIndex({ email: 1 }, { unique: true, sparse: true });
+  } catch (e) { /* Index may already exist */ }
+  
+  try {
+    await db.collection('users').createIndex({ userId: 1 }, { unique: true, sparse: true });
+  } catch (e) { /* Index may already exist */ }
+  
+  try {
+    await db.collection('verification_tokens').createIndex({ token: 1 }, { unique: true });
+  } catch (e) { /* Index may already exist */ }
+  
+  try {
+    await db.collection('verification_tokens').createIndex({ identifier: 1 });
+  } catch (e) { /* Index may already exist */ }
+  
+  try {
+    await db.collection('verification_tokens').createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
+  } catch (e) { /* Index may already exist */ }
   
   return db;
 }
