@@ -1836,7 +1836,7 @@ export default function PlaySolMates() {
                             
                             // Listen for match found
                             socket.on('match:found', ({ matchId, yourColor, opponent, match }) => {
-                              toast.success('Friend joined! Starting match...');
+                              toast.success(t('play.friendJoined') || 'Friend joined! Starting match...');
                               setShowPrivateMatchDialog(false);
                               setGeneratedCode('');
                               setPrivateMatchWaiting(false);
