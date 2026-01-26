@@ -260,7 +260,7 @@ export default function SettingsModal({
                 >
                   <div className="flex items-center gap-3">
                     <Lock className="h-5 w-5 text-muted-foreground" />
-                    <span>Change Password</span>
+                    <span>{t('settings.changePassword') || 'Change Password'}</span>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
@@ -269,14 +269,14 @@ export default function SettingsModal({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Lock className="h-5 w-5 text-muted-foreground" />
-                      <Label>Change Password</Label>
+                      <Label>{t('settings.changePassword') || 'Change Password'}</Label>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={resetPasswordForm}
                     >
-                      Cancel
+                      {t('common.cancel') || 'Cancel'}
                     </Button>
                   </div>
                   
