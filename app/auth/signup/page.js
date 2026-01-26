@@ -235,9 +235,9 @@ function SignupContent() {
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                 <Mail className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Verify your email</CardTitle>
+              <CardTitle>{t('auth.verifyYourEmail')}</CardTitle>
               <CardDescription>
-                We sent a 6-digit code to <strong>{email}</strong>
+                {t('auth.weSentCode')} <strong>{email}</strong>
               </CardDescription>
             </CardHeader>
             
