@@ -274,7 +274,10 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('[Auth] Credentials authorize called with email:', credentials?.email);
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('[Auth] Missing credentials');
           throw new Error('Please enter email and password');
         }
 
@@ -283,23 +286,32 @@ export const authOptions = {
           email: credentials.email.toLowerCase() 
         });
 
+        console.log('[Auth] User found:', !!user, user?.emailVerified);
+
         if (!user) {
+          console.log('[Auth] No user found');
           throw new Error('No account found with this email');
         }
 
         if (!user.password) {
+          console.log('[Auth] User has no password (OAuth user)');
           throw new Error('Please login with the method you used to create your account');
         }
 
         if (!user.emailVerified) {
+          console.log('[Auth] Email not verified');
           throw new Error('Please verify your email before logging in');
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
+        console.log('[Auth] Password valid:', isValid);
+        
         if (!isValid) {
+          console.log('[Auth] Invalid password');
           throw new Error('Invalid password');
         }
 
+        console.log('[Auth] Login successful for:', user.email);
         return {
           id: user.userId,
           email: user.email,
