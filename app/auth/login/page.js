@@ -201,7 +201,7 @@ function LoginContent() {
                   disabled={loading}
                 >
                   {ProviderIcons.twitter}
-                  <span className="ml-2">Continue with X</span>
+                  <span className="ml-2">{t('login.continueWithX') || 'Continue with X'}</span>
                 </Button>
               )}
             </div>
@@ -209,14 +209,14 @@ function LoginContent() {
             <div className="relative">
               <Separator />
               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                or continue with email
+                {t('auth.orContinueEmail') || 'or continue with email'}
               </span>
             </div>
 
             {/* Email/Password Form */}
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email') || 'Email'}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -233,9 +233,9 @@ function LoginContent() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('auth.password') || 'Password'}</Label>
                   <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
-                    Forgot password?
+                    {t('auth.forgotPassword') || 'Forgot password?'}
                   </Link>
                 </div>
                 <div className="relative">
@@ -260,10 +260,10 @@ function LoginContent() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing in...
+                    {t('auth.signingIn') || 'Signing in...'}
                   </>
                 ) : (
-                  'Sign In'
+                  t('auth.signIn') || 'Sign In'
                 )}
               </Button>
             </form>
@@ -271,9 +271,9 @@ function LoginContent() {
 
           <CardFooter className="flex-col gap-4 pt-0">
             <p className="text-sm text-muted-foreground text-center">
-              Don't have an account?{' '}
+              {t('auth.noAccount') || "Don't have an account?"}{' '}
               <Link href="/auth/signup" className="text-primary hover:underline font-medium">
-                Sign up
+                {t('auth.signUp') || 'Sign up'}
               </Link>
             </p>
           </CardFooter>
