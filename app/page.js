@@ -2009,9 +2009,9 @@ export default function PlaySolMates() {
                   disabled={privateMatchWaiting || joinCode.length < 4}
                 >
                   {privateMatchWaiting ? (
-                    <><Loader2 className="w-5 h-5 me-2 animate-spin" />Joining...</>
+                    <><Loader2 className="w-5 h-5 me-2 animate-spin" />{t('play.creating')}</>
                   ) : (
-                    <><Users className="w-5 h-5 me-2" />Join Match</>
+                    <><Users className="w-5 h-5 me-2" />{t('play.joinMatch')}</>
                   )}
                 </Button>
               </div>
