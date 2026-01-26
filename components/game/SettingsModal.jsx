@@ -290,36 +290,36 @@ export default function SettingsModal({
                   {passwordSuccess && (
                     <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-2 text-green-500 text-xs">
                       <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
-                      Password changed successfully!
+                      {t('settings.passwordChanged')}
                     </div>
                   )}
                   
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Current Password</Label>
+                      <Label className="text-xs">{t('settings.currentPassword')}</Label>
                       <Input
                         type="password"
-                        placeholder="Enter current password"
+                        placeholder={t('settings.currentPassword')}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         className="h-9"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">New Password</Label>
+                      <Label className="text-xs">{t('settings.newPassword')}</Label>
                       <Input
                         type="password"
-                        placeholder="At least 8 characters"
+                        placeholder={t('auth.passwordPlaceholder')}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className="h-9"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Confirm New Password</Label>
+                      <Label className="text-xs">{t('settings.confirmPassword')}</Label>
                       <Input
                         type="password"
-                        placeholder="Confirm new password"
+                        placeholder={t('auth.confirmPasswordPlaceholder')}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="h-9"
@@ -332,11 +332,11 @@ export default function SettingsModal({
                     >
                       {changingPassword ? (
                         <>
-                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                          Changing...
+                          <Loader2 className="w-3 h-3 me-2 animate-spin" />
+                          {t('settings.changing')}
                         </>
                       ) : (
-                        'Change Password'
+                        t('settings.changePassword')
                       )}
                     </Button>
                   </div>
