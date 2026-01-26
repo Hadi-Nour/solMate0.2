@@ -101,6 +101,27 @@ function LoginContent() {
         
         setError(errorMap[errorMessage] || errorMessage);
       } else {
+        // Also get our custom JWT token for API calls
+        try {
+          const tokenRes = await fetch('/api/auth/get-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            if (tokenData.token) {
+              localStorage.setItem('solmate_token', tokenData.token);
+              if (tokenData.user) {
+                localStorage.setItem('user', JSON.stringify(tokenData.user));
+              }
+            }
+          }
+        } catch (tokenErr) {
+          console.warn('Failed to get custom token:', tokenErr);
+        }
+        
         toast.success('Signed in successfully!');
         router.push(callbackUrl);
       }
