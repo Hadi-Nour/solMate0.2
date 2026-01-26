@@ -124,7 +124,7 @@ function LoginContent() {
           console.warn('Failed to get custom token:', tokenErr);
         }
         
-        toast.success('Signed in successfully!');
+        toast.success(t('auth.signedInSuccess') || 'Signed in successfully!');
         router.push(callbackUrl);
       }
     } catch (err) {
