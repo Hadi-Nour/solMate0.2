@@ -1795,10 +1795,10 @@ export default function PlaySolMates() {
                       <label className="text-sm font-medium">{t('play.selectTime') || 'Select Time Control'}</label>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { id: 3, name: '3 min', icon: '⚡' },
-                          { id: 5, name: '5 min', icon: '🔥' },
-                          { id: 10, name: '10 min', icon: '⏱️' },
-                          { id: 0, name: 'No Timer', icon: '♾️' }
+                          { id: 3, name: t('timeControl.threeMin') || '3 min', icon: '⚡' },
+                          { id: 5, name: t('timeControl.fiveMin') || '5 min', icon: '🔥' },
+                          { id: 10, name: t('timeControl.tenMin') || '10 min', icon: '⏱️' },
+                          { id: 0, name: t('timeControl.noTimer') || 'No Timer', icon: '♾️' }
                         ].map((tc) => (
                           <Button
                             key={tc.id}
