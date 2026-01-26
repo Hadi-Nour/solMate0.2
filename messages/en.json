@@ -355,3 +355,27 @@
     "resending": "Resending..."
   },
   "play": {
+    "vsBot": "Play vs Bot",
+    "vsBotDesc": "Practice without rewards",
+    "playOnline": "Play Online",
+    "playOnlineDesc": "Play against real players - no rewards",
+    "findMatch": "Find Casual Match",
+    "signInRequired": "Please sign in to play online",
+    "privateMatch": "Private Match",
+    "privateMatchDesc": "Play with a friend using invite code",
+    "createPrivate": "Create Private Match",
+    "joinPrivate": "Join with Code",
+    "createPrivateDesc": "Share the code with a friend to play",
+    "joinPrivateDesc": "Enter the code shared by your friend",
+    "codeCreated": "Invite code created!",
+    "shareCode": "Share this code:",
+    "waitingForFriend": "Waiting for friend to join...",
+    "codeExpires": "Code expires in 10 minutes",
+    "enterCode": "Enter invite code",
+    "matchJoined": "Match joined!",
+    "selectTime": "Select Time Control",
+    "generateCode": "Generate Invite Code",
+    "creating": "Creating...",
+    "friendJoined": "Friend joined! Starting match..."
+  }
+}
