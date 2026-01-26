@@ -83,13 +83,13 @@ function SignupContent() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Verification code sent! Check your email.');
+        toast.success(t('auth.verificationCodeSent'));
         setStep('verify');
       } else {
-        setError(data.error || 'Failed to resend verification code');
+        setError(data.error || t('auth.failedToResend'));
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(t('auth.unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -102,19 +102,19 @@ function SignupContent() {
 
     // Validation
     if (!agreedToTerms) {
-      setError('You must agree to the Terms & Conditions');
+      setError(t('auth.mustAgreeTerms'));
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordsMustMatch'));
       setLoading(false);
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('auth.passwordMinLength'));
       setLoading(false);
       return;
     }
@@ -129,15 +129,15 @@ function SignupContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to create account');
+        setError(data.error || t('auth.unexpectedError'));
         return;
       }
 
       // Show OTP verification step
       setStep('verify');
-      toast.success('Verification code sent! Check your email.');
+      toast.success(t('auth.verificationCodeSent'));
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(t('auth.unexpectedError'));
     } finally {
       setLoading(false);
     }
