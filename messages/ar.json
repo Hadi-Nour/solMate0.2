@@ -146,6 +146,11 @@
     "desc": "افتح المكافآت والميزات الحصرية!",
     "rewardDesc": "فوز = صندوق برونزي! 5 انتصارات متتالية = فضي + ذهب!",
     "lifetime": "وصول مدى الحياة",
+    "playOnline": "العب VIP Arena أونلاين",
+    "orPlayBot": "أو العب ضد البوت",
+    "activated": "تم تفعيل VIP!",
+    "welcomeArena": "مرحباً بك في ساحة VIP",
+    "viewTransaction": "عرض المعاملة",
     "benefits": {
       "ranked": "مباريات VIP Arena المصنفة",
       "bronze": "صندوق برونزي مع كل فوز",
