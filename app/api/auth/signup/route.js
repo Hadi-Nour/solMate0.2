@@ -47,8 +47,64 @@ async function sendVerificationEmail(email, otp, token, displayName) {
 
 export async function POST(request) {
   try {
-    const { email, password, displayName, agreedToTerms } = await request.json();
+    const body = await request.json();
+    const { email, password, displayName, agreedToTerms, resendOnly } = body;
 
+    // Handle resend-only request (for unverified users redirected from login)
+    if (resendOnly && email) {
+      const db = await connectToMongo();
+      const normalizedEmail = email.toLowerCase();
+      const existingUser = await db.collection('users').findOne({ email: normalizedEmail });
+      
+      if (!existingUser) {
+        return NextResponse.json(
+          { error: 'No account found with this email' },
+          { status: 400 }
+        );
+      }
+      
+      if (existingUser.emailVerified) {
+        return NextResponse.json(
+          { error: 'Email already verified. Please login.' },
+          { status: 400 }
+        );
+      }
+      
+      // Generate new OTP and token
+      const otp = generateOTP();
+      const token = generateToken();
+      const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      
+      await db.collection('users').updateOne(
+        { email: normalizedEmail },
+        {
+          $set: {
+            verificationOtp: otp,
+            verificationToken: token,
+            verificationExpires: otpExpires,
+          }
+        }
+      );
+      
+      // Send verification email
+      const emailSent = await sendVerificationEmail(
+        normalizedEmail, 
+        otp, 
+        token, 
+        existingUser.displayName || normalizedEmail.split('@')[0]
+      );
+      
+      console.log(`[Signup] Resent verification to ${normalizedEmail}, emailSent: ${emailSent}`);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Verification code sent! Check your email.',
+        emailSent,
+        requiresVerification: true,
+      });
+    }
+
+    // Regular signup flow
     // Validation
     if (!email || !password) {
       return NextResponse.json(
