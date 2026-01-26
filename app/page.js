@@ -871,6 +871,15 @@ export default function PlaySolMates() {
                   )}
                 </div>
 
+                {/* Sign In with Email - immediately below wallet */}
+                <Button 
+                  className="w-full h-12 solana-gradient text-black font-semibold"
+                  onClick={() => window.location.href = '/auth/login'}
+                >
+                  <Mail className="w-5 h-5 me-2" />
+                  {t('login.signInWithEmail') || 'Sign In with Email'}
+                </Button>
+
                 <div className="relative">
                   <Separator />
                   <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
@@ -878,9 +887,8 @@ export default function PlaySolMates() {
                   </span>
                 </div>
 
-                {/* Email/Social Sign In */}
+                {/* Social Sign In */}
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">{t('login.emailSocial') || 'Email / Social'}</p>
                   <Button 
                     variant="outline" 
                     className="w-full h-12"
@@ -918,21 +926,13 @@ export default function PlaySolMates() {
 
                 <Separator />
 
-                {/* Clear Sign In button for existing users */}
+                {/* Create Account button - black, full width */}
                 <Button 
-                  className="w-full h-12 solana-gradient text-black font-semibold"
-                  onClick={() => window.location.href = '/auth/login'}
-                >
-                  <Mail className="w-5 h-5 me-2" />
-                  {t('login.signInWithEmail') || 'Sign In with Email'}
-                </Button>
-
-                <Button 
-                  variant="ghost" 
-                  className="w-full"
+                  className="w-full h-12 bg-black hover:bg-gray-900 text-white font-semibold"
                   onClick={() => window.location.href = '/auth/signup'}
                 >
-                  {t('login.createAccount') || 'Create an account with email'}
+                  <User className="w-5 h-5 me-2" />
+                  {t('login.createAccountButton') || 'Create Account with Email'}
                 </Button>
               </CardContent>
             </Card>
