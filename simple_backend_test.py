@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://auth-revamp-16.preview.emergentagent.com"
+BASE_URL = "https://auth-revamp-17.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class SimpleAPITester:

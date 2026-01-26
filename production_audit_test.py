@@ -24,7 +24,7 @@ import random
 import string
 
 # Configuration
-BASE_URL = "https://auth-revamp-16.preview.emergentagent.com"
+BASE_URL = "https://auth-revamp-17.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ProductionAuditTester:
