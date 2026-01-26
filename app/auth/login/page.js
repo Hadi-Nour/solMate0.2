@@ -140,7 +140,7 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -151,13 +151,13 @@ function LoginContent() {
             <span className="text-4xl">♟️</span>
             <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
-          <p className="text-muted-foreground mt-2">{t('auth.signInTagline') || 'Sign in to play chess on Solana'}</p>
+          <p className="text-muted-foreground mt-2">{t('auth.signInTagline')}</p>
         </div>
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
           <CardHeader className="pb-4">
-            <CardTitle>{t('auth.welcomeBack') || 'Welcome back'}</CardTitle>
-            <CardDescription>{t('auth.signInDesc') || 'Sign in to your account to continue'}</CardDescription>
+            <CardTitle>{t('auth.welcomeBack')}</CardTitle>
+            <CardDescription>{t('auth.signInDesc')}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
