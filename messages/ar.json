@@ -77,7 +77,11 @@
     "codeExpires": "ينتهي الرمز خلال 10 دقائق",
     "enterCode": "أدخل رمز الدعوة",
     "matchJoined": "تم الانضمام للمباراة!",
-    "selectTime": "اختر التحكم بالوقت"
+    "selectTime": "اختر التحكم بالوقت",
+    "generateCode": "إنشاء رمز الدعوة",
+    "creating": "جاري الإنشاء...",
+    "friendJoined": "انضم الصديق! بدء المباراة...",
+    "joinMatch": "انضمام للمباراة"
   },
   "difficulty": {
     "easy": "سهل",
