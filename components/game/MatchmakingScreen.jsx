@@ -9,13 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Globe, Crown, Clock, Users, X, Wifi, Loader2 } from 'lucide-react';
 import { connectSocket, getSocket, joinQueue, leaveQueue } from '@/lib/socket/client';
 import { toast } from 'sonner';
-
-const TIME_CONTROLS = [
-  { id: 3, name: '3 min', desc: 'Bullet', icon: '⚡' },
-  { id: 5, name: '5 min', desc: 'Blitz', icon: '🔥' },
-  { id: 10, name: '10 min', desc: 'Rapid', icon: '⏱️' },
-  { id: 0, name: 'No Timer', desc: 'Unlimited', icon: '♾️' },
-];
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function MatchmakingScreen({ 
   authToken, 
@@ -23,6 +17,7 @@ export default function MatchmakingScreen({
   onMatchFound, 
   onCancel 
 }) {
+  const { t } = useI18n();
   const [selectedTime, setSelectedTime] = useState(null);
   const [isVipArena, setIsVipArena] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -30,6 +25,14 @@ export default function MatchmakingScreen({
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef(null);
   const timerRef = useRef(null);
+
+  // Time controls with translations
+  const TIME_CONTROLS = [
+    { id: 3, name: t('timeControl.threeMin') || '3 min', desc: t('timeControl.bullet') || 'Bullet', icon: '⚡' },
+    { id: 5, name: t('timeControl.fiveMin') || '5 min', desc: t('timeControl.blitz') || 'Blitz', icon: '🔥' },
+    { id: 10, name: t('timeControl.tenMin') || '10 min', desc: t('timeControl.rapid') || 'Rapid', icon: '⏱️' },
+    { id: 0, name: t('timeControl.noTimer') || 'No Timer', desc: t('timeControl.unlimited') || 'Unlimited', icon: '♾️' },
+  ];
 
   useEffect(() => {
     // Connect socket
@@ -48,7 +51,7 @@ export default function MatchmakingScreen({
 
     const handleQueueJoined = ({ timeControl, isVipArena: vip, position }) => {
       setIsSearching(true);
-      toast.success(`Searching for ${vip ? 'VIP Arena' : 'casual'} match...`);
+      toast.success(t('matchmaking.searching') || `Searching for ${vip ? 'VIP Arena' : 'casual'} match...`);
     };
 
     const handleQueueLeft = () => {
@@ -59,7 +62,7 @@ export default function MatchmakingScreen({
     const handleMatchFound = ({ matchId, yourColor, opponent, match }) => {
       setIsSearching(false);
       setSearchTime(0);
-      toast.success('Match found!');
+      toast.success(t('matchmaking.found') || 'Match found!');
       onMatchFound({ matchId, yourColor, opponent, match });
     };
 
@@ -75,13 +78,12 @@ export default function MatchmakingScreen({
     socket.on('match:found', handleMatchFound);
     socket.on('error', handleError);
 
-    // Check if already connected - use initialization instead of setState in effect body
+    // Check if already connected
     const checkInitialConnection = () => {
       if (socket.connected) {
         handleConnect();
       }
     };
-    // Defer to avoid setState during render
     const timeoutId = setTimeout(checkInitialConnection, 0);
 
     return () => {
@@ -97,7 +99,7 @@ export default function MatchmakingScreen({
         clearInterval(timerRef.current);
       }
     };
-  }, [authToken, onMatchFound]);
+  }, [authToken, onMatchFound, t]);
 
   useEffect(() => {
     if (isSearching) {
@@ -118,11 +120,11 @@ export default function MatchmakingScreen({
 
   const handleStartSearch = (timeControl, vip) => {
     if (!isConnected) {
-      toast.error('Not connected to server');
+      toast.error(t('matchmaking.notConnected') || 'Not connected to server');
       return;
     }
     if (vip && !isVip) {
-      toast.error('VIP membership required');
+      toast.error(t('matchmaking.vipRequired') || 'VIP membership required');
       return;
     }
     
@@ -162,10 +164,10 @@ export default function MatchmakingScreen({
             </div>
             <CardTitle className="flex items-center justify-center gap-2">
               <Globe className="h-5 w-5" />
-              Finding Opponent...
+              {t('matchmaking.findingOpponent') || 'Finding Opponent...'}
             </CardTitle>
             <CardDescription>
-              {isVipArena ? 'VIP Arena' : 'Casual'} • {selectedTime} min
+              {isVipArena ? (t('vip.title') || 'VIP Arena') : (t('matchmaking.casual') || 'Casual')} • {selectedTime} {t('common.min') || 'min'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -175,12 +177,12 @@ export default function MatchmakingScreen({
             
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Wifi className="h-4 w-4 text-green-500" />
-              <span>Connected to server</span>
+              <span>{t('matchmaking.connected') || 'Connected to server'}</span>
             </div>
             
             <Button variant="outline" className="w-full" onClick={handleCancelSearch}>
               <X className="h-4 w-4 mr-2" />
-              Cancel Search
+              {t('matchmaking.cancelSearch') || 'Cancel Search'}
             </Button>
           </CardContent>
         </Card>
@@ -200,7 +202,7 @@ export default function MatchmakingScreen({
         <Button variant="ghost" size="icon" onClick={onCancel}>
           <X className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold">Play Online</h1>
+        <h1 className="text-xl font-bold">{t('play.playOnline') || 'Play Online'}</h1>
         <div className="flex items-center gap-1">
           {isConnected ? (
             <Wifi className="h-4 w-4 text-green-500" />
@@ -215,10 +217,10 @@ export default function MatchmakingScreen({
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-blue-500" />
-            Casual Match
-            <Badge variant="secondary" className="text-[10px]">Free</Badge>
+            {t('matchmaking.casualMatch') || 'Casual Match'}
+            <Badge variant="secondary" className="text-[10px]">{t('common.free') || 'Free'}</Badge>
           </CardTitle>
-          <CardDescription>Play against real players - no rewards</CardDescription>
+          <CardDescription>{t('matchmaking.casualDesc') || 'Play against real players - no rewards'}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2">
@@ -247,11 +249,11 @@ export default function MatchmakingScreen({
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-yellow-500" />
-            VIP Arena
-            <Badge className="bg-yellow-500/20 text-yellow-500 text-[10px]">Ranked</Badge>
+            {t('vip.title') || 'VIP Arena'}
+            <Badge className="bg-yellow-500/20 text-yellow-500 text-[10px]">{t('game.ranked') || 'Ranked'}</Badge>
           </CardTitle>
           <CardDescription>
-            {isVip ? 'Compete for rewards and climb the leaderboard!' : 'VIP membership required'}
+            {isVip ? (t('matchmaking.vipDesc') || 'Compete for rewards and climb the leaderboard!') : (t('matchmaking.vipRequired') || 'VIP membership required')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -275,7 +277,7 @@ export default function MatchmakingScreen({
           ) : (
             <div className="text-center py-4">
               <Crown className="h-12 w-12 text-yellow-500/50 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Unlock VIP for ranked matches with rewards</p>
+              <p className="text-sm text-muted-foreground">{t('matchmaking.unlockVip') || 'Unlock VIP for ranked matches with rewards'}</p>
             </div>
           )}
         </CardContent>
@@ -283,8 +285,8 @@ export default function MatchmakingScreen({
 
       {/* Info */}
       <div className="mt-6 text-center text-sm text-muted-foreground">
-        <p className="mb-1">🏆 VIP wins earn Bronze Chests</p>
-        <p>🔥 5-win streak = Silver Chest + Gold Point</p>
+        <p className="mb-1">🏆 {t('matchmaking.vipWinsChests') || 'VIP wins earn Bronze Chests'}</p>
+        <p>🔥 {t('matchmaking.streakBonus') || '5-win streak = Silver Chest + Gold Point'}</p>
       </div>
     </motion.div>
   );
