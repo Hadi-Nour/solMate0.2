@@ -93,7 +93,27 @@
     "bullet": "بوليت",
     "blitz": "بليتز",
     "rapid": "سريع",
-    "unlimited": "بلا حدود"
+    "unlimited": "بلا حدود",
+    "threeMin": "3 دقائق",
+    "fiveMin": "5 دقائق",
+    "tenMin": "10 دقائق",
+    "noTimer": "بدون مؤقت"
+  },
+  "matchmaking": {
+    "casualMatch": "مباراة ودية",
+    "casualDesc": "العب ضد لاعبين حقيقيين - بدون مكافآت",
+    "vipDesc": "تنافس للحصول على مكافآت وتسلق لوحة الصدارة!",
+    "vipRequired": "عضوية VIP مطلوبة",
+    "unlockVip": "افتح VIP للمباريات المصنفة مع المكافآت",
+    "findingOpponent": "البحث عن خصم...",
+    "searching": "جاري البحث عن مباراة...",
+    "found": "تم العثور على مباراة!",
+    "connected": "متصل بالخادم",
+    "notConnected": "غير متصل بالخادم",
+    "cancelSearch": "إلغاء البحث",
+    "casual": "ودية",
+    "vipWinsChests": "انتصارات VIP تمنحك صناديق برونزية",
+    "streakBonus": "5 انتصارات متتالية = صندوق فضي + نقطة ذهبية"
   },
   "game": {
     "yourTurn": "دورك",
