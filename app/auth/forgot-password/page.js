@@ -9,9 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const { t, direction } = useI18n();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,10 +36,10 @@ export default function ForgotPasswordPage() {
       if (response.ok) {
         setSuccess(true);
       } else {
-        setError(data.error || 'Failed to send reset email');
+        setError(data.error || t('auth.unexpectedError'));
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(t('auth.unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +48,7 @@ export default function ForgotPasswordPage() {
   // Success state
   if (success) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -64,16 +66,16 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-500" />
               </div>
-              <CardTitle>Check your email</CardTitle>
+              <CardTitle>{t('auth.checkYourEmail')}</CardTitle>
               <CardDescription>
-                If an account exists with <strong>{email}</strong>, you'll receive a password reset link.
+                {t('auth.ifAccountExists').replace('{email}', email)}
               </CardDescription>
             </CardHeader>
             
             <CardContent className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-                <p>The link will expire in <strong>1 hour</strong>.</p>
-                <p className="mt-2">Can't find the email? Check your spam folder.</p>
+                <p>{t('auth.linkExpiresIn')} <strong>{t('auth.oneHour')}</strong>.</p>
+                <p className="mt-2">{t('auth.cantFindEmail')}</p>
               </div>
 
               <Button
@@ -81,8 +83,8 @@ export default function ForgotPasswordPage() {
                 className="w-full"
                 onClick={() => router.push('/auth/login')}
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Sign In
+                <ArrowLeft className="w-4 h-4 me-2" />
+                {t('auth.backToSignIn')}
               </Button>
             </CardContent>
           </Card>
@@ -93,7 +95,7 @@ export default function ForgotPasswordPage() {
 
   // Form state
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -104,14 +106,14 @@ export default function ForgotPasswordPage() {
             <span className="text-4xl">♟️</span>
             <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
-          <p className="text-muted-foreground mt-2">Reset your password</p>
+          <p className="text-muted-foreground mt-2">{t('auth.resetYourPassword')}</p>
         </div>
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
           <CardHeader className="pb-4">
-            <CardTitle>Forgot password?</CardTitle>
+            <CardTitle>{t('auth.forgotPasswordTitle')}</CardTitle>
             <CardDescription>
-              Enter your email and we'll send you a link to reset your password.
+              {t('auth.forgotPasswordDesc')}
             </CardDescription>
           </CardHeader>
 
@@ -125,7 +127,7 @@ export default function ForgotPasswordPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -134,7 +136,7 @@ export default function ForgotPasswordPage() {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="ps-10"
                     required
                   />
                 </div>
@@ -147,11 +149,11 @@ export default function ForgotPasswordPage() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
+                    <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                    {t('auth.sendingResetLink')}
                   </>
                 ) : (
-                  'Send Reset Link'
+                  t('auth.sendResetLinkBtn')
                 )}
               </Button>
             </form>
@@ -163,8 +165,8 @@ export default function ForgotPasswordPage() {
               className="w-full"
               onClick={() => router.push('/auth/login')}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Sign In
+              <ArrowLeft className="w-4 h-4 me-2" />
+              {t('auth.backToSignIn')}
             </Button>
           </CardFooter>
         </Card>
