@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import { jwtVerify } from 'jose';
-import nodemailer from 'nodemailer';
+import { sendEmail, emailTemplates } from '@/lib/email/transporter';
 
 // MongoDB connection
 let client;
@@ -38,49 +38,17 @@ async function getAuthUser(request) {
   }
 }
 
-// Email transporter
-function getEmailTransporter() {
-  const host = process.env.SMTP_HOST;
-  if (!host || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
-  
-  return nodemailer.createTransport({
-    host,
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: parseInt(process.env.SMTP_PORT || '465') === 465,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-}
-
 // Send password changed confirmation
 async function sendPasswordChangedEmail(email, displayName) {
-  const transporter = getEmailTransporter();
-  if (!transporter) return false;
+  const template = emailTemplates.passwordChanged(displayName);
+  const result = await sendEmail({
+    to: email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
   
-  const emailFrom = process.env.EMAIL_FROM || `PlaySolMates <${process.env.SMTP_USER}>`;
-
-  try {
-    await transporter.sendMail({
-      from: emailFrom,
-      to: email,
-      subject: '✅ Your PlaySolMates password was changed',
-      html: `
-        <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #fff; border-radius: 12px;">
-          <h2>Password Changed</h2>
-          <p>Hi ${displayName}, your password has been changed successfully.</p>
-          <p style="color: #ef4444; font-size: 14px;">If you didn't make this change, please contact us immediately.</p>
-          <p style="color: #888; font-size: 12px; margin-top: 20px;">© PlaySolMates</p>
-        </div>
-      `,
-      text: `Hi ${displayName}, your PlaySolMates password has been changed. If you didn't make this change, please contact us immediately.`,
-    });
-    return true;
-  } catch (error) {
-    console.error('[Email] Failed to send confirmation:', error);
-    return false;
-  }
+  return result.success;
 }
 
 export async function POST(request) {
