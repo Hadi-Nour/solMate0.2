@@ -93,7 +93,27 @@
     "bullet": "超快棋",
     "blitz": "快棋",
     "rapid": "慢棋",
-    "unlimited": "无限时"
+    "unlimited": "无限时",
+    "threeMin": "3分钟",
+    "fiveMin": "5分钟",
+    "tenMin": "10分钟",
+    "noTimer": "无计时"
+  },
+  "matchmaking": {
+    "casualMatch": "休闲对局",
+    "casualDesc": "与真人玩家对战 - 无奖励",
+    "vipDesc": "争夺奖励，攀登排行榜！",
+    "vipRequired": "需要VIP会员",
+    "unlockVip": "解锁VIP享受带奖励的排位赛",
+    "findingOpponent": "寻找对手中...",
+    "searching": "正在搜索对局...",
+    "found": "找到对局！",
+    "connected": "已连接服务器",
+    "notConnected": "未连接服务器",
+    "cancelSearch": "取消搜索",
+    "casual": "休闲",
+    "vipWinsChests": "VIP胜利可获得青铜宝箱",
+    "streakBonus": "5连胜 = 白银宝箱 + 金币点数"
   },
   "game": {
     "yourTurn": "轮到你了",
