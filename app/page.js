@@ -1900,7 +1900,7 @@ export default function PlaySolMates() {
                     </div>
 
                     <div className="text-center text-xs text-muted-foreground">
-                      <Badge variant="outline">{privateTimeControl === 0 ? 'No Timer' : `${privateTimeControl} min`}</Badge>
+                      <Badge variant="outline">{privateTimeControl === 0 ? (t('timeControl.noTimer') || 'No Timer') : `${privateTimeControl} ${t('common.min') || 'min'}`}</Badge>
                     </div>
 
                     <p className="text-xs text-muted-foreground text-center">
