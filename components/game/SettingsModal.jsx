@@ -59,12 +59,12 @@ export default function SettingsModal({
     setPasswordSuccess(false);
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError(t('auth.passwordsMustMatch') || 'Passwords do not match');
       return;
     }
 
     if (newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
+      setPasswordError(t('auth.passwordMinLength') || 'Password must be at least 8 characters');
       return;
     }
 
@@ -87,16 +87,16 @@ export default function SettingsModal({
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
-        toast.success('Password changed successfully!');
+        toast.success(t('settings.passwordChanged') || 'Password changed successfully!');
         setTimeout(() => {
           setShowChangePassword(false);
           setPasswordSuccess(false);
         }, 2000);
       } else {
-        setPasswordError(data.error || 'Failed to change password');
+        setPasswordError(data.error || t('auth.unexpectedError') || 'Failed to change password');
       }
     } catch (err) {
-      setPasswordError('An unexpected error occurred');
+      setPasswordError(t('auth.unexpectedError') || 'An unexpected error occurred');
     } finally {
       setChangingPassword(false);
     }
