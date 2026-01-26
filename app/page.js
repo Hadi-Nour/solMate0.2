@@ -1642,8 +1642,8 @@ export default function PlaySolMates() {
                   {paymentState === PAYMENT_STATES.SUCCESS && (
                     <>
                       <CheckCircle2 className="w-12 h-12 text-green-500" />
-                      <p className="font-medium text-green-500">VIP Activated!</p>
-                      <p className="text-xs text-muted-foreground">Welcome to the VIP Arena</p>
+                      <p className="font-medium text-green-500">{t('vip.activated') || 'VIP Activated!'}</p>
+                      <p className="text-xs text-muted-foreground">{t('vip.welcomeArena') || 'Welcome to the VIP Arena'}</p>
                       {txSignature && (
                         <a 
                           href={`https://explorer.solana.com/tx/${txSignature}?cluster=${paymentConfig.cluster}`}
@@ -1651,7 +1651,7 @@ export default function PlaySolMates() {
                           rel="noopener noreferrer"
                           className="text-xs text-primary flex items-center gap-1 hover:underline"
                         >
-                          View transaction <ExternalLink className="w-3 h-3" />
+                          {t('vip.viewTransaction') || 'View transaction'} <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                     </>
