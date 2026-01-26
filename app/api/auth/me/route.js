@@ -75,8 +75,9 @@ export async function GET(request) {
 
     const payload = await verifyToken(token);
     
-    if (!payload?.wallet) {
-      console.log('[Auth/Me] Invalid token');
+    // Support both wallet-based and email-based authentication
+    if (!payload?.wallet && !payload?.sub && !payload?.email) {
+      console.log('[Auth/Me] Invalid token - no wallet, sub, or email');
       return handleCORS(NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -84,17 +85,30 @@ export async function GET(request) {
     }
 
     const db = await connectToMongo();
-    const user = await db.collection('users').findOne({ wallet: payload.wallet });
+    let user;
+    
+    // Try to find user by wallet first (for wallet auth)
+    if (payload.wallet) {
+      user = await db.collection('users').findOne({ wallet: payload.wallet });
+    }
+    // Fall back to userId (sub) for email auth
+    else if (payload.sub) {
+      user = await db.collection('users').findOne({ userId: payload.sub });
+    }
+    // Fall back to email for email auth
+    else if (payload.email) {
+      user = await db.collection('users').findOne({ email: payload.email.toLowerCase() });
+    }
     
     if (!user) {
-      console.log('[Auth/Me] User not found for wallet:', payload.wallet);
+      console.log('[Auth/Me] User not found for:', payload.wallet || payload.sub || payload.email);
       return handleCORS(NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       ));
     }
 
-    console.log('[Auth/Me] User found:', user.wallet, 'email:', user.email || 'none');
+    console.log('[Auth/Me] User found:', user.wallet || user.email, 'email:', user.email || 'none');
 
     return handleCORS(NextResponse.json({
       user: {
