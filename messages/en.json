@@ -146,6 +146,11 @@
     "desc": "Unlock rewards and exclusive features!",
     "rewardDesc": "Win = Bronze Chest! 5-streak = Silver + Gold!",
     "lifetime": "Lifetime Access",
+    "playOnline": "Play VIP Arena Online",
+    "orPlayBot": "or play vs bot",
+    "activated": "VIP Activated!",
+    "welcomeArena": "Welcome to the VIP Arena",
+    "viewTransaction": "View transaction",
     "benefits": {
       "ranked": "VIP Arena ranked matches",
       "bronze": "Bronze Chest on every win",
