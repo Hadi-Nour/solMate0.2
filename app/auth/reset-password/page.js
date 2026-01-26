@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Loader2, AlertCircle, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/provider';
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, direction } = useI18n();
   const token = searchParams.get('token');
 
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ function ResetPasswordContent() {
   useEffect(() => {
     if (!token) {
       setValidating(false);
-      setError('No reset token provided');
+      setError(t('auth.noResetToken'));
       return;
     }
 
@@ -41,29 +43,29 @@ function ResetPasswordContent() {
           setTokenValid(true);
           setUserEmail(data.email);
         } else {
-          setError(data.error || 'Invalid or expired reset link');
+          setError(data.error || t('auth.resetLinkExpired'));
         }
       } catch (err) {
-        setError('Failed to validate reset link');
+        setError(t('auth.unexpectedError'));
       } finally {
         setValidating(false);
       }
     };
 
     validateToken();
-  }, [token]);
+  }, [token, t]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordsMustMatch'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('auth.passwordMinLength'));
       return;
     }
 
@@ -81,10 +83,10 @@ function ResetPasswordContent() {
       if (response.ok) {
         setSuccess(true);
       } else {
-        setError(data.error || 'Failed to reset password');
+        setError(data.error || t('auth.unexpectedError'));
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(t('auth.unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -93,14 +95,14 @@ function ResetPasswordContent() {
   // Loading state
   if (validating) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center"
         >
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Validating reset link...</p>
+          <p className="text-muted-foreground">{t('auth.validatingLink')}</p>
         </motion.div>
       </div>
     );
@@ -109,7 +111,7 @@ function ResetPasswordContent() {
   // Invalid token state
   if (!tokenValid && !validating) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -127,9 +129,9 @@ function ResetPasswordContent() {
               <div className="mx-auto w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mb-4">
                 <XCircle className="w-8 h-8 text-destructive" />
               </div>
-              <CardTitle>Invalid Reset Link</CardTitle>
+              <CardTitle>{t('auth.invalidResetLink')}</CardTitle>
               <CardDescription>
-                {error || 'This password reset link is invalid or has expired.'}
+                {error || t('auth.resetLinkExpired')}
               </CardDescription>
             </CardHeader>
             
@@ -138,15 +140,15 @@ function ResetPasswordContent() {
                 className="w-full"
                 onClick={() => router.push('/auth/forgot-password')}
               >
-                Request New Reset Link
+                {t('auth.requestNewLink')}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full"
                 onClick={() => router.push('/auth/login')}
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Sign In
+                <ArrowLeft className="w-4 h-4 me-2" />
+                {t('auth.backToSignIn')}
               </Button>
             </CardContent>
           </Card>
@@ -158,7 +160,7 @@ function ResetPasswordContent() {
   // Success state
   if (success) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -176,9 +178,9 @@ function ResetPasswordContent() {
               <div className="mx-auto w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-500" />
               </div>
-              <CardTitle>Password Changed!</CardTitle>
+              <CardTitle>{t('auth.passwordChangedTitle')}</CardTitle>
               <CardDescription>
-                Your password has been reset successfully. You can now sign in with your new password.
+                {t('auth.passwordChangedSuccess')}
               </CardDescription>
             </CardHeader>
             
@@ -187,7 +189,7 @@ function ResetPasswordContent() {
                 className="w-full h-11 solana-gradient text-black font-semibold"
                 onClick={() => router.push('/auth/login')}
               >
-                Sign In Now
+                {t('auth.signInNow')}
               </Button>
             </CardContent>
           </Card>
@@ -198,7 +200,7 @@ function ResetPasswordContent() {
 
   // Form state
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -209,14 +211,14 @@ function ResetPasswordContent() {
             <span className="text-4xl">♟️</span>
             <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
-          <p className="text-muted-foreground mt-2">Create a new password</p>
+          <p className="text-muted-foreground mt-2">{t('auth.createNewPassword')}</p>
         </div>
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
           <CardHeader className="pb-4">
-            <CardTitle>Reset Password</CardTitle>
+            <CardTitle>{t('auth.resetPassword')}</CardTitle>
             <CardDescription>
-              Enter a new password for <strong>{userEmail}</strong>
+              {t('auth.enterNewPasswordFor')} <strong>{userEmail}</strong>
             </CardDescription>
           </CardHeader>
 
@@ -230,16 +232,16 @@ function ResetPasswordContent() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
+                <Label htmlFor="password">{t('auth.newPasswordLabel')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="At least 8 characters"
+                    placeholder={t('auth.newPasswordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="ps-10"
                     required
                     minLength={8}
                   />
@@ -247,16 +249,16 @@ function ResetPasswordContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">{t('auth.confirmPasswordLabel')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder={t('auth.confirmNewPasswordPlaceholder')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10"
+                    className="ps-10"
                     required
                   />
                 </div>
@@ -269,11 +271,11 @@ function ResetPasswordContent() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Resetting...
+                    <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                    {t('auth.resettingPassword')}
                   </>
                 ) : (
-                  'Reset Password'
+                  t('auth.resetPasswordButton')
                 )}
               </Button>
             </form>
@@ -285,8 +287,8 @@ function ResetPasswordContent() {
               className="w-full"
               onClick={() => router.push('/auth/login')}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Sign In
+              <ArrowLeft className="w-4 h-4 me-2" />
+              {t('auth.backToSignIn')}
             </Button>
           </CardFooter>
         </Card>
@@ -296,6 +298,8 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useI18n();
+  
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-background flex items-center justify-center">
