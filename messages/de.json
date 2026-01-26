@@ -77,7 +77,11 @@
     "codeExpires": "Code läuft in 10 Minuten ab",
     "enterCode": "Einladungscode eingeben",
     "matchJoined": "Spiel beigetreten!",
-    "selectTime": "Zeitkontrolle wählen"
+    "selectTime": "Zeitkontrolle wählen",
+    "generateCode": "Einladungscode generieren",
+    "creating": "Erstellen...",
+    "friendJoined": "Freund beigetreten! Spiel startet...",
+    "joinMatch": "Spiel beitreten"
   },
   "difficulty": {
     "easy": "Leicht",
