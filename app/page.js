@@ -768,6 +768,8 @@ export default function PlaySolMates() {
           onOpenChange={setShowSettings}
           settings={settings}
           onSettingsChange={setSettings}
+          authToken={authToken}
+          user={user}
         />
         
         <GameResultModal 
@@ -953,6 +955,8 @@ export default function PlaySolMates() {
           onOpenChange={setShowSettings}
           settings={settings}
           onSettingsChange={setSettings}
+          authToken={authToken}
+          user={user}
         />
       </div>
     );
