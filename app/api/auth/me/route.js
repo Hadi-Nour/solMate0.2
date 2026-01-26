@@ -94,12 +94,14 @@ export async function GET(request) {
       ));
     }
 
-    console.log('[Auth/Me] User found:', user.wallet);
+    console.log('[Auth/Me] User found:', user.wallet, 'email:', user.email || 'none');
 
     return handleCORS(NextResponse.json({
       user: {
         id: user.id,
         wallet: user.wallet,
+        email: user.email || null,
+        provider: user.provider || null,
         displayName: user.displayName || null,
         friendCode: user.friendCode,
         isVip: user.isVip,
