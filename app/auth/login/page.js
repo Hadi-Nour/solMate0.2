@@ -10,8 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, Loader2, AlertCircle, Sparkles, KeyRound } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 // OAuth provider icons
@@ -41,12 +40,9 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [error, setError] = useState('');
   const [providers, setProviders] = useState(null);
-  const [loginMethod, setLoginMethod] = useState('magic'); // 'magic' or 'password'
 
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const errorParam = searchParams.get('error');
@@ -63,7 +59,6 @@ function LoginContent() {
         'EmailCreateAccount': 'Error creating email account',
         'Callback': 'Error during callback',
         'OAuthAccountNotLinked': 'This email is already linked to another account',
-        'EmailSignin': 'Error sending magic link email',
         'default': 'An error occurred during sign in',
       };
       setError(errorMessages[errorParam] || errorMessages.default);
@@ -92,31 +87,6 @@ function LoginContent() {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleMagicLinkLogin = async (e) => {
-    e.preventDefault();
-    setMagicLinkLoading(true);
-    setError('');
-
-    try {
-      const result = await signIn('email', {
-        email: magicLinkEmail,
-        redirect: false,
-        callbackUrl,
-      });
-
-      if (result?.error) {
-        setError(result.error);
-      } else if (result?.url) {
-        // Redirect to verify page
-        router.push('/auth/verify');
-      }
-    } catch (err) {
-      setError('Failed to send magic link. Please try again.');
-    } finally {
-      setMagicLinkLoading(false);
     }
   };
 
@@ -162,7 +132,7 @@ function LoginContent() {
                   variant="outline"
                   className="w-full h-11"
                   onClick={() => handleOAuthLogin('google')}
-                  disabled={loading || magicLinkLoading}
+                  disabled={loading}
                 >
                   {ProviderIcons.google}
                   <span className="ml-2">Continue with Google</span>
@@ -173,7 +143,7 @@ function LoginContent() {
                   variant="outline"
                   className="w-full h-11"
                   onClick={() => handleOAuthLogin('facebook')}
-                  disabled={loading || magicLinkLoading}
+                  disabled={loading}
                 >
                   {ProviderIcons.facebook}
                   <span className="ml-2">Continue with Facebook</span>
@@ -184,7 +154,7 @@ function LoginContent() {
                   variant="outline"
                   className="w-full h-11"
                   onClick={() => handleOAuthLogin('twitter')}
-                  disabled={loading || magicLinkLoading}
+                  disabled={loading}
                 >
                   {ProviderIcons.twitter}
                   <span className="ml-2">Continue with X</span>
@@ -199,118 +169,60 @@ function LoginContent() {
               </span>
             </div>
 
-            {/* Email Login Tabs */}
-            <Tabs value={loginMethod} onValueChange={setLoginMethod} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="magic" className="text-xs">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Magic Link
-                </TabsTrigger>
-                <TabsTrigger value="password" className="text-xs">
-                  <KeyRound className="w-3 h-3 mr-1" />
-                  Password
-                </TabsTrigger>
-              </TabsList>
+            {/* Email/Password Form */}
+            <form onSubmit={handleEmailLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
 
-              {/* Magic Link Tab */}
-              <TabsContent value="magic" className="space-y-4 mt-4">
-                <form onSubmit={handleMagicLinkLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="magic-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="magic-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={magicLinkEmail}
-                        onChange={(e) => setMagicLinkEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      We'll send you a magic link to sign in instantly. No password needed!
-                    </p>
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full h-11 solana-gradient text-black font-semibold"
-                    disabled={magicLinkLoading || loading}
-                  >
-                    {magicLinkLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Sending magic link...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Send Magic Link
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              {/* Password Tab */}
-              <TabsContent value="password" className="space-y-4 mt-4">
-                <form onSubmit={handleEmailLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Password</Label>
-                      <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full h-11 solana-gradient text-black font-semibold"
-                    disabled={loading || magicLinkLoading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In'
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+              <Button
+                type="submit"
+                className="w-full h-11 solana-gradient text-black font-semibold"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </form>
           </CardContent>
 
           <CardFooter className="flex-col gap-4 pt-0">
