@@ -145,7 +145,7 @@ function SignupContent() {
 
   const handleVerifyOTP = async () => {
     if (otp.length !== 6) {
-      setError('Please enter the 6-digit code');
+      setError(t('auth.invalidOtp'));
       return;
     }
 
@@ -162,22 +162,22 @@ function SignupContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Invalid verification code');
+        setError(data.error || t('auth.verificationFailed'));
         return;
       }
 
       // Store auth token and redirect to game
       if (data.authToken) {
-        localStorage.setItem('authToken', data.authToken);
+        localStorage.setItem('solmate_token', data.authToken);
         if (data.user) {
           localStorage.setItem('user', JSON.stringify(data.user));
         }
       }
 
-      toast.success('Email verified! Welcome to PlaySolMates!');
+      toast.success(t('auth.emailVerified'));
       router.push('/');
     } catch (err) {
-      setError('Verification failed. Please try again.');
+      setError(t('auth.verificationFailed'));
     } finally {
       setVerifying(false);
     }
@@ -197,13 +197,13 @@ function SignupContent() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('New verification code sent!');
+        toast.success(t('auth.newVerificationCode'));
         setOtp('');
       } else {
-        setError(data.error || 'Failed to resend code');
+        setError(data.error || t('auth.failedToResend'));
       }
     } catch (err) {
-      setError('Failed to resend code');
+      setError(t('auth.failedToResend'));
     } finally {
       setResending(false);
     }
@@ -217,7 +217,7 @@ function SignupContent() {
   // OTP Verification Step
   if (step === 'verify') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
