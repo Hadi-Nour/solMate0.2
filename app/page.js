@@ -918,6 +918,15 @@ export default function PlaySolMates() {
 
                 <Separator />
 
+                {/* Clear Sign In button for existing users */}
+                <Button 
+                  className="w-full h-12 solana-gradient text-black font-semibold"
+                  onClick={() => window.location.href = '/auth/login'}
+                >
+                  <Mail className="w-5 h-5 me-2" />
+                  {t('login.signInWithEmail') || 'Sign In with Email'}
+                </Button>
+
                 <Button 
                   variant="ghost" 
                   className="w-full"
