@@ -336,13 +336,13 @@ function SignupContent() {
             <span className="text-4xl">♟️</span>
             <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
-          <p className="text-muted-foreground mt-2">Create your account to start playing</p>
+          <p className="text-muted-foreground mt-2">{t('auth.signUpTagline') || 'Create your account to start playing'}</p>
         </div>
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
           <CardHeader className="pb-4">
-            <CardTitle>Create account</CardTitle>
-            <CardDescription>Sign up to play chess on Solana</CardDescription>
+            <CardTitle>{t('auth.createAccount') || 'Create account'}</CardTitle>
+            <CardDescription>{t('auth.signInTagline') || 'Sign up to play chess on Solana'}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -362,7 +362,7 @@ function SignupContent() {
                 disabled={loading}
               >
                 {ProviderIcons.google}
-                <span className="ml-2">Continue with Google</span>
+                <span className="ml-2">{t('login.continueWithGoogle') || 'Continue with Google'}</span>
               </Button>
               <Button
                 variant="outline"
@@ -371,7 +371,7 @@ function SignupContent() {
                 disabled={loading}
               >
                 {ProviderIcons.facebook}
-                <span className="ml-2">Continue with Facebook</span>
+                <span className="ml-2">{t('login.continueWithFacebook') || 'Continue with Facebook'}</span>
               </Button>
               <Button
                 variant="outline"
@@ -380,21 +380,21 @@ function SignupContent() {
                 disabled={loading}
               >
                 {ProviderIcons.twitter}
-                <span className="ml-2">Continue with X</span>
+                <span className="ml-2">{t('login.continueWithX') || 'Continue with X'}</span>
               </Button>
             </div>
 
             <div className="relative">
               <Separator />
               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                or sign up with email
+                {t('auth.orSignUpEmail') || 'or sign up with email'}
               </span>
             </div>
 
             {/* Email/Password Form */}
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name (optional)</Label>
+                <Label htmlFor="displayName">{t('auth.displayName') || 'Display Name'} ({t('common.optional') || 'optional'})</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -409,7 +409,7 @@ function SignupContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email') || 'Email'}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -425,13 +425,13 @@ function SignupContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('auth.password') || 'Password'}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="At least 8 characters"
+                    placeholder={t('auth.passwordPlaceholder') || 'At least 8 characters'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
@@ -442,13 +442,13 @@ function SignupContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">{t('auth.confirmPassword') || 'Confirm Password'}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder={t('auth.confirmPasswordPlaceholder') || 'Confirm your password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="pl-10"
@@ -466,13 +466,13 @@ function SignupContent() {
                   className="mt-1"
                 />
                 <Label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                  I agree to the{' '}
+                  {t('auth.agreeTerms') || 'I agree to the'}{' '}
                   <Link href="/privacy-policy" className="text-primary hover:underline">
-                    Terms & Conditions
+                    {t('auth.termsConditions') || 'Terms & Conditions'}
                   </Link>{' '}
-                  and{' '}
+                  {t('auth.and') || 'and'}{' '}
                   <Link href="/privacy-policy" className="text-primary hover:underline">
-                    Privacy Policy
+                    {t('auth.privacyPolicy') || 'Privacy Policy'}
                   </Link>
                 </Label>
               </div>
@@ -485,10 +485,10 @@ function SignupContent() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating account...
+                    {t('auth.creatingAccount') || 'Creating account...'}
                   </>
                 ) : (
-                  'Create Account'
+                  t('auth.createAccount') || 'Create Account'
                 )}
               </Button>
             </form>
@@ -496,9 +496,9 @@ function SignupContent() {
 
           <CardFooter className="flex-col gap-4 pt-0">
             <p className="text-sm text-muted-foreground text-center">
-              Already have an account?{' '}
+              {t('auth.alreadyHaveAccount') || 'Already have an account?'}{' '}
               <Link href="/auth/login" className="text-primary hover:underline font-medium">
-                Sign in
+                {t('auth.signIn') || 'Sign in'}
               </Link>
             </p>
           </CardFooter>
