@@ -146,6 +146,11 @@
     "desc": "Schalte Belohnungen und exklusive Funktionen frei!",
     "rewardDesc": "Sieg = Bronze-Truhe! 5er-Serie = Silber + Gold!",
     "lifetime": "Lebenslanger Zugang",
+    "playOnline": "VIP Arena Online spielen",
+    "orPlayBot": "oder gegen Bot spielen",
+    "activated": "VIP aktiviert!",
+    "welcomeArena": "Willkommen in der VIP Arena",
+    "viewTransaction": "Transaktion ansehen",
     "benefits": {
       "ranked": "VIP Arena Ranglistenspiele",
       "bronze": "Bronze-Truhe bei jedem Sieg",
