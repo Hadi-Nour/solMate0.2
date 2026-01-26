@@ -231,6 +231,12 @@
     "legalMoves": "Show Legal Moves",
     "boardTheme": "Board Theme",
     "language": "Language",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "passwordChanged": "Password changed successfully!",
+    "changing": "Changing...",
     "themes": {
       "classic": "Classic Wood",
       "darkMarble": "Dark Marble",
