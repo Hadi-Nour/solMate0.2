@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -12,57 +13,26 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Check for different scenarios
+  // Get token from URL (from email verification link)
   const token = searchParams.get('token');
-  const success = searchParams.get('success');
-  const error = searchParams.get('error');
-  const authToken = searchParams.get('token'); // Auto-login token from verification
 
   const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
   const [message, setMessage] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    // Handle redirect from verify-otp API with success and authToken
-    if (success === 'true' && authToken) {
-      // Auto-login: Store the auth token
-      localStorage.setItem('solmate_token', authToken);
-      setStatus('success');
-      setMessage('Email verified successfully! Redirecting to game...');
-      
-      // Redirect to game after a short delay
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
-      return;
-    }
-
-    // Handle error from redirect
-    if (error) {
+    if (!token) {
       setStatus('error');
-      const errorMessages = {
-        'missing_token': 'Verification token is missing.',
-        'invalid_token': 'This verification link is invalid or has expired.',
-        'server_error': 'An error occurred during verification. Please try again.',
-      };
-      setMessage(errorMessages[error] || 'Verification failed.');
+      setMessage('No verification token provided.');
       return;
     }
 
-    // Handle direct token verification (legacy flow)
-    if (token && success !== 'true') {
-      verifyToken(token);
-      return;
-    }
-
-    // No token or success - show generic message
-    if (!token && !success) {
-      setStatus('error');
-      setMessage('No verification information provided.');
-    }
-  }, [token, success, error, authToken, router]);
+    verifyToken(token);
+  }, [token]);
 
   const verifyToken = async (verificationToken) => {
     try {
+      // Call verify-otp API with the token
       const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,27 +43,29 @@ function VerifyEmailContent() {
 
       if (response.ok && data.success) {
         setStatus('success');
-        setMessage(data.message || 'Email verified successfully!');
+        setMessage('Email verified successfully! Logging you in...');
+        setUserEmail(data.user?.email || '');
         
-        // Auto-login if authToken provided
+        // Store the custom JWT token for API calls
         if (data.authToken) {
           localStorage.setItem('solmate_token', data.authToken);
           if (data.user) {
             localStorage.setItem('user', JSON.stringify(data.user));
           }
-          
-          // Redirect to game
-          setTimeout(() => {
-            router.push('/');
-          }, 2000);
         }
+        
+        // Redirect to game after a short delay
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
       } else {
         setStatus('error');
-        setMessage(data.error || 'Verification failed.');
+        setMessage(data.error || 'Verification failed. The link may have expired.');
       }
     } catch (err) {
+      console.error('Verification error:', err);
       setStatus('error');
-      setMessage('An error occurred during verification.');
+      setMessage('An error occurred during verification. Please try again.');
     }
   };
 
@@ -192,7 +164,7 @@ function VerifyEmailContent() {
           
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              The verification link may have expired. Please try signing up again or request a new verification email.
+              The verification link may have expired (valid for 24 hours). Please try signing up again or request a new verification email.
             </p>
 
             <div className="space-y-2">
