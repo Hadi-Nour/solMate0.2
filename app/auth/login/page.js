@@ -197,7 +197,7 @@ function LoginContent() {
                 <Button
                   variant="outline"
                   className="w-full h-11"
-                  onClick={() => handleOAuthLogin('twitter')}}
+                  onClick={() => handleOAuthLogin('twitter')}
                   disabled={loading}
                 >
                   {ProviderIcons.twitter}
