@@ -17,7 +17,7 @@ import {
   Gamepad2, Trophy, Package, Users, User, Crown, Swords, ChevronRight, 
   Sparkles, Star, Copy, Check, Flag, Wallet, Wifi, Bot, Clock, Eye, 
   Gift, Home, RotateCcw, Settings, Palette, Volume2, ArrowLeft, Globe, Edit, LogOut,
-  Loader2, CheckCircle2, XCircle, ExternalLink
+  Loader2, CheckCircle2, XCircle, ExternalLink, Mail
 } from 'lucide-react';
 import ChessBoard3D from '@/components/chess/ChessBoard3D';
 import GameTopBar from '@/components/game/GameTopBar';
