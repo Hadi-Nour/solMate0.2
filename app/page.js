@@ -1884,7 +1884,7 @@ export default function PlaySolMates() {
                         className="mt-3"
                         onClick={() => {
                           navigator.clipboard.writeText(generatedCode);
-                          toast.success('Code copied!');
+                          toast.success(t('common.codeCopied') || 'Code copied!');
                         }}
                       >
                         <Copy className="w-4 h-4 me-2" />
