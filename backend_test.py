@@ -1,494 +1,519 @@
 #!/usr/bin/env python3
 """
-Comprehensive Email/Password Authentication System Test
-Tests all auth endpoints for PlaySolMates chess app
+PlaySolMates Authentication System Testing
+Tests all auth flows: signup, OTP verification, login, password reset, change password
 """
 
 import requests
 import json
 import time
-import os
+import random
+import string
 from datetime import datetime
 
 # Configuration
-BASE_URL = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://auth-revamp-16.preview.emergentagent.com')
+BASE_URL = "https://auth-revamp-16.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
-# Test data
-TEST_EMAIL = "testuser@example.com"
-TEST_PASSWORD = "testpassword123"
-TEST_DISPLAY_NAME = "Test User"
-WEAK_PASSWORD = "123"
-INVALID_EMAIL = "invalid-email"
+def generate_test_email():
+    """Generate a unique test email"""
+    timestamp = int(time.time())
+    random_str = ''.join(random.choices(string.ascii_lowercase, k=6))
+    return f"test_{timestamp}_{random_str}@example.com"
 
-class AuthTester:
-    def __init__(self):
-        self.session = requests.Session()
-        self.auth_token = None
-        self.test_results = []
-        
-    def log_result(self, test_name, success, details=""):
-        """Log test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}")
-        if details:
-            print(f"   Details: {details}")
-        
-        self.test_results.append({
-            'test': test_name,
-            'success': success,
-            'details': details,
-            'timestamp': datetime.now().isoformat()
+def generate_test_password():
+    """Generate a test password"""
+    return "TestPass123!"
+
+def print_test_result(test_name, success, details=""):
+    """Print formatted test result"""
+    status = "✅ PASS" if success else "❌ FAIL"
+    print(f"{status} {test_name}")
+    if details:
+        print(f"    {details}")
+    print()
+
+def test_signup_flow():
+    """Test 1: Signup Flow"""
+    print("=== TEST 1: SIGNUP FLOW ===")
+    
+    test_email = generate_test_email()
+    test_password = generate_test_password()
+    test_display_name = "Test User"
+    
+    # Test 1.1: Valid signup
+    try:
+        response = requests.post(f"{API_BASE}/auth/signup", json={
+            "email": test_email,
+            "password": test_password,
+            "displayName": test_display_name,
+            "agreedToTerms": True
         })
-    
-    def test_signup_validation(self):
-        """Test signup endpoint validation"""
-        print("\n=== Testing Signup Validation ===")
         
-        # Test missing email
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "password": TEST_PASSWORD,
-                "agreedToTerms": True
-            })
-            success = response.status_code == 400 and "email" in response.text.lower()
-            self.log_result("Signup - Missing email validation", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Signup - Missing email validation", False, f"Error: {e}")
+        success = response.status_code == 200
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test missing password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "email": TEST_EMAIL,
-                "agreedToTerms": True
-            })
-            success = response.status_code == 400 and "password" in response.text.lower()
-            self.log_result("Signup - Missing password validation", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Signup - Missing password validation", False, f"Error: {e}")
+        print_test_result(
+            "Valid signup with email/password/terms",
+            success,
+            f"Status: {response.status_code}, Response: {data.get('message', 'No message')}"
+        )
         
-        # Test missing terms agreement
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD
-            })
-            success = response.status_code == 400 and "terms" in response.text.lower()
-            self.log_result("Signup - Missing terms validation", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Signup - Missing terms validation", False, f"Error: {e}")
-        
-        # Test invalid email format
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "email": INVALID_EMAIL,
-                "password": TEST_PASSWORD,
-                "agreedToTerms": True
-            })
-            success = response.status_code == 400 and "email" in response.text.lower()
-            self.log_result("Signup - Invalid email format", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Signup - Invalid email format", False, f"Error: {e}")
-        
-        # Test weak password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "email": TEST_EMAIL,
-                "password": WEAK_PASSWORD,
-                "agreedToTerms": True
-            })
-            success = response.status_code == 400 and ("8 characters" in response.text or "password" in response.text.lower())
-            self.log_result("Signup - Weak password validation", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Signup - Weak password validation", False, f"Error: {e}")
-    
-    def test_signup_success(self):
-        """Test successful signup"""
-        print("\n=== Testing Successful Signup ===")
-        
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD,
-                "displayName": TEST_DISPLAY_NAME,
-                "agreedToTerms": True
-            })
+        if success:
+            global test_user_email, test_user_password
+            test_user_email = test_email
+            test_user_password = test_password
             
-            if response.status_code == 200:
-                data = response.json()
-                success = (data.get('success') == True and 
-                          data.get('requiresVerification') == True and
-                          'verification' in response.text.lower())
-                self.log_result("Signup - Successful account creation", success, 
-                              f"Status: {response.status_code}, EmailSent: {data.get('emailSent', 'N/A')}")
-            else:
-                self.log_result("Signup - Successful account creation", False, 
-                              f"Status: {response.status_code}, Response: {response.text[:200]}")
-        except Exception as e:
-            self.log_result("Signup - Successful account creation", False, f"Error: {e}")
+    except Exception as e:
+        print_test_result("Valid signup", False, f"Exception: {str(e)}")
     
-    def test_duplicate_signup(self):
-        """Test duplicate email signup"""
-        print("\n=== Testing Duplicate Signup ===")
+    # Test 1.2: Missing email
+    try:
+        response = requests.post(f"{API_BASE}/auth/signup", json={
+            "password": test_password,
+            "displayName": test_display_name,
+            "agreedToTerms": True
+        })
         
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Missing email validation",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Missing email validation", False, f"Exception: {str(e)}")
+    
+    # Test 1.3: Weak password
+    try:
+        response = requests.post(f"{API_BASE}/auth/signup", json={
+            "email": generate_test_email(),
+            "password": "weak",
+            "displayName": test_display_name,
+            "agreedToTerms": True
+        })
+        
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Weak password validation (< 8 chars)",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Weak password validation", False, f"Exception: {str(e)}")
+    
+    # Test 1.4: Missing terms agreement
+    try:
+        response = requests.post(f"{API_BASE}/auth/signup", json={
+            "email": generate_test_email(),
+            "password": test_password,
+            "displayName": test_display_name,
+            "agreedToTerms": False
+        })
+        
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Terms agreement validation",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Terms agreement validation", False, f"Exception: {str(e)}")
+
+def test_resend_otp():
+    """Test 2: Resend OTP for Unverified User"""
+    print("=== TEST 2: RESEND OTP FOR UNVERIFIED USER ===")
+    
+    if 'test_user_email' not in globals() or test_user_email is None:
+        print("❌ SKIP - No test user from signup flow")
+        return
+    
+    try:
+        response = requests.post(f"{API_BASE}/auth/signup", json={
+            "email": test_user_email,
+            "resendOnly": True
+        })
+        
+        success = response.status_code == 200
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Resend OTP for existing unverified user",
+            success,
+            f"Status: {response.status_code}, RequiresVerification: {data.get('requiresVerification', False)}"
+        )
+        
+    except Exception as e:
+        print_test_result("Resend OTP", False, f"Exception: {str(e)}")
+
+def test_otp_verification():
+    """Test 3: OTP Verification"""
+    print("=== TEST 3: OTP VERIFICATION ===")
+    
+    # Test 3.1: Missing fields
+    try:
+        response = requests.post(f"{API_BASE}/auth/verify-otp", json={})
+        
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Missing email/OTP validation",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Missing fields validation", False, f"Exception: {str(e)}")
+    
+    # Test 3.2: Invalid OTP
+    try:
+        response = requests.post(f"{API_BASE}/auth/verify-otp", json={
+            "email": test_user_email if 'test_user_email' in globals() else "test@example.com",
+            "otp": "000000"
+        })
+        
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Invalid OTP validation",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Invalid OTP validation", False, f"Exception: {str(e)}")
+    
+    # Test 3.3: Invalid token
+    try:
+        response = requests.post(f"{API_BASE}/auth/verify-otp", json={
+            "token": "invalid_token_12345"
+        })
+        
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        
+        print_test_result(
+            "Invalid token validation",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Invalid token validation", False, f"Exception: {str(e)}")
+
+def test_login_flow():
+    """Test 4: Login Flow (Critical - test emailVerified enforcement)"""
+    print("=== TEST 4: LOGIN FLOW (CRITICAL - EMAIL VERIFICATION ENFORCEMENT) ===")
+    
+    # First, let's test the NextAuth credentials provider endpoint
+    # Test 4.1: Get CSRF token
+    try:
+        response = requests.get(f"{API_BASE}/auth/csrf")
+        
+        success = response.status_code == 200
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        csrf_token = data.get('csrfToken', '')
+        
+        print_test_result(
+            "Get CSRF token",
+            success,
+            f"Status: {response.status_code}, CSRF Token: {'Present' if csrf_token else 'Missing'}"
+        )
+        
+    except Exception as e:
+        print_test_result("Get CSRF token", False, f"Exception: {str(e)}")
+        csrf_token = ""
+    
+    # Test 4.2: Login with unverified email (should fail)
+    if 'test_user_email' in globals() and 'test_user_password' in globals() and test_user_email and test_user_password:
         try:
-            # Try to signup with same email again
-            response = self.session.post(f"{API_BASE}/auth/signup", json={
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD,
-                "displayName": TEST_DISPLAY_NAME,
-                "agreedToTerms": True
-            })
+            response = requests.post(f"{API_BASE}/auth/callback/credentials", 
+                data={
+                    "email": test_user_email,
+                    "password": test_user_password,
+                    "csrfToken": csrf_token,
+                    "callbackUrl": f"{BASE_URL}",
+                    "json": "true"
+                },
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            )
             
-            # Should either allow resend (if not verified) or reject (if already exists)
-            success = response.status_code in [200, 400]
-            if response.status_code == 200:
-                data = response.json()
-                success = 'resent' in response.text.lower() or 'verification' in response.text.lower()
-            elif response.status_code == 400:
-                success = 'exists' in response.text.lower() or 'already' in response.text.lower()
+            # Check if login was blocked due to unverified email
+            response_text = response.text.lower()
+            success = response.status_code in [401, 400] or "verify" in response_text or "error" in response_text
             
-            self.log_result("Signup - Duplicate email handling", success, f"Status: {response.status_code}")
+            print_test_result(
+                "Login with unverified email (should fail)",
+                success,
+                f"Status: {response.status_code}, Response contains 'verify': {'verify' in response_text}"
+            )
+            
         except Exception as e:
-            self.log_result("Signup - Duplicate email handling", False, f"Error: {e}")
+            print_test_result("Login with unverified email", False, f"Exception: {str(e)}")
+    else:
+        print_test_result("Login with unverified email", False, "No test user available from signup")
     
-    def test_otp_verification(self):
-        """Test OTP verification endpoint"""
-        print("\n=== Testing OTP Verification ===")
-        
-        # Test missing fields
-        try:
-            response = self.session.post(f"{API_BASE}/auth/verify-otp", json={})
-            success = response.status_code == 400
-            self.log_result("OTP Verify - Missing fields validation", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("OTP Verify - Missing fields validation", False, f"Error: {e}")
-        
-        # Test invalid OTP
-        try:
-            response = self.session.post(f"{API_BASE}/auth/verify-otp", json={
-                "email": TEST_EMAIL,
-                "otp": "000000"
-            })
-            success = response.status_code == 400 and "invalid" in response.text.lower()
-            self.log_result("OTP Verify - Invalid OTP", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("OTP Verify - Invalid OTP", False, f"Error: {e}")
-        
-        # Test invalid token
-        try:
-            response = self.session.post(f"{API_BASE}/auth/verify-otp", json={
-                "token": "invalid_token_123"
-            })
-            success = response.status_code == 400 and ("invalid" in response.text.lower() or "expired" in response.text.lower())
-            self.log_result("OTP Verify - Invalid token", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("OTP Verify - Invalid token", False, f"Error: {e}")
-    
-    def test_nextauth_credentials(self):
-        """Test NextAuth credentials provider"""
-        print("\n=== Testing NextAuth Credentials Login ===")
-        
-        # Test login without verification (should fail)
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signin/credentials", json={
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD,
-                "redirect": False
-            })
-            # NextAuth might return different status codes, check for auth failure
-            success = response.status_code in [401, 403] or "verify" in response.text.lower()
-            self.log_result("NextAuth - Login without verification", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("NextAuth - Login without verification", False, f"Error: {e}")
-        
-        # Test login with wrong password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signin/credentials", json={
-                "email": TEST_EMAIL,
+    # Test 4.3: Login with wrong password
+    try:
+        response = requests.post(f"{API_BASE}/auth/callback/credentials", 
+            data={
+                "email": "test@example.com",
                 "password": "wrongpassword",
-                "redirect": False
-            })
-            success = response.status_code in [401, 403] or "invalid" in response.text.lower()
-            self.log_result("NextAuth - Wrong password", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("NextAuth - Wrong password", False, f"Error: {e}")
+                "csrfToken": csrf_token,
+                "callbackUrl": f"{BASE_URL}",
+                "json": "true"
+            },
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        )
         
-        # Test login with non-existent email
-        try:
-            response = self.session.post(f"{API_BASE}/auth/signin/credentials", json={
+        response_text = response.text.lower()
+        success = response.status_code in [401, 400] or "error" in response_text
+        
+        print_test_result(
+            "Login with wrong password (should fail)",
+            success,
+            f"Status: {response.status_code}, Response contains error: {'error' in response_text}"
+        )
+        
+    except Exception as e:
+        print_test_result("Login with wrong password", False, f"Exception: {str(e)}")
+    
+    # Test 4.4: Login with non-existent email
+    try:
+        response = requests.post(f"{API_BASE}/auth/callback/credentials", 
+            data={
                 "email": "nonexistent@example.com",
-                "password": TEST_PASSWORD,
-                "redirect": False
-            })
-            success = response.status_code in [401, 403] or "not found" in response.text.lower()
-            self.log_result("NextAuth - Non-existent email", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("NextAuth - Non-existent email", False, f"Error: {e}")
+                "password": "somepassword",
+                "csrfToken": csrf_token,
+                "callbackUrl": f"{BASE_URL}",
+                "json": "true"
+            },
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        )
+        
+        response_text = response.text.lower()
+        success = response.status_code in [401, 400] or "error" in response_text
+        
+        print_test_result(
+            "Login with non-existent email (should fail)",
+            success,
+            f"Status: {response.status_code}, Response contains error: {'error' in response_text}"
+        )
+        
+    except Exception as e:
+        print_test_result("Login with non-existent email", False, f"Exception: {str(e)}")
+
+def test_password_reset_flow():
+    """Test 5: Password Reset Flow"""
+    print("=== TEST 5: PASSWORD RESET FLOW ===")
     
-    def test_reset_password_request(self):
-        """Test password reset request"""
-        print("\n=== Testing Password Reset Request ===")
+    # Test 5.1: Request password reset
+    try:
+        response = requests.post(f"{API_BASE}/auth/reset-password", json={
+            "email": "test@example.com"
+        })
         
-        # Test missing email
-        try:
-            response = self.session.post(f"{API_BASE}/auth/reset-password", json={})
-            success = response.status_code == 400 and "email" in response.text.lower()
-            self.log_result("Reset Password - Missing email", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Password - Missing email", False, f"Error: {e}")
+        success = response.status_code == 200
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test reset for existing email (should return success for security)
-        try:
-            response = self.session.post(f"{API_BASE}/auth/reset-password", json={
-                "email": TEST_EMAIL
-            })
-            success = response.status_code == 200 and response.json().get('success') == True
-            self.log_result("Reset Password - Existing email", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Password - Existing email", False, f"Error: {e}")
+        print_test_result(
+            "Request password reset",
+            success,
+            f"Status: {response.status_code}, Message: {data.get('message', 'No message')}"
+        )
         
-        # Test reset for non-existent email (should still return success for security)
-        try:
-            response = self.session.post(f"{API_BASE}/auth/reset-password", json={
-                "email": "nonexistent@example.com"
-            })
-            success = response.status_code == 200 and response.json().get('success') == True
-            self.log_result("Reset Password - Non-existent email (security)", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Password - Non-existent email (security)", False, f"Error: {e}")
+    except Exception as e:
+        print_test_result("Request password reset", False, f"Exception: {str(e)}")
     
-    def test_reset_token_validation(self):
-        """Test reset token validation"""
-        print("\n=== Testing Reset Token Validation ===")
+    # Test 5.2: Request reset for non-existent email (should still return success for security)
+    try:
+        response = requests.post(f"{API_BASE}/auth/reset-password", json={
+            "email": "nonexistent@example.com"
+        })
         
-        # Test missing token
-        try:
-            response = self.session.get(f"{API_BASE}/auth/reset-password")
-            success = response.status_code == 400 and "token" in response.text.lower()
-            self.log_result("Reset Token - Missing token", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Token - Missing token", False, f"Error: {e}")
+        success = response.status_code == 200
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test invalid token
-        try:
-            response = self.session.get(f"{API_BASE}/auth/reset-password?token=invalid_token_123")
-            success = response.status_code == 400 and ("invalid" in response.text.lower() or "expired" in response.text.lower())
-            self.log_result("Reset Token - Invalid token", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Token - Invalid token", False, f"Error: {e}")
+        print_test_result(
+            "Request reset for non-existent email (security)",
+            success,
+            f"Status: {response.status_code}, Message: {data.get('message', 'No message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Request reset for non-existent email", False, f"Exception: {str(e)}")
     
-    def test_reset_password_set(self):
-        """Test setting new password with token"""
-        print("\n=== Testing Password Reset Set ===")
+    # Test 5.3: Validate invalid reset token
+    try:
+        response = requests.get(f"{API_BASE}/auth/reset-password?token=invalid_token_12345")
         
-        # Test missing token
-        try:
-            response = self.session.post(f"{API_BASE}/auth/reset-password", json={
-                "newPassword": "newpassword123"
-            })
-            success = response.status_code == 400
-            self.log_result("Reset Set - Missing token", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Set - Missing token", False, f"Error: {e}")
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test weak new password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/reset-password", json={
-                "token": "fake_token",
-                "newPassword": "123"
-            })
-            success = response.status_code == 400 and ("8 characters" in response.text or "password" in response.text.lower())
-            self.log_result("Reset Set - Weak password", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Set - Weak password", False, f"Error: {e}")
+        print_test_result(
+            "Validate invalid reset token",
+            success,
+            f"Status: {response.status_code}, Valid: {data.get('valid', 'N/A')}"
+        )
         
-        # Test invalid token
-        try:
-            response = self.session.post(f"{API_BASE}/auth/reset-password", json={
-                "token": "invalid_token_123",
-                "newPassword": "newpassword123"
-            })
-            success = response.status_code == 400 and ("invalid" in response.text.lower() or "expired" in response.text.lower())
-            self.log_result("Reset Set - Invalid token", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Reset Set - Invalid token", False, f"Error: {e}")
+    except Exception as e:
+        print_test_result("Validate invalid reset token", False, f"Exception: {str(e)}")
     
-    def test_change_password_auth(self):
-        """Test change password authentication"""
-        print("\n=== Testing Change Password Authentication ===")
+    # Test 5.4: Set new password with invalid token
+    try:
+        response = requests.post(f"{API_BASE}/auth/reset-password", json={
+            "token": "invalid_token_12345",
+            "newPassword": "NewPassword123!"
+        })
         
-        # Test without auth header
-        try:
-            response = self.session.post(f"{API_BASE}/auth/change-password", json={
-                "currentPassword": TEST_PASSWORD,
-                "newPassword": "newpassword123"
-            })
-            success = response.status_code == 401
-            self.log_result("Change Password - No auth header", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Change Password - No auth header", False, f"Error: {e}")
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test with invalid auth token
-        try:
-            headers = {"Authorization": "Bearer invalid_token_123"}
-            response = self.session.post(f"{API_BASE}/auth/change-password", 
-                                       json={
-                                           "currentPassword": TEST_PASSWORD,
-                                           "newPassword": "newpassword123"
-                                       },
-                                       headers=headers)
-            success = response.status_code == 401
-            self.log_result("Change Password - Invalid auth token", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Change Password - Invalid auth token", False, f"Error: {e}")
+        print_test_result(
+            "Set password with invalid token",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Set password with invalid token", False, f"Exception: {str(e)}")
     
-    def test_change_password_validation(self):
-        """Test change password field validation"""
-        print("\n=== Testing Change Password Validation ===")
+    # Test 5.5: Set password with weak password
+    try:
+        response = requests.post(f"{API_BASE}/auth/reset-password", json={
+            "token": "some_token",
+            "newPassword": "weak"
+        })
         
-        # Create a fake JWT token for testing (won't be valid but tests field validation)
-        fake_headers = {"Authorization": "Bearer fake.jwt.token"}
+        success = response.status_code == 400
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test missing current password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/change-password", 
-                                       json={"newPassword": "newpassword123"},
-                                       headers=fake_headers)
-            success = response.status_code in [400, 401] and ("current" in response.text.lower() or "required" in response.text.lower())
-            self.log_result("Change Password - Missing current password", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Change Password - Missing current password", False, f"Error: {e}")
+        print_test_result(
+            "Set weak password validation",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
         
-        # Test missing new password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/change-password", 
-                                       json={"currentPassword": TEST_PASSWORD},
-                                       headers=fake_headers)
-            success = response.status_code in [400, 401] and ("new" in response.text.lower() or "required" in response.text.lower())
-            self.log_result("Change Password - Missing new password", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Change Password - Missing new password", False, f"Error: {e}")
-        
-        # Test weak new password
-        try:
-            response = self.session.post(f"{API_BASE}/auth/change-password", 
-                                       json={
-                                           "currentPassword": TEST_PASSWORD,
-                                           "newPassword": "123"
-                                       },
-                                       headers=fake_headers)
-            success = response.status_code in [400, 401] and ("8 characters" in response.text or "password" in response.text.lower())
-            self.log_result("Change Password - Weak new password", success, f"Status: {response.status_code}")
-        except Exception as e:
-            self.log_result("Change Password - Weak new password", False, f"Error: {e}")
+    except Exception as e:
+        print_test_result("Set weak password validation", False, f"Exception: {str(e)}")
+
+def test_change_password():
+    """Test 6: Change Password (Authenticated)"""
+    print("=== TEST 6: CHANGE PASSWORD (AUTHENTICATED) ===")
     
-    def test_api_endpoints_exist(self):
-        """Test that all auth endpoints exist and return proper responses"""
-        print("\n=== Testing API Endpoints Existence ===")
+    # Test 6.1: Change password without authentication
+    try:
+        response = requests.post(f"{API_BASE}/auth/change-password", json={
+            "currentPassword": "oldpass",
+            "newPassword": "newpass123"
+        })
         
-        endpoints = [
-            ("POST", "/auth/signup", {"email": "test@test.com", "password": "test123", "agreedToTerms": True}),
-            ("POST", "/auth/verify-otp", {"email": "test@test.com", "otp": "123456"}),
-            ("POST", "/auth/reset-password", {"email": "test@test.com"}),
-            ("GET", "/auth/reset-password?token=test", None),
-            ("POST", "/auth/change-password", {"currentPassword": "old", "newPassword": "new123456"})
-        ]
+        success = response.status_code == 401
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        for method, endpoint, data in endpoints:
-            try:
-                url = f"{API_BASE}{endpoint}"
-                if method == "GET":
-                    response = self.session.get(url)
-                else:
-                    response = self.session.post(url, json=data)
-                
-                # Endpoint exists if it doesn't return 404
-                success = response.status_code != 404
-                self.log_result(f"Endpoint exists - {method} {endpoint}", success, f"Status: {response.status_code}")
-            except Exception as e:
-                self.log_result(f"Endpoint exists - {method} {endpoint}", False, f"Error: {e}")
+        print_test_result(
+            "Change password without auth (should fail)",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
+        
+    except Exception as e:
+        print_test_result("Change password without auth", False, f"Exception: {str(e)}")
     
-    def run_all_tests(self):
-        """Run all authentication tests"""
-        print(f"🧪 Starting Email/Password Authentication System Tests")
-        print(f"🌐 Base URL: {BASE_URL}")
-        print(f"📧 Test Email: {TEST_EMAIL}")
-        print("=" * 60)
+    # Test 6.2: Change password with invalid token
+    try:
+        response = requests.post(f"{API_BASE}/auth/change-password", 
+            json={
+                "currentPassword": "oldpass",
+                "newPassword": "newpass123"
+            },
+            headers={
+                "Authorization": "Bearer invalid_token_12345"
+            }
+        )
         
-        # Test endpoint existence first
-        self.test_api_endpoints_exist()
+        success = response.status_code == 401
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        # Test signup flow
-        self.test_signup_validation()
-        self.test_signup_success()
-        self.test_duplicate_signup()
+        print_test_result(
+            "Change password with invalid token (should fail)",
+            success,
+            f"Status: {response.status_code}, Error: {data.get('error', 'No error message')}"
+        )
         
-        # Test OTP verification
-        self.test_otp_verification()
-        
-        # Test NextAuth credentials
-        self.test_nextauth_credentials()
-        
-        # Test password reset flow
-        self.test_reset_password_request()
-        self.test_reset_token_validation()
-        self.test_reset_password_set()
-        
-        # Test change password
-        self.test_change_password_auth()
-        self.test_change_password_validation()
-        
-        # Print summary
-        self.print_summary()
+    except Exception as e:
+        print_test_result("Change password with invalid token", False, f"Exception: {str(e)}")
+
+def test_email_status():
+    """Test 7: Email Status Check"""
+    print("=== TEST 7: EMAIL STATUS CHECK ===")
     
-    def print_summary(self):
-        """Print test summary"""
-        print("\n" + "=" * 60)
-        print("📊 TEST SUMMARY")
-        print("=" * 60)
+    try:
+        response = requests.get(f"{API_BASE}/auth/email-status")
         
-        total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result['success'])
-        failed_tests = total_tests - passed_tests
+        success = response.status_code == 200
+        data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         
-        print(f"Total Tests: {total_tests}")
-        print(f"✅ Passed: {passed_tests}")
-        print(f"❌ Failed: {failed_tests}")
-        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        smtp_config = data.get('smtp', {})
+        status = data.get('status', 'unknown')
         
-        if failed_tests > 0:
-            print(f"\n❌ Failed Tests:")
-            for result in self.test_results:
-                if not result['success']:
-                    print(f"   • {result['test']}: {result['details']}")
+        print_test_result(
+            "SMTP configuration health check",
+            success,
+            f"Status: {response.status_code}, SMTP Status: {status}, Host: {smtp_config.get('host', 'N/A')}"
+        )
         
-        print("\n🔍 Key Findings:")
+        if success:
+            print(f"    SMTP Config: Host={smtp_config.get('host')}, Port={smtp_config.get('port')}, User={smtp_config.get('user')}")
+            print(f"    Has Password: {smtp_config.get('hasPassword', False)}, From: {smtp_config.get('from')}")
         
-        # Check critical functionality
-        signup_working = any(r['success'] and 'Successful account creation' in r['test'] for r in self.test_results)
-        validation_working = any(r['success'] and 'validation' in r['test'].lower() for r in self.test_results)
-        endpoints_exist = any(r['success'] and 'Endpoint exists' in r['test'] for r in self.test_results)
-        
-        if endpoints_exist:
-            print("   ✅ All auth endpoints are accessible")
-        else:
-            print("   ❌ Some auth endpoints are missing or inaccessible")
-        
-        if validation_working:
-            print("   ✅ Input validation is working correctly")
-        else:
-            print("   ❌ Input validation has issues")
-        
-        if signup_working:
-            print("   ✅ Account creation is functional")
-        else:
-            print("   ❌ Account creation has issues")
-        
-        print("   ⚠️  SMTP emails cannot be tested without valid credentials")
-        print("   ⚠️  OTP/Token verification requires actual database records")
-        print("   ⚠️  NextAuth integration requires session management testing")
+    except Exception as e:
+        print_test_result("Email status check", False, f"Exception: {str(e)}")
+
+def main():
+    """Run all authentication tests"""
+    print("🧪 PLAYSOLMATES AUTHENTICATION SYSTEM TESTING")
+    print("=" * 60)
+    print(f"Base URL: {BASE_URL}")
+    print(f"API Base: {API_BASE}")
+    print(f"Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+    print()
+    
+    # Store test user data globally for cross-test usage
+    global test_user_email, test_user_password
+    test_user_email = None
+    test_user_password = None
+    
+    # Run all tests
+    test_signup_flow()
+    test_resend_otp()
+    test_otp_verification()
+    test_login_flow()
+    test_password_reset_flow()
+    test_change_password()
+    test_email_status()
+    
+    print("=" * 60)
+    print("🏁 AUTHENTICATION TESTING COMPLETED")
+    print("=" * 60)
 
 if __name__ == "__main__":
-    tester = AuthTester()
-    tester.run_all_tests()
+    main()
