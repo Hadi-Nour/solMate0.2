@@ -407,8 +407,6 @@
     "noResetToken": "No reset token provided",
     "noVerificationToken": "No verification token provided."
   },
-  "common": {
-    "optional": "optional"
   "play": {
     "vsBot": "Play vs Bot",
     "vsBotDesc": "Practice without rewards",
