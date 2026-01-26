@@ -78,13 +78,34 @@ function LoginContent() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        // Handle specific error cases with user-friendly messages
+        const errorMessage = result.error;
+        
+        // Check if it's an email verification error
+        if (errorMessage.toLowerCase().includes('verify') || 
+            errorMessage.toLowerCase().includes('not verified') ||
+            errorMessage.toLowerCase().includes('email verification')) {
+          // Redirect to signup with email to trigger OTP resend
+          toast.error('Please verify your email first');
+          router.push(`/auth/signup?email=${encodeURIComponent(email)}&resend=true`);
+          return;
+        }
+        
+        // Map error messages to user-friendly versions
+        const errorMap = {
+          'CredentialsSignin': 'Invalid email or password',
+          'Invalid credentials': 'Invalid email or password',
+          'No user found': 'No account found with this email',
+          'Invalid password': 'Invalid email or password',
+        };
+        
+        setError(errorMap[errorMessage] || errorMessage);
       } else {
         toast.success('Signed in successfully!');
         router.push(callbackUrl);
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
