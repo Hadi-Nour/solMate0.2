@@ -87,32 +87,40 @@ export async function GET(request) {
     const db = await connectToMongo();
     let user;
     
-    // Try to find user by wallet first (for wallet auth)
-    if (payload.wallet) {
-      user = await db.collection('users').findOne({ wallet: payload.wallet });
+    // Check if 'wallet' is actually an email (for email auth users verified via OTP)
+    const isEmailInWallet = payload.wallet && payload.wallet.includes('@');
+    
+    // Try to find user by userId first (most reliable for email auth)
+    if (payload.userId) {
+      user = await db.collection('users').findOne({ userId: payload.userId });
     }
-    // Fall back to userId (sub) for email auth
-    else if (payload.sub) {
+    // Fall back to sub (also userId for some tokens)
+    if (!user && payload.sub) {
       user = await db.collection('users').findOne({ userId: payload.sub });
     }
-    // Fall back to email for email auth
-    else if (payload.email) {
-      user = await db.collection('users').findOne({ email: payload.email.toLowerCase() });
+    // Try by email (if wallet contains email or direct email field)
+    if (!user && (isEmailInWallet || payload.email)) {
+      const emailToSearch = isEmailInWallet ? payload.wallet.toLowerCase() : payload.email.toLowerCase();
+      user = await db.collection('users').findOne({ email: emailToSearch });
+    }
+    // Last resort: try by actual wallet field (for real wallet auth)
+    if (!user && payload.wallet && !isEmailInWallet) {
+      user = await db.collection('users').findOne({ wallet: payload.wallet });
     }
     
     if (!user) {
-      console.log('[Auth/Me] User not found for:', payload.wallet || payload.sub || payload.email);
+      console.log('[Auth/Me] User not found for:', { userId: payload.userId, sub: payload.sub, wallet: payload.wallet, email: payload.email });
       return handleCORS(NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       ));
     }
 
-    console.log('[Auth/Me] User found:', user.wallet || user.email, 'email:', user.email || 'none');
+    console.log('[Auth/Me] User found:', user.userId || user.wallet, 'email:', user.email || 'none');
 
     return handleCORS(NextResponse.json({
       user: {
-        id: user.id,
+        id: user.id || user.userId,
         wallet: user.wallet,
         email: user.email || null,
         provider: user.provider || null,
