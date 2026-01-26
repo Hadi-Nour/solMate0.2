@@ -8,9 +8,11 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 // OAuth provider icons
@@ -37,13 +39,17 @@ const ProviderIcons = {
 
 export default function SignupPage() {
   const router = useRouter();
+  const [step, setStep] = useState('signup'); // 'signup' | 'verify'
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -51,6 +57,12 @@ export default function SignupPage() {
     setError('');
 
     // Validation
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms & Conditions');
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -67,7 +79,7 @@ export default function SignupPage() {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, displayName }),
+        body: JSON.stringify({ email, password, displayName, agreedToTerms }),
       });
 
       const data = await response.json();
@@ -77,12 +89,79 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess(true);
-      toast.success('Account created! Please check your email.');
+      // Show OTP verification step
+      setStep('verify');
+      toast.success('Verification code sent! Check your email.');
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otp.length !== 6) {
+      setError('Please enter the 6-digit code');
+      return;
+    }
+
+    setVerifying(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Invalid verification code');
+        return;
+      }
+
+      // Store auth token and redirect to game
+      if (data.authToken) {
+        localStorage.setItem('authToken', data.authToken);
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+      }
+
+      toast.success('Email verified! Welcome to PlaySolMates!');
+      router.push('/');
+    } catch (err) {
+      setError('Verification failed. Please try again.');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setResending(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, displayName, agreedToTerms }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('New verification code sent!');
+        setOtp('');
+      } else {
+        setError(data.error || 'Failed to resend code');
+      }
+    } catch (err) {
+      setError('Failed to resend code');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -91,7 +170,8 @@ export default function SignupPage() {
     await signIn(provider, { callbackUrl: '/' });
   };
 
-  if (success) {
+  // OTP Verification Step
+  if (step === 'verify') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <motion.div
@@ -99,34 +179,107 @@ export default function SignupPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-md"
         >
-          <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl text-center">
-            <CardHeader>
-              <div className="mx-auto w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-8 h-8 text-green-500" />
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 text-3xl font-bold">
+              <span className="text-4xl">♟️</span>
+              <span className="solana-text-gradient">PlaySolMates</span>
+            </Link>
+          </div>
+
+          <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Mail className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Check your email</CardTitle>
+              <CardTitle>Verify your email</CardTitle>
               <CardDescription>
-                We've sent a verification link to <strong>{email}</strong>
+                We sent a 6-digit code to <strong>{email}</strong>
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Click the link in your email to verify your account. The link will expire in 24 hours.
-              </p>
+            
+            <CardContent className="space-y-6">
+              {error && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <div className="flex justify-center">
+                <InputOTP 
+                  value={otp} 
+                  onChange={setOtp} 
+                  maxLength={6}
+                  className="gap-2"
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} className="w-12 h-14 text-xl" />
+                    <InputOTPSlot index={1} className="w-12 h-14 text-xl" />
+                    <InputOTPSlot index={2} className="w-12 h-14 text-xl" />
+                    <InputOTPSlot index={3} className="w-12 h-14 text-xl" />
+                    <InputOTPSlot index={4} className="w-12 h-14 text-xl" />
+                    <InputOTPSlot index={5} className="w-12 h-14 text-xl" />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
               <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => router.push('/auth/login')}
+                onClick={handleVerifyOTP}
+                className="w-full h-11 solana-gradient text-black font-semibold"
+                disabled={verifying || otp.length !== 6}
               >
-                Go to Login
+                {verifying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Verify & Sign In
+                  </>
+                )}
               </Button>
+
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Didn't receive the code?
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResendOTP}
+                  disabled={resending}
+                >
+                  {resending ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Resend code'
+                  )}
+                </Button>
+              </div>
             </CardContent>
+
+            <CardFooter>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setStep('signup')}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to signup
+              </Button>
+            </CardFooter>
           </Card>
         </motion.div>
       </div>
     );
   }
 
+  // Signup Form
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <motion.div
@@ -149,10 +302,9 @@ export default function SignupPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Error message */}
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive text-sm">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
@@ -261,10 +413,30 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Terms & Conditions Checkbox */}
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="terms"
+                  checked={agreedToTerms}
+                  onCheckedChange={setAgreedToTerms}
+                  className="mt-1"
+                />
+                <Label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                  I agree to the{' '}
+                  <Link href="/privacy-policy" className="text-primary hover:underline">
+                    Terms & Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy-policy" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                </Label>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full h-11 solana-gradient text-black font-semibold"
-                disabled={loading}
+                disabled={loading || !agreedToTerms}
               >
                 {loading ? (
                   <>
@@ -287,13 +459,6 @@ export default function SignupPage() {
             </p>
           </CardFooter>
         </Card>
-
-        <p className="text-xs text-center text-muted-foreground mt-6">
-          By creating an account, you agree to our{' '}
-          <Link href="/privacy-policy" className="underline">Privacy Policy</Link>
-          {' '}and{' '}
-          <Link href="/privacy-policy" className="underline">Terms of Service</Link>
-        </p>
       </motion.div>
     </div>
   );
