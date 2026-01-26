@@ -429,6 +429,7 @@
     "selectTime": "Select Time Control",
     "generateCode": "Generate Invite Code",
     "creating": "Creating...",
-    "friendJoined": "Friend joined! Starting match..."
+    "friendJoined": "Friend joined! Starting match...",
+    "joinMatch": "Join Match"
   }
 }
