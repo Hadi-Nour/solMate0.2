@@ -275,19 +275,19 @@ function SignupContent() {
                 {verifying ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verifying...
+                    {t('auth.verifying') || 'Verifying...'}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Verify & Sign In
+                    {t('auth.verifyBtn') || 'Verify & Sign In'}
                   </>
                 )}
               </Button>
 
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">
-                  Didn't receive the code?
+                  {t('auth.didntReceiveCode') || "Didn't receive the code?"}
                 </p>
                 <Button
                   variant="ghost"
@@ -298,10 +298,10 @@ function SignupContent() {
                   {resending ? (
                     <>
                       <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      Sending...
+                      {t('auth.sending') || 'Sending...'}
                     </>
                   ) : (
-                    'Resend code'
+                    t('auth.resendCode') || 'Resend code'
                   )}
                 </Button>
               </div>
@@ -314,7 +314,7 @@ function SignupContent() {
                 onClick={() => setStep('signup')}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to signup
+                {t('auth.backToSignup') || 'Back to signup'}
               </Button>
             </CardFooter>
           </Card>
