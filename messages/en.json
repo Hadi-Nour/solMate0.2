@@ -308,7 +308,8 @@
     "close": "Close",
     "save": "Save",
     "min": "min",
-    "codeCopied": "Code copied!"
+    "codeCopied": "Code copied!",
+    "optional": "optional"
   },
   "auth": {
     "signInTagline": "Sign in to play chess on Solana",
