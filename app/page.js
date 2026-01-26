@@ -1865,16 +1865,16 @@ export default function PlaySolMates() {
                       disabled={privateMatchWaiting}
                     >
                       {privateMatchWaiting ? (
-                        <><Loader2 className="w-5 h-5 me-2 animate-spin" />{t('play.creating') || 'Creating...'}</>
+                        <><Loader2 className="w-5 h-5 me-2 animate-spin" />{t('play.creating')}</>
                       ) : (
-                        <><Sparkles className="w-5 h-5 me-2" />{t('play.generateCode') || 'Generate Invite Code'}</>
+                        <><Sparkles className="w-5 h-5 me-2" />{t('play.generateCode')}</>
                       )}
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="p-6 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 text-center">
-                      <p className="text-sm text-muted-foreground mb-2">{t('play.shareCode') || 'Share this code:'}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{t('play.shareCode')}</p>
                       <p className="text-4xl font-mono font-bold tracking-widest text-purple-400">
                         {generatedCode}
                       </p>
