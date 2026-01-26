@@ -246,6 +246,104 @@ export default function SettingsModal({
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Change Password - only show for logged in users with email auth */}
+          {authToken && user?.email && (
+            <>
+              <Separator />
+              
+              {!showChangePassword ? (
+                <Button
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => setShowChangePassword(true)}
+                >
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5 text-muted-foreground" />
+                    <span>Change Password</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Lock className="h-5 w-5 text-muted-foreground" />
+                      <Label>Change Password</Label>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetPasswordForm}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  
+                  {passwordError && (
+                    <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive text-xs">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                      {passwordError}
+                    </div>
+                  )}
+                  
+                  {passwordSuccess && (
+                    <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-2 text-green-500 text-xs">
+                      <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                      Password changed successfully!
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Current Password</Label>
+                      <Input
+                        type="password"
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">New Password</Label>
+                      <Input
+                        type="password"
+                        placeholder="At least 8 characters"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Confirm New Password</Label>
+                      <Input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                    <Button
+                      className="w-full h-9"
+                      onClick={handleChangePassword}
+                      disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+                    >
+                      {changingPassword ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                          Changing...
+                        </>
+                      ) : (
+                        'Change Password'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
