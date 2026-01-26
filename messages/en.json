@@ -93,7 +93,27 @@
     "bullet": "Bullet",
     "blitz": "Blitz",
     "rapid": "Rapid",
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "threeMin": "3 min",
+    "fiveMin": "5 min",
+    "tenMin": "10 min",
+    "noTimer": "No Timer"
+  },
+  "matchmaking": {
+    "casualMatch": "Casual Match",
+    "casualDesc": "Play against real players - no rewards",
+    "vipDesc": "Compete for rewards and climb the leaderboard!",
+    "vipRequired": "VIP membership required",
+    "unlockVip": "Unlock VIP for ranked matches with rewards",
+    "findingOpponent": "Finding Opponent...",
+    "searching": "Searching for match...",
+    "found": "Match found!",
+    "connected": "Connected to server",
+    "notConnected": "Not connected to server",
+    "cancelSearch": "Cancel Search",
+    "casual": "Casual",
+    "vipWinsChests": "VIP wins earn Bronze Chests",
+    "streakBonus": "5-win streak = Silver Chest + Gold Point"
   },
   "game": {
     "yourTurn": "Your turn",
