@@ -325,7 +325,7 @@ function SignupContent() {
 
   // Signup Form
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -336,13 +336,13 @@ function SignupContent() {
             <span className="text-4xl">♟️</span>
             <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
-          <p className="text-muted-foreground mt-2">{t('auth.signUpTagline') || 'Create your account to start playing'}</p>
+          <p className="text-muted-foreground mt-2">{t('auth.signUpTagline')}</p>
         </div>
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
           <CardHeader className="pb-4">
-            <CardTitle>{t('auth.createAccount') || 'Create account'}</CardTitle>
-            <CardDescription>{t('auth.signInTagline') || 'Sign up to play chess on Solana'}</CardDescription>
+            <CardTitle>{t('auth.createAccount')}</CardTitle>
+            <CardDescription>{t('auth.signInTagline')}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
