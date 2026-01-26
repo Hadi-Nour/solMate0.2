@@ -1,24 +1,39 @@
 'use client';
 
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Volume2, VolumeX, Vibrate, Eye, Palette, Globe, Volume1 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Volume2, VolumeX, Vibrate, Eye, Palette, Globe, Volume1, Lock, Loader2, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useFeedbackContext } from '@/lib/feedback/provider';
 import { locales, languageNames } from '@/lib/i18n/config';
+import { toast } from 'sonner';
 
 export default function SettingsModal({ 
   open, 
   onOpenChange,
   settings,
-  onSettingsChange
+  onSettingsChange,
+  authToken,
+  user
 }) {
   const { t, locale, setLocale, direction } = useI18n();
   const feedback = useFeedbackContext();
+  
+  // Change password state
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const handleChange = (key, value) => {
     onSettingsChange({ ...settings, [key]: value });
