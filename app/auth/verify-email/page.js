@@ -1,34 +1,34 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/provider';
 
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, direction } = useI18n();
   
   // Get token from URL (from email verification link)
   const token = searchParams.get('token');
 
   const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
   const [message, setMessage] = useState('');
-  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('No verification token provided.');
+      setMessage(t('auth.noVerificationToken'));
       return;
     }
 
     verifyToken(token);
-  }, [token]);
+  }, [token, t]);
 
   const verifyToken = async (verificationToken) => {
     try {
@@ -43,8 +43,7 @@ function VerifyEmailContent() {
 
       if (response.ok && data.success) {
         setStatus('success');
-        setMessage('Email verified successfully! Logging you in...');
-        setUserEmail(data.user?.email || '');
+        setMessage(t('auth.emailVerified'));
         
         // Store the custom JWT token for API calls
         if (data.authToken) {
@@ -60,26 +59,26 @@ function VerifyEmailContent() {
         }, 2000);
       } else {
         setStatus('error');
-        setMessage(data.error || 'Verification failed. The link may have expired.');
+        setMessage(data.error || t('auth.verificationFailed'));
       }
     } catch (err) {
       console.error('Verification error:', err);
       setStatus('error');
-      setMessage('An error occurred during verification. Please try again.');
+      setMessage(t('auth.unexpectedError'));
     }
   };
 
   // Loading state
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center"
         >
           <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Verifying your email...</p>
+          <p className="text-muted-foreground">{t('auth.verifyingEmail')}</p>
         </motion.div>
       </div>
     );
@@ -88,7 +87,7 @@ function VerifyEmailContent() {
   // Success state
   if (status === 'success') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -111,7 +110,7 @@ function VerifyEmailContent() {
               >
                 <CheckCircle2 className="w-10 h-10 text-green-500" />
               </motion.div>
-              <CardTitle className="text-2xl">Email Verified! 🎉</CardTitle>
+              <CardTitle className="text-2xl">{t('auth.emailVerifiedTitle')} 🎉</CardTitle>
               <CardDescription className="text-base">
                 {message}
               </CardDescription>
@@ -120,14 +119,14 @@ function VerifyEmailContent() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Redirecting to game...
+                {t('auth.redirectingToGame')}
               </div>
               
               <Button
                 className="w-full h-11 solana-gradient text-black font-semibold"
                 onClick={() => router.push('/')}
               >
-                Start Playing Now
+                {t('auth.startPlayingNow')}
               </Button>
             </CardContent>
           </Card>
@@ -138,7 +137,7 @@ function VerifyEmailContent() {
 
   // Error state
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={direction}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -156,7 +155,7 @@ function VerifyEmailContent() {
             <div className="mx-auto w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mb-4">
               <XCircle className="w-8 h-8 text-destructive" />
             </div>
-            <CardTitle>Verification Failed</CardTitle>
+            <CardTitle>{t('auth.verificationFailedTitle')}</CardTitle>
             <CardDescription>
               {message}
             </CardDescription>
@@ -164,7 +163,7 @@ function VerifyEmailContent() {
           
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              The verification link may have expired (valid for 24 hours). Please try signing up again or request a new verification email.
+              {t('auth.verificationLinkExpired')}
             </p>
 
             <div className="space-y-2">
@@ -172,15 +171,15 @@ function VerifyEmailContent() {
                 className="w-full"
                 onClick={() => router.push('/auth/signup')}
               >
-                Sign Up Again
+                {t('auth.signUpAgain')}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full"
                 onClick={() => router.push('/auth/login')}
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Sign In
+                <ArrowLeft className="w-4 h-4 me-2" />
+                {t('auth.backToSignIn')}
               </Button>
             </div>
           </CardContent>
