@@ -1200,12 +1200,12 @@ export default function PlaySolMates() {
                       onClick={() => setShowVipMatchmaking(true)}
                     >
                       <Wifi className="w-5 h-5 me-2" />
-                      Play VIP Arena Online
+                      {t('vip.playOnline') || 'Play VIP Arena Online'}
                     </Button>
                     
                     <div className="relative flex items-center justify-center">
                       <div className="flex-1 border-t border-border"></div>
-                      <span className="px-3 text-xs text-muted-foreground">or play vs bot</span>
+                      <span className="px-3 text-xs text-muted-foreground">{t('vip.orPlayBot') || 'or play vs bot'}</span>
                       <div className="flex-1 border-t border-border"></div>
                     </div>
                     
