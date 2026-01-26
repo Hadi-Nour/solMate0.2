@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -37,11 +37,17 @@ const ProviderIcons = {
   ),
 };
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Check for redirect params (from login page when email not verified)
+  const redirectEmail = searchParams.get('email');
+  const shouldResend = searchParams.get('resend') === 'true';
+  
   const [step, setStep] = useState('signup'); // 'signup' | 'verify'
   const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(redirectEmail || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -50,6 +56,42 @@ export default function SignupPage() {
   const [otp, setOtp] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
+
+  // Auto-resend OTP if user was redirected from login with unverified email
+  useEffect(() => {
+    if (redirectEmail && shouldResend) {
+      handleResendFromLogin();
+    }
+  }, [redirectEmail, shouldResend]);
+
+  const handleResendFromLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: redirectEmail,
+          resendOnly: true, // Just resend OTP, don't create new account
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Verification code sent! Check your email.');
+        setStep('verify');
+      } else {
+        setError(data.error || 'Failed to resend verification code');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
