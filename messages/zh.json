@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "PlaySolMates - Solana 象棋",
+    "title": "PlaySolMates - Solana象棋",
     "description": "在Solana上下棋。赚取装饰品，在VIP竞技场竞争，收集奖励。"
   },
   "header": {
@@ -20,7 +20,43 @@
     "connectFirst": "请先连接钱包",
     "signedIn": "已登录！",
     "signedOut": "已登出",
-    "failed": "钱包连接失败"
+    "failed": "钱包连接失败",
+    "connectTitle": "连接钱包",
+    "connectDesc": "选择一个Solana钱包进行连接",
+    "connectDescMobile": "连接你的Solana钱包来玩游戏",
+    "seekerDetected": "检测到Solana Seeker",
+    "mobileDevice": "移动设备",
+    "desktopBrowser": "桌面浏览器",
+    "recommended": "推荐",
+    "ready": "就绪",
+    "install": "安装",
+    "learnMore": "Solana新手？",
+    "learnWallets": "了解钱包 →",
+    "seekerWallet": "Seeker钱包",
+    "seedVault": "Seed Vault",
+    "seekerDesc": "官方Solana Seeker钱包",
+    "selectWallet": "选择钱包",
+    "connecting": "连接中...",
+    "disconnected": "已断开",
+    "payWith": "付款方式"
+  },
+  "login": {
+    "tagline": "在Solana上下棋",
+    "welcome": "欢迎",
+    "chooseMethod": "选择登录方式",
+    "wallet": "Solana钱包",
+    "connectWallet": "连接钱包",
+    "signInWallet": "使用钱包登录",
+    "disconnect": "断开连接",
+    "or": "或",
+    "emailSocial": "邮箱 / 社交账号",
+    "continueWithGoogle": "使用Google继续",
+    "continueWithFacebook": "使用Facebook继续",
+    "continueWithX": "使用X继续",
+    "signInWithEmail": "使用邮箱登录",
+    "createAccount": "使用邮箱创建账户",
+    "createAccountButton": "使用邮箱创建账户",
+    "terms": "继续即表示您同意我们的"
   },
   "play": {
     "vsBot": "与机器人对战",
@@ -28,7 +64,20 @@
     "playOnline": "在线对战",
     "playOnlineDesc": "与真人玩家对战 - 无奖励",
     "findMatch": "寻找休闲对局",
-    "signInRequired": "请登录以进行在线对战"
+    "signInRequired": "请登录以进行在线对战",
+    "privateMatch": "私人对局",
+    "privateMatchDesc": "使用邀请码与好友对战",
+    "createPrivate": "创建私人对局",
+    "joinPrivate": "输入邀请码加入",
+    "createPrivateDesc": "与好友分享邀请码来对战",
+    "joinPrivateDesc": "输入好友分享的邀请码",
+    "codeCreated": "邀请码已创建！",
+    "shareCode": "分享此邀请码：",
+    "waitingForFriend": "等待好友加入...",
+    "codeExpires": "邀请码10分钟后过期",
+    "enterCode": "输入邀请码",
+    "matchJoined": "已加入对局！",
+    "selectTime": "选择时间控制"
   },
   "difficulty": {
     "easy": "简单",
@@ -43,18 +92,20 @@
   "timeControl": {
     "bullet": "超快棋",
     "blitz": "快棋",
-    "rapid": "快速棋"
+    "rapid": "慢棋",
+    "unlimited": "无限时"
   },
   "game": {
     "yourTurn": "轮到你了",
     "botsTurn": "机器人回合",
     "botThinking": "机器人思考中...",
-    "playingAs": "你执{color}",
-    "white": "白棋",
-    "black": "黑棋",
+    "playingAs": "你执{color}子",
+    "white": "白方",
+    "black": "黑方",
     "bot": "机器人",
     "opponent": "对手",
-    "ranked": "排位"
+    "ranked": "排位赛",
+    "noTimer": "无计时"
   },
   "gameActions": {
     "home": "主页",
@@ -69,9 +120,10 @@
     "victory": "胜利！",
     "defeat": "失败",
     "draw": "和棋！",
-    "congratulations": "恭喜！你赢得了比赛。",
+    "congratulations": "恭喜！你赢了。",
     "betterLuck": "下次好运！",
-    "drawMessage": "比赛以和棋结束。"
+    "drawMessage": "对局以和棋结束。",
+    "timeout": "时间到！"
   },
   "rewards": {
     "title": "获得的奖励",
@@ -179,6 +231,12 @@
     "legalMoves": "显示合法移动",
     "boardTheme": "棋盘主题",
     "language": "语言",
+    "changePassword": "修改密码",
+    "currentPassword": "当前密码",
+    "newPassword": "新密码",
+    "confirmPassword": "确认新密码",
+    "passwordChanged": "密码修改成功！",
+    "changing": "修改中...",
     "themes": {
       "classic": "经典木质",
       "darkMarble": "深色大理石",
@@ -191,24 +249,6 @@
       "ar": "العربية",
       "zh": "中文"
     }
-  },
-  "common": {
-    "free": "免费",
-    "vip": "VIP",
-    "loading": "加载中...",
-    "error": "错误",
-    "success": "成功",
-    "confirm": "确认",
-    "cancel": "取消",
-    "close": "关闭",
-    "save": "保存",
-    "min": "分钟"
-  },
-  "timeControl": {
-    "bullet": "超快棋",
-    "blitz": "快棋",
-    "rapid": "慢棋",
-    "unlimited": "无限时"
   },
   "quickchat": {
     "title": "快捷聊天",
@@ -232,25 +272,16 @@
     "trophy": "🏆",
     "chess": "♟️"
   },
-  "game": {
-    "yourTurn": "轮到你了",
-    "botsTurn": "机器人思考中",
-    "botThinking": "机器人思考中...",
-    "playingAs": "你执{color}子",
-    "white": "白方",
-    "black": "黑方",
-    "bot": "机器人",
-    "opponent": "对手",
-    "ranked": "排位赛",
-    "noTimer": "无计时"
-  },
-  "result": {
-    "victory": "胜利！",
-    "defeat": "失败",
-    "draw": "和棋！",
-    "congratulations": "恭喜！你赢了。",
-    "betterLuck": "下次好运！",
-    "drawMessage": "对局以和棋结束。",
-    "timeout": "时间到！"
+  "common": {
+    "free": "免费",
+    "vip": "VIP",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "confirm": "确认",
+    "cancel": "取消",
+    "close": "关闭",
+    "save": "保存",
+    "min": "分钟"
   }
 }

@@ -20,7 +20,43 @@
     "connectFirst": "Erst Wallet verbinden",
     "signedIn": "Angemeldet!",
     "signedOut": "Abgemeldet",
-    "failed": "Wallet-Verbindung fehlgeschlagen"
+    "failed": "Wallet-Verbindung fehlgeschlagen",
+    "connectTitle": "Wallet verbinden",
+    "connectDesc": "Wähle eine Solana-Wallet",
+    "connectDescMobile": "Verbinde deine Solana-Wallet zum Spielen",
+    "seekerDetected": "Solana Seeker erkannt",
+    "mobileDevice": "Mobilgerät",
+    "desktopBrowser": "Desktop-Browser",
+    "recommended": "Empfohlen",
+    "ready": "Bereit",
+    "install": "Installieren",
+    "learnMore": "Neu bei Solana?",
+    "learnWallets": "Über Wallets erfahren →",
+    "seekerWallet": "Seeker Wallet",
+    "seedVault": "Seed Vault",
+    "seekerDesc": "Offizielle Solana Seeker Wallet",
+    "selectWallet": "Wallet auswählen",
+    "connecting": "Verbinden...",
+    "disconnected": "Getrennt",
+    "payWith": "Bezahlen mit"
+  },
+  "login": {
+    "tagline": "Schach auf Solana spielen",
+    "welcome": "Willkommen",
+    "chooseMethod": "Anmeldemethode wählen",
+    "wallet": "Solana Wallet",
+    "connectWallet": "Wallet verbinden",
+    "signInWallet": "Mit Wallet anmelden",
+    "disconnect": "Trennen",
+    "or": "oder",
+    "emailSocial": "E-Mail / Social",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "continueWithFacebook": "Mit Facebook fortfahren",
+    "continueWithX": "Mit X fortfahren",
+    "signInWithEmail": "Mit E-Mail anmelden",
+    "createAccount": "Konto mit E-Mail erstellen",
+    "createAccountButton": "Konto mit E-Mail erstellen",
+    "terms": "Mit dem Fortfahren stimmst du unseren zu"
   },
   "play": {
     "vsBot": "Gegen Bot spielen",
@@ -28,7 +64,20 @@
     "playOnline": "Online spielen",
     "playOnlineDesc": "Gegen echte Spieler - keine Belohnungen",
     "findMatch": "Lockeres Spiel finden",
-    "signInRequired": "Bitte melden Sie sich an, um online zu spielen"
+    "signInRequired": "Bitte anmelden um online zu spielen",
+    "privateMatch": "Privates Spiel",
+    "privateMatchDesc": "Mit Freund per Einladungscode spielen",
+    "createPrivate": "Privates Spiel erstellen",
+    "joinPrivate": "Mit Code beitreten",
+    "createPrivateDesc": "Teile den Code mit einem Freund",
+    "joinPrivateDesc": "Gib den Code ein, den dein Freund geteilt hat",
+    "codeCreated": "Einladungscode erstellt!",
+    "shareCode": "Diesen Code teilen:",
+    "waitingForFriend": "Warte auf Freund...",
+    "codeExpires": "Code läuft in 10 Minuten ab",
+    "enterCode": "Einladungscode eingeben",
+    "matchJoined": "Spiel beigetreten!",
+    "selectTime": "Zeitkontrolle wählen"
   },
   "difficulty": {
     "easy": "Leicht",
@@ -43,10 +92,11 @@
   "timeControl": {
     "bullet": "Bullet",
     "blitz": "Blitz",
-    "rapid": "Schnellschach"
+    "rapid": "Schnell",
+    "unlimited": "Unbegrenzt"
   },
   "game": {
-    "yourTurn": "Dein Zug",
+    "yourTurn": "Du bist dran",
     "botsTurn": "Bot ist dran",
     "botThinking": "Bot denkt...",
     "playingAs": "Du spielst als {color}",
@@ -54,7 +104,8 @@
     "black": "Schwarz",
     "bot": "Bot",
     "opponent": "Gegner",
-    "ranked": "Rangiert"
+    "ranked": "Gewertet",
+    "noTimer": "Ohne Timer"
   },
   "gameActions": {
     "home": "Startseite",
@@ -68,10 +119,11 @@
   "result": {
     "victory": "Sieg!",
     "defeat": "Niederlage",
-    "draw": "Remis!",
-    "congratulations": "Glückwunsch! Du hast das Spiel gewonnen.",
+    "draw": "Unentschieden!",
+    "congratulations": "Glückwunsch! Du hast gewonnen.",
     "betterLuck": "Viel Glück beim nächsten Mal!",
-    "drawMessage": "Das Spiel endete unentschieden."
+    "drawMessage": "Das Spiel endete unentschieden.",
+    "timeout": "Zeit abgelaufen!"
   },
   "rewards": {
     "title": "Verdiente Belohnungen",
@@ -179,6 +231,12 @@
     "legalMoves": "Legale Züge anzeigen",
     "boardTheme": "Brett-Design",
     "language": "Sprache",
+    "changePassword": "Passwort ändern",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "passwordChanged": "Passwort erfolgreich geändert!",
+    "changing": "Ändern...",
     "themes": {
       "classic": "Klassisches Holz",
       "darkMarble": "Dunkler Marmor",
@@ -191,24 +249,6 @@
       "ar": "العربية",
       "zh": "中文"
     }
-  },
-  "common": {
-    "free": "Kostenlos",
-    "vip": "VIP",
-    "loading": "Laden...",
-    "error": "Fehler",
-    "success": "Erfolg",
-    "confirm": "Bestätigen",
-    "cancel": "Abbrechen",
-    "close": "Schließen",
-    "save": "Speichern",
-    "min": "min"
-  },
-  "timeControl": {
-    "bullet": "Bullet",
-    "blitz": "Blitz",
-    "rapid": "Schnell",
-    "unlimited": "Unbegrenzt"
   },
   "quickchat": {
     "title": "Schnellchat",
@@ -232,25 +272,16 @@
     "trophy": "🏆",
     "chess": "♟️"
   },
-  "game": {
-    "yourTurn": "Du bist dran",
-    "botsTurn": "Bot ist dran",
-    "botThinking": "Bot denkt...",
-    "playingAs": "Du spielst als {color}",
-    "white": "Weiß",
-    "black": "Schwarz",
-    "bot": "Bot",
-    "opponent": "Gegner",
-    "ranked": "Gewertet",
-    "noTimer": "Ohne Timer"
-  },
-  "result": {
-    "victory": "Sieg!",
-    "defeat": "Niederlage",
-    "draw": "Unentschieden!",
-    "congratulations": "Glückwunsch! Du hast gewonnen.",
-    "betterLuck": "Viel Glück beim nächsten Mal!",
-    "drawMessage": "Das Spiel endete unentschieden.",
-    "timeout": "Zeit abgelaufen!"
+  "common": {
+    "free": "Kostenlos",
+    "vip": "VIP",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "save": "Speichern",
+    "min": "min"
   }
 }
