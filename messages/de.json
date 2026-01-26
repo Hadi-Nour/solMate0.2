@@ -93,7 +93,27 @@
     "bullet": "Bullet",
     "blitz": "Blitz",
     "rapid": "Schnell",
-    "unlimited": "Unbegrenzt"
+    "unlimited": "Unbegrenzt",
+    "threeMin": "3 Min",
+    "fiveMin": "5 Min",
+    "tenMin": "10 Min",
+    "noTimer": "Kein Timer"
+  },
+  "matchmaking": {
+    "casualMatch": "Freundschaftsspiel",
+    "casualDesc": "Gegen echte Spieler - keine Belohnungen",
+    "vipDesc": "Kämpfe um Belohnungen und klettere die Rangliste!",
+    "vipRequired": "VIP-Mitgliedschaft erforderlich",
+    "unlockVip": "VIP freischalten für Ranglistenspiele mit Belohnungen",
+    "findingOpponent": "Suche Gegner...",
+    "searching": "Suche Spiel...",
+    "found": "Spiel gefunden!",
+    "connected": "Mit Server verbunden",
+    "notConnected": "Nicht mit Server verbunden",
+    "cancelSearch": "Suche abbrechen",
+    "casual": "Freundschaftlich",
+    "vipWinsChests": "VIP-Siege bringen Bronze-Truhen",
+    "streakBonus": "5er-Serie = Silber-Truhe + Goldpunkt"
   },
   "game": {
     "yourTurn": "Du bist dran",
