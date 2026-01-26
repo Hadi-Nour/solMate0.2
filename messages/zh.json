@@ -77,7 +77,11 @@
     "codeExpires": "邀请码10分钟后过期",
     "enterCode": "输入邀请码",
     "matchJoined": "已加入对局！",
-    "selectTime": "选择时间控制"
+    "selectTime": "选择时间控制",
+    "generateCode": "生成邀请码",
+    "creating": "创建中...",
+    "friendJoined": "好友已加入！比赛开始...",
+    "joinMatch": "加入对局"
   },
   "difficulty": {
     "easy": "简单",
