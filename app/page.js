@@ -1736,6 +1736,8 @@ export default function PlaySolMates() {
         onOpenChange={setShowSettings}
         settings={settings}
         onSettingsChange={setSettings}
+        authToken={authToken}
+        user={user}
       />
       
       {/* Edit Profile Modal */}
