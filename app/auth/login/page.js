@@ -151,13 +151,13 @@ function LoginContent() {
             <span className="text-4xl">♟️</span>
             <span className="solana-text-gradient">PlaySolMates</span>
           </Link>
-          <p className="text-muted-foreground mt-2">Sign in to play chess on Solana</p>
+          <p className="text-muted-foreground mt-2">{t('auth.signInTagline') || 'Sign in to play chess on Solana'}</p>
         </div>
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
           <CardHeader className="pb-4">
-            <CardTitle>Welcome back</CardTitle>
-            <CardDescription>Sign in to your account to continue</CardDescription>
+            <CardTitle>{t('auth.welcomeBack') || 'Welcome back'}</CardTitle>
+            <CardDescription>{t('auth.signInDesc') || 'Sign in to your account to continue'}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -179,7 +179,7 @@ function LoginContent() {
                   disabled={loading}
                 >
                   {ProviderIcons.google}
-                  <span className="ml-2">Continue with Google</span>
+                  <span className="ml-2">{t('login.continueWithGoogle') || 'Continue with Google'}</span>
                 </Button>
               )}
               {providers?.facebook && (
@@ -190,14 +190,14 @@ function LoginContent() {
                   disabled={loading}
                 >
                   {ProviderIcons.facebook}
-                  <span className="ml-2">Continue with Facebook</span>
+                  <span className="ml-2">{t('login.continueWithFacebook') || 'Continue with Facebook'}</span>
                 </Button>
               )}
               {providers?.twitter && (
                 <Button
                   variant="outline"
                   className="w-full h-11"
-                  onClick={() => handleOAuthLogin('twitter')}
+                  onClick={() => handleOAuthLogin('twitter')}}
                   disabled={loading}
                 >
                   {ProviderIcons.twitter}
