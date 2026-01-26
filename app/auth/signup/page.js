@@ -41,6 +41,7 @@ const ProviderIcons = {
 function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
   
   // Check for redirect params (from login page when email not verified)
   const redirectEmail = searchParams.get('email');
