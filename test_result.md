@@ -435,15 +435,18 @@ backend:
 
   - task: "NextAuth Credentials Provider"
     implemented: true
-    working: "NA"
+    working: false
     file: "app/api/auth/[...nextauth]/route.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "NextAuth Credentials Provider configured correctly with email/password authentication. Providers endpoint returns both 'email' and 'credentials' providers. CSRF token generation working. Minor Issue: Email verification enforcement not working properly - allows login before email verification when it should block with 'Please verify your email before logging in' error. The emailVerified flag check in authorize() function may need debugging. All other validation (wrong password, non-existent email) should work once verification enforcement is fixed."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE IDENTIFIED: NextAuth Credentials Provider authorize() function is NOT being executed properly. All authentication attempts (correct password, wrong password, unverified email, non-existent email) return the same response: {\"url\":\"https://auth-revamp-16.preview.emergentagent.com/api/auth/signin?csrf=true\"} with 200 status code. The authorize function contains proper validation logic including emailVerified check (line 294-296), but it's being bypassed. This means: 1) Email verification is not enforced, 2) Password validation is not working, 3) All login attempts redirect to signin page without error messages. Server logs show no authentication errors being thrown. This is a critical security issue - the entire credentials-based authentication system is non-functional."
 
 frontend:
   - task: "Chess board UI"
