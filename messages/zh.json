@@ -146,6 +146,11 @@
     "desc": "解锁奖励和专属功能！",
     "rewardDesc": "胜利 = 青铜宝箱！5连胜 = 白银 + 金币！",
     "lifetime": "终身使用权",
+    "playOnline": "VIP竞技场在线对战",
+    "orPlayBot": "或与机器人对战",
+    "activated": "VIP已激活！",
+    "welcomeArena": "欢迎来到VIP竞技场",
+    "viewTransaction": "查看交易",
     "benefits": {
       "ranked": "VIP竞技场排位赛",
       "bronze": "每次胜利获得青铜宝箱",
