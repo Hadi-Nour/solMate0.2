@@ -273,17 +273,17 @@ function LoginContent() {
             <p className="text-sm text-muted-foreground text-center">
               {t('auth.noAccount') || "Don't have an account?"}{' '}
               <Link href="/auth/signup" className="text-primary hover:underline font-medium">
-                {t('auth.signUp') || 'Sign up'}
+                {t('auth.signUp')}
               </Link>
             </p>
           </CardFooter>
         </Card>
 
         <p className="text-xs text-center text-muted-foreground mt-6">
-          By continuing, you agree to our{' '}
-          <Link href="/privacy-policy" className="underline">Privacy Policy</Link>
-          {' '}and{' '}
-          <Link href="/privacy-policy" className="underline">Terms of Service</Link>
+          {t('login.terms')}{' '}
+          <Link href="/privacy-policy" className="underline">{t('auth.privacyPolicy')}</Link>
+          {' '}{t('auth.and')}{' '}
+          <Link href="/privacy-policy" className="underline">{t('auth.termsConditions')}</Link>
         </p>
       </motion.div>
     </div>
