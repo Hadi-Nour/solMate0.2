@@ -17,8 +17,10 @@ async function connectToMongo() {
   return db;
 }
 
-// JWT Secret
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+// JWT Secret - must match across all auth endpoints
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
+);
 
 // Generate JWT token for auto-login after verification
 async function generateAuthToken(user) {
