@@ -19,7 +19,9 @@ async function connectToMongo() {
   return db;
 }
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
+);
 
 // Verify JWT and get user
 async function getAuthUser(request) {
