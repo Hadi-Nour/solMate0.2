@@ -791,6 +791,7 @@ export default function PlaySolMates() {
           onSettingsChange={setSettings}
           authToken={authToken}
           user={user}
+          onLogout={signOut}
         />
         
         <GameResultModal 
@@ -987,6 +988,7 @@ export default function PlaySolMates() {
           onSettingsChange={setSettings}
           authToken={authToken}
           user={user}
+          onLogout={signOut}
         />
       </div>
     );
