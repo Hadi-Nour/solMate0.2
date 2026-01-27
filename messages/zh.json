@@ -266,6 +266,7 @@
     "confirmPassword": "确认新密码",
     "passwordChanged": "密码修改成功！",
     "changing": "修改中...",
+    "logout": "退出登录",
     "themes": {
       "classic": "经典木质",
       "darkMarble": "深色大理石",
