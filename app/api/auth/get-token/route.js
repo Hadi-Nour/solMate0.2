@@ -17,7 +17,9 @@ async function connectToMongo() {
   return db;
 }
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
+);
 
 // Generate custom JWT token for API calls
 export async function POST(request) {
