@@ -342,22 +342,40 @@ export default function PlaySolMates() {
     }
   };
 
-  // Sign out and disconnect wallet
+  // Sign out and disconnect wallet - handles both wallet and email auth
   const signOut = useCallback(async () => {
+    // Clear local storage
     localStorage.removeItem('solmate_token');
+    localStorage.removeItem('user');
+    
+    // Clear state
     setAuthToken(null); 
     setUser(null); 
     setGameState(null); 
     setChess(null);
     
+    // Disconnect socket
+    try {
+      disconnectSocket();
+    } catch (e) {
+      console.error('Socket disconnect error:', e);
+    }
+    
     // Disconnect wallet adapter
     try {
       await disconnect();
     } catch (e) {
-      console.error('Disconnect error:', e);
+      console.error('Wallet disconnect error:', e);
     }
     
-    toast.success(t('wallet.signedOut'));
+    // Sign out from NextAuth (for email users)
+    try {
+      await nextAuthSignOut({ redirect: false });
+    } catch (e) {
+      console.error('NextAuth signout error:', e);
+    }
+    
+    toast.success(t('settings.logout') || 'Logged out successfully');
   }, [disconnect, t]);
 
   // Game functions
