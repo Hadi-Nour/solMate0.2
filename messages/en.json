@@ -262,6 +262,7 @@
     "confirmPassword": "Confirm New Password",
     "passwordChanged": "Password changed successfully!",
     "changing": "Changing...",
+    "logout": "Logout",
     "themes": {
       "classic": "Classic Wood",
       "darkMarble": "Dark Marble",
