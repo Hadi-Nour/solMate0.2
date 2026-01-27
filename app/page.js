@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { signOut as nextAuthSignOut } from 'next-auth/react';
 import { Chess } from 'chess.js';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,6 +34,7 @@ import { useSolanaWallet } from '@/components/wallet/SolanaWalletProvider';
 import { useI18n } from '@/lib/i18n/provider';
 import { useVipPayment, PAYMENT_STATES } from '@/hooks/useVipPayment';
 import { useFeedbackContext } from '@/lib/feedback/provider';
+import { disconnectSocket } from '@/lib/socket/client';
 
 // Dynamic imports for online components
 const MatchmakingScreen = dynamic(() => import('@/components/game/MatchmakingScreen'), { ssr: false });
