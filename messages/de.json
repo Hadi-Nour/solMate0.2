@@ -266,6 +266,7 @@
     "confirmPassword": "Neues Passwort bestätigen",
     "passwordChanged": "Passwort erfolgreich geändert!",
     "changing": "Ändern...",
+    "logout": "Abmelden",
     "themes": {
       "classic": "Klassisches Holz",
       "darkMarble": "Dunkler Marmor",
