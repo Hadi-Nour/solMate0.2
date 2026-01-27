@@ -345,6 +345,26 @@ export default function SettingsModal({
               )}
             </>
           )}
+          
+          {/* Logout Button - visible when logged in */}
+          {(authToken || user) && (
+            <>
+              <Separator />
+              <div className="pt-2">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => {
+                    onOpenChange(false);
+                    if (onLogout) onLogout();
+                  }}
+                >
+                  <LogOut className="w-4 h-4 me-2" />
+                  {t('settings.logout') || 'Logout'}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
