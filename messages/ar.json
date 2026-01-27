@@ -264,6 +264,9 @@
     "currentPassword": "كلمة المرور الحالية",
     "newPassword": "كلمة المرور الجديدة",
     "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "passwordChanged": "تم تغيير كلمة المرور بنجاح!",
+    "changing": "جاري التغيير...",
+    "logout": "تسجيل الخروج",
     "themes": {
       "classic": "خشب كلاسيكي",
       "darkMarble": "رخام داكن",
