@@ -21,7 +21,8 @@ export default function SettingsModal({
   settings,
   onSettingsChange,
   authToken,
-  user
+  user,
+  onLogout
 }) {
   const { t, locale, setLocale, direction } = useI18n();
   const feedback = useFeedbackContext();
