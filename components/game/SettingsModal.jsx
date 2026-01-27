@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Volume2, VolumeX, Vibrate, Eye, Palette, Globe, Volume1, Lock, Loader2, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
+import { Volume2, VolumeX, Vibrate, Eye, Palette, Globe, Volume1, Lock, Loader2, CheckCircle2, AlertCircle, ChevronRight, LogOut } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useFeedbackContext } from '@/lib/feedback/provider';
 import { locales, languageNames } from '@/lib/i18n/config';
