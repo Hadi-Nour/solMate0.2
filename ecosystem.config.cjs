@@ -1,24 +1,18 @@
-// PM2 Configuration for PlaySolMates
-// Usage: pm2 start ecosystem.config.cjs
+const dotenv = require("dotenv");
+const parsed = dotenv.config({ path: "/var/www/playsolmates/.env" }).parsed || {};
 
 module.exports = {
-  apps: [{
-    name: 'playsolmates',
-    script: 'server.mjs',
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000
+  apps: [
+    {
+      name: "playsolmates",
+      cwd: "/var/www/playsolmates",
+      script: "/usr/bin/node",
+      args: "server.mjs",
+      env: {
+        ...parsed,
+        NODE_ENV: "production",
+        PORT: parsed.PORT || "3000",
+      },
     },
-    error_file: './logs/err.log',
-    out_file: './logs/out.log',
-    log_file: './logs/combined.log',
-    time: true,
-    kill_timeout: 5000,
-    wait_ready: true,
-    listen_timeout: 10000
-  }]
+  ],
 };

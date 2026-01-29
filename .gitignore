@@ -77,3 +77,6 @@ node_modules/@next/swc-linux-arm64-gnu/next-swc.linux-arm64-gnu.node
 # Environment files
 *.env
 *.env.*
+*.bak_*
+_backup_*
+logs/

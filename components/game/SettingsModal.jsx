@@ -354,9 +354,12 @@ export default function SettingsModal({
                 <Button
                   variant="destructive"
                   className="w-full"
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     onOpenChange(false);
-                    if (onLogout) onLogout();
+                    window.location.href = '/auth/login?logout=1';
                   }}
                 >
                   <LogOut className="w-4 h-4 me-2" />

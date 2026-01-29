@@ -188,6 +188,31 @@ export default function PlaySolMates() {
     }
   }, []);
 
+
+  // Auto-connect Socket.IO once authToken is available (singleton)
+  useEffect(() => {
+    let cancelled = false;
+
+    async function ensureSocket() {
+      if (!authToken) return;
+      try {
+        const { connectSocket } = await import('@/lib/socket/client');
+        const s = connectSocket(authToken);
+        // Optional: store on window for debugging
+        if (!cancelled) {
+          // no-op; connectSocket already stores singleton internally
+        }
+      } catch (e) {
+        console.error('[Socket] Failed to init:', e?.message || e);
+      }
+    }
+
+    ensureSocket();
+
+    return () => {
+      cancelled = true
+    };
+  }, [authToken]);
   // Save settings
   useEffect(() => {
     localStorage.setItem('solmate_settings', JSON.stringify(settings));
@@ -343,7 +368,20 @@ export default function PlaySolMates() {
   };
 
   // Sign out and disconnect wallet - handles both wallet and email auth
+  const router = useRouter();
+
   const signOut = useCallback(async () => {
+    // Server logout: delete cookie solmate_session
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
+    } catch (e) {
+      console.error("Logout API failed:", e);
+    }
+
     // Clear local storage
     localStorage.removeItem('solmate_token');
     localStorage.removeItem('user');
@@ -376,6 +414,8 @@ export default function PlaySolMates() {
     }
     
     toast.success(t('settings.logout') || 'Logged out successfully');
+
+    router.replace('/auth/login');
   }, [disconnect, t]);
 
   // Game functions
@@ -1854,11 +1894,17 @@ export default function PlaySolMates() {
                             setGeneratedCode(data.code);
                             toast.success(t('play.codeCreated') || 'Invite code created!');
                             // Now connect to socket and create room
-                            const { connectSocket } = await import('@/lib/socket/client');
-                            const socket = connectSocket(authToken);
+                            const { getSocket } = await import('@/lib/socket/client');
+                            const socket = getSocket();
+                          if (!socket || !socket.connected) {
+                            toast.error('Socket not ready yet. Please try again in 2 seconds.');
+                            setPrivateMatchWaiting(false);
+                            return;
+                           }
+
                             
                             // Listen for match found
-                            socket.on('match:found', ({ matchId, yourColor, opponent, match }) => {
+                            socket.off('match:found').on('match:found', ({ matchId, yourColor, opponent, match }) => {
                               toast.success(t('play.friendJoined') || 'Friend joined! Starting match...');
                               setShowPrivateMatchDialog(false);
                               setGeneratedCode('');
@@ -1866,7 +1912,7 @@ export default function PlaySolMates() {
                               handleMatchFound({ matchId, yourColor, opponent, match });
                             });
                             
-                            socket.on('error', ({ message }) => {
+                            socket.off('error').on('error', ({ message }) => {
                               toast.error(message);
                             });
                             
@@ -2003,11 +2049,16 @@ export default function PlaySolMates() {
                       }
 
                       // Connect to socket and join room
-                      const { connectSocket } = await import('@/lib/socket/client');
-                      const socket = connectSocket(authToken);
-                      
+                      const { getSocket } = await import('@/lib/socket/client');
+                      const socket = getSocket();
+                      if (!socket || !socket.connected) {
+                       toast.error('Socket not ready yet. Please try again in 2 seconds.');
+                       setPrivateMatchWaiting(false);
+                       return;
+                      }
+
                       // Listen for match found
-                      socket.on('match:found', ({ matchId, yourColor, opponent, match }) => {
+                      socket.off('match:found').on('match:found', ({ matchId, yourColor, opponent, match }) => {
                         toast.success('Match started!');
                         setShowPrivateMatchDialog(false);
                         setJoinCode('');
@@ -2015,7 +2066,7 @@ export default function PlaySolMates() {
                         handleMatchFound({ matchId, yourColor, opponent, match });
                       });
                       
-                      socket.on('error', ({ message }) => {
+                      socket.off('error').on('error', ({ message }) => {
                         toast.error(message);
                         setPrivateMatchWaiting(false);
                       });

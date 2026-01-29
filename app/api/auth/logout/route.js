@@ -1,11 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-// CORS Helper
 function handleCORS(response) {
-  response.headers.set('Access-Control-Allow-Origin', process.env.CORS_ORIGINS || '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set("Access-Control-Allow-Origin", process.env.CORS_ORIGINS || "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  response.headers.set("Access-Control-Allow-Credentials", "true");
   return response;
 }
 
@@ -14,8 +13,30 @@ export async function OPTIONS() {
 }
 
 export async function POST() {
-  console.log('[Auth/Logout] Logging out user');
-  const response = NextResponse.json({ success: true });
-  response.cookies.delete('solmate_session');
-  return handleCORS(response);
+  const res = NextResponse.json({ success: true });
+
+  // حذف الكوكي بشكل مؤكد
+  res.cookies.set({
+    name: "solmate_session",
+    value: "",
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+
+  res.cookies.set("solmate_session", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    expires: new Date(0),
+  });
+
+  return handleCORS(res);
+}
+
+export async function GET() {
+  return POST();
 }

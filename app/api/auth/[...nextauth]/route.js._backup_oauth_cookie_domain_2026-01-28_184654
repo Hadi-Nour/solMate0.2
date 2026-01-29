@@ -96,48 +96,6 @@ export const authOptions = {
     ] : []),
   ],
 
-  cookies: {
-    sessionToken: {
-      name: "__Secure-next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
-    },
-    callbackUrl: {
-      name: "__Secure-next-auth.callback-url",
-      options: {
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
-    },
-    csrfToken: {
-      name: "__Secure-next-auth.csrf-token",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
-    },
-    state: {
-      name: "__Secure-next-auth.state",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
-    },
-  },
-
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -151,9 +109,6 @@ export const authOptions = {
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log("[OAUTH signIn] provider=", account?.provider, "email=", user?.email, "id=", account?.providerAccountId);
-      console.log("[OAUTH signIn] profile keys=", profile ? Object.keys(profile) : null);
-
       const db = await connectToMongo();
       const email = user.email?.toLowerCase();
       
@@ -224,38 +179,6 @@ export const authOptions = {
         session.user.isVip = token.isVip;
       }
       return session;
-    },
-  },
-  cookies: {
-    sessionToken: {
-      name: "__Secure-next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
-    },
-    state: {
-      name: "__Secure-next-auth.state",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
-    },
-    pkceCodeVerifier: {
-      name: "__Secure-next-auth.pkce.code_verifier",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-        domain: ".playsolmates.app",
-      },
     },
   },
 

@@ -50,6 +50,21 @@ function LoginContent() {
   const errorParam = searchParams.get('error');
 
   useEffect(() => {
+    // Logout trigger: /auth/login?logout=1
+    if (searchParams.get('logout') === '1') {
+      (async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        } catch (e) {
+          console.error('Logout API failed:', e);
+        }
+        try {
+          localStorage.removeItem('solmate_token');
+          localStorage.removeItem('user');
+        } catch (e) {}
+      })();
+    }
+
     getProviders().then(setProviders);
     
     if (errorParam) {

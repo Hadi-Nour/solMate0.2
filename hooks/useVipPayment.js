@@ -172,6 +172,7 @@ export function useVipPayment({ wallet, signTransaction, signAndSendTransaction,
       const developerPubkey = new PublicKey(config.developerWallet);
       const usdcMintPubkey = new PublicKey(config.usdcMint);
 
+
       setPaymentState(PAYMENT_STATES.CHECKING_BALANCE);
 
       // Get Associated Token Accounts
@@ -204,25 +205,30 @@ export function useVipPayment({ wallet, signTransaction, signAndSendTransaction,
         payerAtaExists = true;
         payerBalance = BigInt(payerAccount.amount.toString());
       } catch (e) {
-        if (e.message.includes('Timeout')) throw e;
-        // ATA doesn't exist
+     if (e.message.includes('Timeout')) throw e;
+
+       // ⚠️ For debugging: if balance check fails, don't block wallet popup
+       console.warn('[VIP] Could not fetch payer USDC ATA/balance, continuing without pre-check:', e?.message || e);
+       payerAtaExists = true; // assume exists so we proceed to wallet prompt
+       payerBalance = BigInt(0);
       }
 
-      if (!payerAtaExists) {
-        setErrorMessage('You do not have a USDC token account. Please add USDC to your wallet first.');
-        setPaymentState(PAYMENT_STATES.ERROR);
-        return;
-      }
 
-      if (payerBalance < config.vipPriceRaw) {
-        const balanceUsdc = Number(payerBalance) / Math.pow(10, USDC_DECIMALS);
-        setErrorMessage(
-          `Insufficient USDC balance. You have ${balanceUsdc.toFixed(2)} USDC, ` +
-          `but need ${config.vipPriceUsdc.toFixed(2)} USDC.`
-        );
-        setPaymentState(PAYMENT_STATES.ERROR);
-        return;
-      }
+  //    if (!payerAtaExists) {
+  //      setErrorMessage('You do not have a USDC token account. Please add USDC to your wallet first.');
+  //      setPaymentState(PAYMENT_STATES.ERROR);
+  //      return;
+  //    }
+
+  //    if (payerBalance < config.vipPriceRaw) {
+  //      const balanceUsdc = Number(payerBalance) / Math.pow(10, USDC_DECIMALS);
+  //      setErrorMessage(
+  //        `Insufficient USDC balance. You have ${balanceUsdc.toFixed(2)} USDC, ` +
+  //        `but need ${config.vipPriceUsdc.toFixed(2)} USDC.`
+  //      );
+  //      setPaymentState(PAYMENT_STATES.ERROR);
+  //      return;
+  //    }
 
       // Build the transaction
       const transaction = new Transaction();

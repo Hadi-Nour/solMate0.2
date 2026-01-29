@@ -1,26 +1,26 @@
-import { createServer } from 'http';
-import { parse } from 'url';
-import next from 'next';
-import { initializeSocket } from './lib/socket/server.js';
+import next from "next";
+import { createServer } from "http";
+import { initializeSocket } from "./lib/socket/server.js";
 
-const dev = process.env.NODE_ENV !== 'production';
-const hostname = '0.0.0.0';
-const port = parseInt(process.env.PORT || '3000', 10);
+const port = parseInt(process.env.PORT || "3000", 10);
+const hostname = "0.0.0.0";
+const dev = false;
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
-  const server = createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
-  });
+await app.prepare();
 
-  // Initialize Socket.io
-  const io = initializeSocket(server);
-  console.log('Socket.io initialized');
+// Create server WITHOUT handler first
+const server = createServer();
 
-  server.listen(port, hostname, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
-  });
+// 1) Attach Socket.IO FIRST (must get request listener priority)
+initializeSocket(server);
+
+// 2) Then pass all HTTP requests to Next
+server.on("request", (req, res) => handle(req, res));
+
+server.listen(port, hostname, () => {
+  console.log(`[server] Ready on http://${hostname}:${port}`);
+  console.log(`[socket] Listening on path /api/socket`);
 });
