@@ -108,9 +108,9 @@ export function SolanaWalletProvider({ children }) {
   const [mwaModule, setMwaModule] = useState(null);
   
   // Network configuration
-  const network = useMemo(() => {
-    return process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet';
-  }, []);
+const network = useMemo(() => {
+  return process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'mainnet-beta';
+}, []);
   
   const endpoint = useMemo(() => {
     const customRpc = process.env.NEXT_PUBLIC_RPC_URL;

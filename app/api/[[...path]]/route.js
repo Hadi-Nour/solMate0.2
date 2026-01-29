@@ -8,6 +8,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getBotMove, validateMove, getGameStatus } from '@/lib/chess/engine';
 import { openChest, getAllCosmetics, CHEST_DROP_RATES } from '@/lib/cosmetics';
+import { getAssociatedTokenAddress, getAssociatedTokenAddressSync } from '@solana/spl-token';
 
 // Constants - All values from environment (no hardcoded fallbacks in production)
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -493,7 +494,7 @@ async function handleRoute(request, { params }) {
         ));
       }
 
-      console.log(`[Payment] Processing VIP payment for ${session.wallet}, sig: ${signature.slice(0,16)}...`);
+      console.log(`[Payment] Processing VIP payment for , sig: `);
 
       // Check if user already has VIP
       const existingUser = await db.collection('users').findOne({ wallet: session.wallet });
@@ -572,15 +573,26 @@ async function handleRoute(request, { params }) {
                            tx.transaction.message.accountKeys ||
                            [];
         
+        const developerATA = await getAssociatedTokenAddress(
+         new PublicKey(USDC_MINT),
+         new PublicKey(DEVELOPER_WALLET),
+         false
+        );
+         const developerATA58 = developerATA.toBase58();
+
         // Find the token balance changes for our USDC mint
         for (const postBalance of postTokenBalances) {
           // Check if this is the correct mint
           if (postBalance.mint !== USDC_MINT) continue;
           mintVerified = true;
-          
-          // Check if the owner is the developer wallet
-          if (postBalance.owner !== DEVELOPER_WALLET) continue;
-          recipientVerified = true;
+
+          const tokenAccount = accountKeys[postBalance.accountIndex];
+          const tokenAccount58 = typeof tokenAccount === 'string'
+            ? tokenAccount
+            : tokenAccount?.toBase58?.();
+
+            if (tokenAccount58 !== developerATA58) continue;
+            recipientVerified = true;
           
           // Find the corresponding pre-balance
           const preBalance = preTokenBalances.find(
