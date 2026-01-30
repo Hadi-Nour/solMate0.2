@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 import { SignJWT } from 'jose';
-import { sendEmail } from '@/lib/email/transporter';
+import { sendEmail, emailTemplates } from '@/lib/email/transporter';
 
 // MongoDB connection
 let client;
@@ -167,8 +167,8 @@ Best regards,
 The PlaySolMates Team
 `;
 
-    const r = await sendEmail({ to: user.email, subject, html, text });
-    console.log(`[WelcomeEmail] to=${user.email} success=${!!r?.success}`);
+    const tpl = emailTemplates.welcome(user.displayName || user.email);
+    const r = await sendEmail({ to: user.email, subject: tpl.subject, html: tpl.html, text: tpl.text });console.log(`[WelcomeEmail] to=${user.email} success=${!!r?.success}`);
   } catch (e) {
     console.warn('[WelcomeEmail] failed:', e?.message || e);
   }

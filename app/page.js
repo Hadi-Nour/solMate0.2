@@ -59,6 +59,7 @@ export default function PlaySolMates() {
   const [user, setUser] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
+    const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   
   // Derived wallet address
   const walletAddress = publicKey?.toString() || '';
@@ -249,6 +250,20 @@ export default function PlaySolMates() {
       console.error('[Auth] Network error fetching user:', e.message, '- keeping session'); 
     }
   };
+
+    // Show Welcome popup once per user/device (after login)
+    useEffect(() => {
+      if (!user) return;
+
+      const uid = user?.id || user?._id || user?.email || user?.wallet || user?.publicKey || 'unknown';
+      const key = `psm_welcome_seen_${uid}`;
+
+      if (typeof window === 'undefined') return;
+      if (localStorage.getItem(key) === '1') return;
+
+      setShowWelcomeDialog(true);
+      localStorage.setItem(key, '1');
+    }, [user]);
 
   // Wallet connection handler (opens modal)
   const connectWallet = () => {
@@ -1077,6 +1092,54 @@ export default function PlaySolMates() {
           </div>
         </div>
       </header>
+
+
+        {/* Welcome Dialog (one-time) */}
+        <Dialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
+          <DialogContent className="sm:max-w-[520px] border-0 bg-gradient-to-br from-[#1a1a2e] to-[#0f0f23] text-white shadow-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Welcome to PlaySolMates 🎉
+              </DialogTitle>
+              <DialogDescription className="text-zinc-300">
+                Thanks for downloading the game and joining our community.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="rounded-xl border border-[#2d2d44] bg-[#0f0f23] p-4">
+                <p className="text-xs uppercase tracking-wider text-zinc-400 mb-2">VIP (Important Note)</p>
+                <p className="text-sm leading-6 text-zinc-200">
+                  The <strong>VIP</strong> section is still under development and not finished yet.
+                  Please <strong>do not subscribe</strong> at the moment.
+                  If you do subscribe, it will be considered a <strong>donation</strong> to support development.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-[#2d2d44] bg-[#0f0f23] p-4 space-y-2">
+                <p className="text-sm text-zinc-200">
+                  Issues / questions: <a className="text-blue-300 hover:underline" href="mailto:support@playsolmates.app">support@playsolmates.app</a>
+                </p>
+                <p className="text-sm text-zinc-200">
+                  Suggestions / ideas: <a className="text-blue-300 hover:underline" href="mailto:info@playsolmates.app">info@playsolmates.app</a>
+                </p>
+                <p className="text-xs text-zinc-400">Your feedback matters to us.</p>
+              </div>
+            </div>
+
+            <DialogFooter className="mt-2">
+              <Button
+                onClick={() => setShowWelcomeDialog(false)}
+                className="solana-gradient text-black shadow-lg w-full"
+              >
+                🎮 Start Playing
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
 
       {/* Main Content */}
       <main className="container py-4 pb-24">
