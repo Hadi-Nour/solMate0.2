@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
+import { sendEmail } from '@/lib/email/transporter';
 
 let client;
 let db;
@@ -64,6 +65,55 @@ export async function GET(request) {
         }
       }
     );
+
+// ---- SEND WELCOME EMAIL (ONCE) ----
+try {
+  await sendEmail({
+    to: user.email,
+    subject: 'Welcome to PlaySolMates ♟️',
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6">
+        <p><b>Hello ${user.displayName || 'Player'},</b></p>
+
+        <p>Welcome to <b>PlaySolMates</b> 👋<br/>
+        We’re happy to have you join our community.</p>
+
+        <p>Thank you for downloading the game and creating your account.<br/>
+        We’re actively working on improving PlaySolMates and adding new features to deliver the best possible experience.</p>
+
+        <p><b>Please note:</b><br/>
+        The <b>VIP section is still under development</b> and is not yet finalized.<br/>
+        If you choose to subscribe at this stage, it will be considered a <b>voluntary contribution</b> to support the continued development of the game and help us make PlaySolMates better for everyone.</p>
+
+        <p>If you experience any issues or problems, please contact us at:<br/>
+        <b>support@playsolmates.app</b></p>
+
+        <p>If you have suggestions, ideas, or feedback, contact us at:<br/>
+        <b>info@playsolmates.app</b></p>
+
+        <p>Your opinion truly matters to us.</p>
+
+        <p>Best regards,<br/>
+        <b>The PlaySolMates Team</b></p>
+      </div>
+    `,
+    text: `Hello ${user.displayName || 'Player'},
+
+Welcome to PlaySolMates!
+Thank you for downloading the game.
+
+VIP is still under development. Any subscription is considered a voluntary contribution.
+
+Support: support@playsolmates.app
+Suggestions: info@playsolmates.app
+
+The PlaySolMates Team
+`
+  });
+} catch (e) {
+  console.warn('[WelcomeEmail] failed:', e.message);
+}
+
 
     return NextResponse.json({
       success: true,
