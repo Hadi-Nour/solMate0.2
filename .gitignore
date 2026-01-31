@@ -80,3 +80,22 @@ node_modules/@next/swc-linux-arm64-gnu/next-swc.linux-arm64-gnu.node
 *.bak_*
 _backup_*
 logs/
+
+# --- Android / TWA ---
+android.keystore
+*.apk
+*.aab
+*.idsig
+.gradle/
+gradle/
+build/
+app/build/
+app/src/
+
+# --- TWA / Solana ---
+twa-manifest.json
+manifest-checksum.txt
+store_icon.png
+
+# --- Well-known ---
+public/.well-known/

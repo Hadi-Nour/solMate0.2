@@ -47,6 +47,11 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["games", "entertainment"],
-  "prefer_related_applications": false
+  "categories": [
+    "games",
+    "entertainment"
+  ],
+  "prefer_related_applications": false,
+  "privacy_policy_url": "https://playsolmates.app/privacy",
+  "terms_of_service_url": "https://playsolmates.app/terms"
 }
