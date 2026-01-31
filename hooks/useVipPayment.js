@@ -152,6 +152,18 @@ export function useVipPayment({ wallet, signTransaction, signAndSendTransaction,
       setPaymentState(PAYMENT_STATES.ERROR);
       return;
     }
+      
+      // Guard: prevent paying from the developer wallet (self-payment)
+      try {
+        const dev = (config.developerWallet || '').trim();
+        const w = (wallet?.toString ? wallet.toString() : String(wallet || '')).trim();
+        if (dev && w && dev === w) {
+          setErrorMessage('You are connected with the developer wallet. Please switch to a different wallet to purchase VIP.');
+          setPaymentState(PAYMENT_STATES.ERROR);
+          return;
+        }
+      } catch (e) {}
+
 
     try {
       setPaymentState(PAYMENT_STATES.PREPARING);
@@ -170,7 +182,9 @@ export function useVipPayment({ wallet, signTransaction, signAndSendTransaction,
 // await verifyNetwork(connection);
 
       // Parse public keys
-      const payerPubkey = new PublicKey(wallet.toString());
+      console.log("[VIP] wallet raw:", wallet);
+console.log("[VIP] wallet.toString():", (wallet?.toString?.()||""));
+const payerPubkey = new PublicKey(wallet.toString());
       const developerPubkey = new PublicKey(config.developerWallet);
       const usdcMintPubkey = new PublicKey(config.usdcMint);
 

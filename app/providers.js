@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useCallback } from 'react';
+import React, {useMemo, useCallback, useEffect} from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
@@ -48,6 +48,17 @@ export function Providers({ children }) {
 
   const onError = useCallback((error) => {
     console.error('Wallet error:', error);
+  }, []);
+
+  // Register PWA Service Worker (client-side)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((reg) => console.log('[PWA] Service Worker registered:', reg.scope))
+      .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
   }, []);
 
   return (

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import next from "next";
 import { createServer } from "http";
 import { initializeSocket } from "./lib/socket/server.js";

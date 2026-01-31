@@ -47,8 +47,38 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
 );
 
-async function createToken(wallet) {
-  return await new SignJWT({ wallet })
+
+  // Normalize wallet address coming from different clients:
+  // - base58 (standard Solana)
+  // - base64/base64url (some mobile / MWA clients like Seeker)
+  function normalizeWallet(walletInput) {
+    if (!walletInput || typeof walletInput !== 'string') {
+      throw new Error('Invalid wallet');
+    }
+    const w = walletInput.trim();
+
+    // base58
+    try {
+      const pk = bs58.decode(w);
+      if (pk.length === 32) return { walletBase58: w, publicKeyBytes: pk, format: 'base58' };
+    } catch (e) {}
+
+    // base64/base64url
+    let b64 = w.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4;
+    if (pad === 2) b64 += '==';
+    else if (pad === 3) b64 += '=';
+    else if (pad === 1) throw new Error('Invalid base64 length');
+
+    const buf = Buffer.from(b64, 'base64');
+    const pk = new Uint8Array(buf);
+    if (pk.length !== 32) throw new Error('Invalid public key length (base64)');
+
+    return { walletBase58: bs58.encode(pk), publicKeyBytes: pk, format: 'base64' };
+  }
+
+async function createToken(walletBase58) {
+  return await new SignJWT({ wallet: walletBase58 })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
@@ -68,24 +98,27 @@ function generateFriendCode() {
 export async function POST(request) {
   try {
     const { wallet, nonce, signature } = await request.json();
-    
-    if (!wallet || !nonce || !signature) {
-      return handleCORS(NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      ));
-    }
 
-    const db = await connectToMongo();
+      if (!wallet || !nonce || !signature) {
+        return handleCORS(NextResponse.json(
+          { error: 'Missing required fields' },
+          { status: 400 }
+        ));
+      }
 
-    // Get nonce record
-    const nonceRecord = await db.collection('nonces').findOne({
-      nonce,
-      wallet,
-      used: false
-    });
+      const nw = normalizeWallet(wallet);
+      const walletBase58 = nw.walletBase58;
+      const publicKeyBytes = nw.publicKeyBytes;
+      console.log('[Wallet Verify] Wallet format:', nw.format, 'inputPreview:', String(wallet).substring(0, 16) + '...', 'base58:', walletBase58.substring(0, 8) + '...');
 
-    if (!nonceRecord) {
+      const db = await connectToMongo();
+      // Get nonce record
+      const nonceRecord = await db.collection('nonces').findOne({
+        nonce,
+        wallet: walletBase58,
+        used: false
+      });
+      if (!nonceRecord) {
       return handleCORS(NextResponse.json(
         { error: 'Invalid or expired nonce' },
         { status: 401 }
@@ -109,53 +142,62 @@ export async function POST(request) {
       
       // Handle multiple signature formats from different wallets
       if (typeof signature === 'string') {
-        // Preview first 20 chars for debugging (safe, no secrets)
-        console.log('[Wallet Verify] Signature preview:', signature.substring(0, 20) + '...');
-        
-        // Check for base64 indicators FIRST (MWA/mobile wallets use base64)
-        // Base64 may contain: + / = which are NOT valid base58 characters
-        // Base58 alphabet: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
-        const hasBase64Chars = /[+/=]/.test(signature);
-        const looksLikeBase64 = signature.length % 4 === 0 && /^[A-Za-z0-9+/]+=*$/.test(signature);
-        
-        console.log('[Wallet Verify] Has base64 chars (+/=):', hasBase64Chars);
-        console.log('[Wallet Verify] Looks like base64:', looksLikeBase64);
-        
-        if (hasBase64Chars || looksLikeBase64) {
-          // Decode as base64 (standard or URL-safe)
+          // Robust decoding: supports base64, base64url (no padding), base58, hex
+          console.log('[Wallet Verify] Signature preview:', signature.substring(0, 20) + '...');
+
+          const decodeBase64Any = (sig) => {
+            // Convert base64url -> base64 and pad to length % 4 == 0
+            let b64 = sig.replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4;
+            if (pad === 2) b64 += '==';
+            else if (pad === 3) b64 += '=';
+            else if (pad === 1) throw new Error('Invalid base64/base64url length');
+            const buf = Buffer.from(b64, 'base64');
+            return new Uint8Array(buf);
+          };
+
+          const decodeHex = (sig) => {
+            const hex = sig.startsWith('0x') ? sig.slice(2) : sig;
+            if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) {
+              throw new Error('Invalid hex');
+            }
+            const out = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+              out[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+            }
+            return out;
+          };
+
+          const hasB64UrlChars = /[-_]/.test(signature);
+          const hasB64Chars = /[+/=]/.test(signature);
+          const b64urlCharset = /^[A-Za-z0-9\-_]+$/.test(signature);
+          const mod4 = signature.length % 4;
+          const b64urlLikely = b64urlCharset && (mod4 === 0 || mod4 === 2 || mod4 === 3);
+
           try {
-            // Handle URL-safe base64 (replace - with + and _ with /)
-            const standardBase64 = signature.replace(/-/g, '+').replace(/_/g, '/');
-            signatureBytes = Uint8Array.from(atob(standardBase64), c => c.charCodeAt(0));
-            console.log('[Wallet Verify] Decoded as base64, length:', signatureBytes.length);
-          } catch (e64) {
-            console.error('[Wallet Verify] Base64 decode failed:', e64.message);
-            throw new Error('Failed to decode base64 signature');
-          }
-        } else {
-          // Try base58 (Phantom desktop typically uses this)
-          try {
-            signatureBytes = bs58.decode(signature);
-            console.log('[Wallet Verify] Decoded as base58, length:', signatureBytes.length);
-          } catch (e58) {
-            // Fallback: try base64 anyway
+            if (hasB64Chars || hasB64UrlChars || b64urlLikely) {
+              signatureBytes = decodeBase64Any(signature);
+              console.log('[Wallet Verify] Decoded as base64/base64url, length:', signatureBytes.length);
+            } else {
+              signatureBytes = bs58.decode(signature);
+              console.log('[Wallet Verify] Decoded as base58, length:', signatureBytes.length);
+            }
+          } catch (e1) {
+            // Fallback order: base64/base64url -> base58 -> hex
             try {
-              signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
-              console.log('[Wallet Verify] Fallback decoded as base64, length:', signatureBytes.length);
-            } catch (e64) {
-              // Last resort: try hex
+              signatureBytes = decodeBase64Any(signature);
+              console.log('[Wallet Verify] Fallback decoded as base64/base64url, length:', signatureBytes.length);
+            } catch (e2) {
               try {
-                const hex = signature.startsWith('0x') ? signature.slice(2) : signature;
-                signatureBytes = Uint8Array.from(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-                console.log('[Wallet Verify] Decoded as hex, length:', signatureBytes.length);
-              } catch (eHex) {
-                console.error('[Wallet Verify] All decode attempts failed');
-                throw new Error('Could not decode signature - tried base58, base64, hex');
+                signatureBytes = bs58.decode(signature);
+                console.log('[Wallet Verify] Fallback decoded as base58, length:', signatureBytes.length);
+              } catch (e3) {
+                signatureBytes = decodeHex(signature);
+                console.log('[Wallet Verify] Fallback decoded as hex, length:', signatureBytes.length);
               }
             }
           }
-        }
-      } else if (Array.isArray(signature)) {
+        } else if (Array.isArray(signature)) {
         // Handle array format (some wallets send as JSON array)
         signatureBytes = new Uint8Array(signature);
         console.log('[Wallet Verify] Converted from array, length:', signatureBytes.length);
@@ -180,8 +222,7 @@ export async function POST(request) {
         ));
       }
       
-      const publicKeyBytes = bs58.decode(wallet);
-      console.log('[Wallet Verify] Public key length:', publicKeyBytes.length);
+            console.log('[Wallet Verify] Public key length:', publicKeyBytes.length);
       
       const isValid = nacl.sign.detached.verify(message, signatureBytes, publicKeyBytes);
       console.log('[Wallet Verify] Verification result:', isValid);
@@ -207,12 +248,12 @@ export async function POST(request) {
     );
 
     // Find or create user
-    let user = await db.collection('users').findOne({ wallet });
+    let user = await db.collection('users').findOne({ wallet: walletBase58 });
     
     if (!user) {
       const newUser = {
         id: uuidv4(),
-        wallet,
+        wallet: walletBase58,
         displayName: null,
         friendCode: generateFriendCode(),
         isVip: false,
@@ -250,13 +291,13 @@ export async function POST(request) {
       user = newUser;
     } else {
       await db.collection('users').updateOne(
-        { wallet },
+        { wallet: walletBase58 },
         { $set: { lastLoginAt: new Date() } }
       );
     }
 
     // Create JWT
-    const token = await createToken(wallet);
+    const token = await createToken(walletBase58);
 
     // Return user data (without sensitive fields)
     const safeUser = {
@@ -274,11 +315,23 @@ export async function POST(request) {
       authProvider: user.authProvider || 'wallet'
     };
 
-    return handleCORS(NextResponse.json({
-      success: true,
-      token,
-      user: safeUser
-    }));
+  const response = NextResponse.json({
+    success: true,
+    token,
+    user: safeUser
+  });
+
+// 🔐 Persist wallet login session (IMPORTANT)
+response.cookies.set('solmate_session', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax',
+  maxAge: 60 * 60 * 24 * 7, // 7 days
+  path: '/',
+  domain: '.playsolmates.app'
+});
+
+return handleCORS(response);
 
   } catch (error) {
     console.error('[Wallet Verify] Error:', error);

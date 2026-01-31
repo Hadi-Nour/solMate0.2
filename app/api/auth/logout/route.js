@@ -23,6 +23,7 @@ export async function POST() {
     secure: true,
     sameSite: "lax",
     path: "/",
+      domain: ".playsolmates.app",
     maxAge: 0,
   });
 
@@ -31,6 +32,7 @@ export async function POST() {
     secure: true,
     sameSite: "lax",
     path: "/",
+      domain: ".playsolmates.app",
     expires: new Date(0),
   });
 

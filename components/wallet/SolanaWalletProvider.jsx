@@ -189,7 +189,7 @@ const network = useMemo(() => {
           try {
             const resp = await provider.connect({ onlyIfTrusted: true });
             if (resp.publicKey) {
-              setPublicKey(resp.publicKey);
+              setPublicKey(createPublicKey(resp.publicKey?.toString?.() || resp.publicKey));
               setConnected(true);
               setWallet(provider);
               setWalletName(provider.isPhantom ? 'Phantom' : 'Wallet');
@@ -208,17 +208,43 @@ const network = useMemo(() => {
 
   // Helper to create PublicKey-like object
   const createPublicKey = (address) => {
-    return {
-      toString: () => address,
-      toBase58: () => address,
-      toBytes: () => {
-        try {
-          return new PublicKey(address).toBytes();
-        } catch {
-          return new Uint8Array(32);
-        }
-      },
-    };
+  try {
+    if (!address) return null;
+
+    // Already a PublicKey
+    if (address instanceof PublicKey) return address;
+
+    // Uint8Array or bytes
+    if (address instanceof Uint8Array) return new PublicKey(address);
+    if (address?.toBytes && typeof address.toBytes === "function") {
+      const b = address.toBytes();
+      if (b instanceof Uint8Array) return new PublicKey(b);
+    }
+
+    const str = (typeof address === "string")
+      ? address
+      : (address?.toString?.() || "");
+
+    // Base58 check (no 0,O,I,l)
+    const base58Re = /^[1-9A-HJ-NP-Za-km-z]+$/;
+    if (str && base58Re.test(str)) {
+      return new PublicKey(str);
+    }
+
+    // Base64 -> bytes(32) -> PublicKey
+    if (str && typeof str === "string") {
+      const bin = atob(str);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      if (bytes.length === 32) return new PublicKey(bytes);
+    }
+
+    // Fallback
+    return new PublicKey(str);
+  } catch (e) {
+    console.error("[Wallet] createPublicKey failed:", e);
+    throw e;
+  }
   };
 
   // Connect via Mobile Wallet Adapter
@@ -382,7 +408,7 @@ const network = useMemo(() => {
       }
       
       const resp = await provider.connect();
-      setPublicKey(resp.publicKey);
+      setPublicKey(createPublicKey(resp.publicKey?.toString?.() || resp.publicKey));
       setConnected(true);
       setWallet(provider);
       setWalletName(name);
@@ -559,7 +585,7 @@ const network = useMemo(() => {
     }
     
     if (!transaction.feePayer && publicKey) {
-      transaction.feePayer = new PublicKey(publicKey.toString());
+      transaction.feePayer = publicKey;
     }
 
     const result = await mwaModule.transact(async (mobileWallet) => {
@@ -616,7 +642,7 @@ const network = useMemo(() => {
     }
     
     if (!transaction.feePayer && publicKey) {
-      transaction.feePayer = new PublicKey(publicKey.toString());
+      transaction.feePayer = publicKey;
     }
 
     const result = await mwaModule.transact(async (mobileWallet) => {
@@ -687,19 +713,19 @@ const network = useMemo(() => {
     const solflareInstalled = !!window.solflare?.isSolflare;
     const backpackInstalled = !!window.backpack;
     
-    // On Android without injected wallet, show MWA first
-    if (android && !phantomInstalled && !solflareInstalled && !backpackInstalled) {
-      available.push({
-        id: 'mwa',
-        name: 'Mobile Wallet Adapter',
-        subtitle: 'Connect your Solana wallet app',
-        icon: '/wallets/seeker.svg',
-        installed: true,
-        recommended: true,
-        isMWA: true,
-        ready: !!mwaModule?.transact,
-      });
-    }
+      // On Android, prefer MWA when supported (keeps user inside the PWA/browser)
+      if (android && useMWA) {
+        available.push({
+          id: "mwa",
+          name: "Mobile Wallet Adapter",
+          subtitle: "Connect your Solana wallet app",
+          icon: "/wallets/seeker.svg",
+          installed: true,
+          recommended: true,
+          isMWA: true,
+          ready: !!mwaModule?.transact,
+        });
+      }
     
     // Phantom
     available.push({

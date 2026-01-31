@@ -176,18 +176,39 @@ export default function PlaySolMates() {
     toast.success(t('profile.profileUpdated'));
   }, [t]);
 
-  // Load settings from localStorage
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('solmate_settings');
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
-    const token = localStorage.getItem('solmate_token');
-    if (token) { 
-      setAuthToken(token); 
-      fetchUser(token).finally(() => setIsCheckingAuth(false));
-    } else {
-      setIsCheckingAuth(false);
-    }
-  }, []);
+    // Load settings from localStorage
+    useEffect(() => {
+      const savedSettings = localStorage.getItem('solmate_settings');
+      if (savedSettings) setSettings(JSON.parse(savedSettings));
+
+      const token = localStorage.getItem('solmate_token');
+      if (token) {
+        setAuthToken(token);
+        fetchUser(token).finally(() => setIsCheckingAuth(false));
+        return;
+      }
+
+      // Fallback: try cookie-based session (solmate_session)
+      (async () => {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.token) {
+              localStorage.setItem('solmate_token', data.token);
+              setAuthToken(data.token);
+              await fetchUser(data.token);
+            } else if (data?.user) {
+              setUser(data.user);
+            }
+          }
+        } catch (e) {
+          // ignore
+        } finally {
+          setIsCheckingAuth(false);
+        }
+      })();
+    }, []);
 
 
   // Auto-connect Socket.IO once authToken is available (singleton)
